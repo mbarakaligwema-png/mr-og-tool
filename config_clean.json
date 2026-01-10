@@ -1,0 +1,10 @@
+{
+    "get_started": true,
+    "remember_me": false,
+    "username": "",
+    "password": "",
+    "last_user": "",
+    "last_pass": "",
+    "users": {},
+    "server_url": "https://mr-og-tool.onrender.com"
+}

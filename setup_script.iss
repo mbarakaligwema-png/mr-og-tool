@@ -29,7 +29,7 @@ Source: "C:\Users\mbara\Documents\MR_OG_TOOL\dist\MR_OG_TOOL.exe"; DestDir: "{ap
 ; Include assets folder
 Source: "C:\Users\mbara\Documents\MR_OG_TOOL\assets\*"; DestDir: "{app}\assets"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; Include config (optional, maybe improved to be created on first run)
-Source: "C:\Users\mbara\Documents\MR_OG_TOOL\config.json"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\mbara\Documents\MR_OG_TOOL\config_clean.json"; DestName: "config.json"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{autoprograms}\MR_OG_TOOL"; Filename: "{app}\MR_OG_TOOL.exe"; IconFilename: "{app}\assets\logo.ico"
