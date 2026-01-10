@@ -138,6 +138,7 @@ async def delete_user(user_id: int, request: Request, db: Session = Depends(get_
     if not user or not user.is_admin:
         raise HTTPException(status_code=403, detail="Not authorized")
     
+    crud.delete_user(db, user_id)
     return RedirectResponse(url="/admin", status_code=status.HTTP_303_SEE_OTHER)
 
 @app.post("/admin/users/{user_id}/extend")

@@ -62,7 +62,7 @@ class OGServiceToolApp(ctk.CTk):
         # For now, we will update this text if passed in constructor
         
         self.user_info_label = ctk.CTkLabel(self.sidebar_frame, text=f"User: {self.username}\nExp: {self.expiry_msg}", 
-                                            font=ctk.CTkFont(size=11), text_color="#888")
+                                            font=ctk.CTkFont(size=11, weight="bold"), text_color="#FFD700")
         self.user_info_label.grid(row=2, column=0, padx=20, pady=(0, 20))
 
         # Separator Line
@@ -92,8 +92,7 @@ class OGServiceToolApp(ctk.CTk):
         self.sidebar_button_zte = self.create_sidebar_button("ZTE", command=self.show_zte)
         self.sidebar_button_zte.grid(row=9, column=0, padx=20, pady=10)
 
-        self.sidebar_button_settings = self.create_sidebar_button("SETTINGS", command=self.show_settings)
-        self.sidebar_button_settings.grid(row=10, column=0, padx=20, pady=10)
+
 
         # Status Footer (Detailed)
         self.status_bar = ctk.CTkFrame(self, height=30, corner_radius=0, fg_color="#2D2D30")
@@ -114,9 +113,7 @@ class OGServiceToolApp(ctk.CTk):
         # Separator
         ctk.CTkLabel(self.status_bar, text="|", text_color="#555555").pack(side="left", padx=5)
 
-        # Expiry (Mock for now, can be updated if passed)
-        self.expiry_label = ctk.CTkLabel(self.status_bar, text="Expires: Lifetime", font=ctk.CTkFont(size=12), text_color="#FFD700")
-        self.expiry_label.pack(side="left", padx=10)
+
 
         # Right: Stop Button
         self.stop_btn = ctk.CTkButton(self.status_bar, text="STOP", width=80, height=22, 
@@ -214,7 +211,7 @@ class OGServiceToolApp(ctk.CTk):
     def select_frame_by_name(self, name):
         # Reset button styles
         buttons = [self.sidebar_button_dashboard, self.sidebar_button_adb, self.sidebar_button_fastboot, 
-                   self.sidebar_button_mtk, self.sidebar_button_samsung, self.sidebar_button_spd, self.sidebar_button_zte, self.sidebar_button_settings]
+                   self.sidebar_button_mtk, self.sidebar_button_samsung, self.sidebar_button_spd, self.sidebar_button_zte]
         for btn in buttons:
             if btn.cget("text") == name:
                  btn.configure(fg_color=styles.ACCENT_COLOR, text_color="white")
@@ -264,8 +261,7 @@ class OGServiceToolApp(ctk.CTk):
     def show_zte(self):
         self.select_frame_by_name("ZTE")
 
-    def show_settings(self):
-        self.select_frame_by_name("SETTINGS")
+
 
     # --- Content Populators ---
     

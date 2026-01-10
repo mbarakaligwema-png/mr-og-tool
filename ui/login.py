@@ -135,18 +135,21 @@ class LoginWindow(ctk.CTk):
         self.load_config()
 
     def load_config(self):
+        # Legacy wrapper: checks if UI exists to decide what to do
+        # Ideally we split this, but for now let's just make it safe
         self.users_db = {"admin": "admin"} # Default
         self.config_data = {}
         try:
             if os.path.exists("config.json"):
                 with open("config.json", "r") as f:
                     self.config_data = json.load(f)
+                    
                     # Load users
                     if "users" in self.config_data:
                         self.users_db.update(self.config_data["users"])
                     
-                    # Remember me
-                    if self.config_data.get("remember_me"):
+                    # Remember me - ONLY IF UI EXISTS
+                    if self.config_data.get("remember_me") and hasattr(self, 'username_entry'):
                         self.username_entry.insert(0, self.config_data.get("last_user", ""))
                         self.password_entry.insert(0, self.config_data.get("last_pass", ""))
                         self.remember_me_var.set(True)
