@@ -3,8 +3,8 @@
     "remember_me": true,
     "username": "admin",
     "password": "admin",
-    "last_user": "admin",
-    "last_pass": "admin",
+    "last_user": "buga",
+    "last_pass": "bigi",
     "users": {
         "admin": "admin"
     },
