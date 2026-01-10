@@ -134,7 +134,15 @@ async def delete_user(user_id: int, request: Request, db: Session = Depends(get_
     if not user or not user.is_admin:
         raise HTTPException(status_code=403, detail="Not authorized")
     
-    crud.delete_user(db, user_id)
+    return RedirectResponse(url="/admin", status_code=status.HTTP_303_SEE_OTHER)
+
+@app.post("/admin/users/{user_id}/extend")
+async def extend_user(user_id: int, request: Request, duration: str = Form(...), db: Session = Depends(get_db)):
+    user = get_current_user_from_cookie(request, db)
+    if not user or not user.is_admin:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    crud.extend_user_expiry(db, user_id, duration)
     return RedirectResponse(url="/admin", status_code=status.HTTP_303_SEE_OTHER)
 
 # --- API ENDPOINTS (For Desktop Tool) ---

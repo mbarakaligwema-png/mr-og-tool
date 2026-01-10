@@ -30,3 +30,27 @@ def toggle_user_active(db: Session, user_id: int):
         db.commit()
         return user
     return None
+
+def extend_user_expiry(db: Session, user_id: int, duration_type: str):
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        return None
+    
+    # Start from NOW if expired, or from current expiry if valid
+    base_date = datetime.datetime.utcnow()
+    if user.expiry_date and user.expiry_date > base_date:
+        base_date = user.expiry_date
+    
+    if duration_type == "6_hours":
+        user.expiry_date = base_date + datetime.timedelta(hours=6)
+    elif duration_type == "3_months":
+        user.expiry_date = base_date + datetime.timedelta(days=90)
+    elif duration_type == "6_months":
+        user.expiry_date = base_date + datetime.timedelta(days=180)
+    elif duration_type == "1_year":
+        user.expiry_date = base_date + datetime.timedelta(days=365)
+    elif duration_type == "lifetime":
+        user.expiry_date = None # None means lifetime
+        
+    db.commit()
+    return user

@@ -47,6 +47,7 @@
                     <th>Username</th>
                     <th>Status</th>
                     <th>Role</th>
+                    <th>Expiry</th>
                     <th>HWID</th>
                     <th>Actions</th>
                 </tr>
@@ -62,18 +63,40 @@
                         </span>
                     </td>
                     <td>{{ "Admin" if u.is_admin else "User" }}</td>
+                    <td>
+                        {{ u.expiry_date.strftime('%Y-%m-%d') if u.expiry_date else "LIFETIME" }}
+                    </td>
                     <td style="font-family: monospace; font-size: 0.9em;">{{ u.hwid if u.hwid else "-" }}</td>
                     <td>
-                        <form method="post" action="/admin/users/{{ u.id }}/toggle" style="display: inline;">
-                            <button type="submit" class="btn"
-                                style="padding: 5px 10px; font-size: 0.8rem; background-color: #555;">
-                                {{ "Block" if u.is_active else "Unblock" }}
-                            </button>
-                        </form>
-                        <form method="post" action="/admin/users/{{ u.id }}/delete" style="display: inline;">
-                            <button type="submit" class="btn btn-danger" style="padding: 5px 10px; font-size: 0.8rem;"
-                                onclick="return confirm('Are you sure?')">Del</button>
-                        </form>
+                        <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                            <!-- Toggle Block/Unblock -->
+                            <form method="post" action="/admin/users/{{ u.id }}/toggle" style="display: inline;">
+                                <button type="submit" class="btn"
+                                    style="padding: 5px 8px; font-size: 0.8rem; background-color: #555;">
+                                    {{ "Block" if u.is_active else "Unblock" }}
+                                </button>
+                            </form>
+
+                            <!-- Delete -->
+                            <form method="post" action="/admin/users/{{ u.id }}/delete" style="display: inline;">
+                                <button type="submit" class="btn btn-danger"
+                                    style="padding: 5px 8px; font-size: 0.8rem;"
+                                    onclick="return confirm('Are you sure?')">Del</button>
+                            </form>
+
+                            <!-- Extend License -->
+                            <form method="post" action="/admin/users/{{ u.id }}/extend" style="display: inline;">
+                                <select name="duration" onchange="this.form.submit()"
+                                    style="padding: 5px; border-radius: 4px; border: 1px solid #444; background: #333; color: white;">
+                                    <option value="" disabled selected>+ Extend</option>
+                                    <option value="6_hours">6 Hours</option>
+                                    <option value="3_months">3 Months</option>
+                                    <option value="6_months">6 Months</option>
+                                    <option value="1_year">1 Year</option>
+                                    <option value="lifetime">Lifetime</option>
+                                </select>
+                            </form>
+                        </div>
                     </td>
                 </tr>
                 {% endfor %}
