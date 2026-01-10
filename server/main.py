@@ -10,14 +10,16 @@ import models, database, crud, auth
 import models, database, crud, auth
 import os
 
-@app.get("/health")
-def health_check():
-    return {"status": "ok", "version": "v1.5-EXPIRY-FIXED"}
+
 
 # Init DB
 models.Base.metadata.create_all(bind=database.engine)
 
 app = FastAPI()
+
+@app.get("/health")
+def health_check():
+    return {"status": "ok", "version": "v1.5-EXPIRY-FIXED"}
 
 # Absolute Path Resolution
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
