@@ -31,10 +31,22 @@
         </div>
     </div>
 
+    <!-- Admin Actions (Only for Admin) -->
+    {% if user.is_admin %}
+    <div class="card" style="border-left: 5px solid #ff4757; background-color: #2f3640;">
+        <h3 style="color: #ff4757;">Admin Control</h3>
+        <p>You have administrative privileges.</p>
+        <div style="margin-top: 15px;">
+            <a href="/admin" class="btn"
+                style="background-color: #ff4757; text-decoration: none; display: inline-block;">Go to Admin Panel</a>
+        </div>
+        <p style="font-size: 0.8em; margin-top: 10px; color: #ccc;">Manage Users, Reset HWIDs, block users.</p>
+    </div>
+    {% endif %}
+
     <!-- Instructions / Download -->
     <div class="card">
         <h3>Download Latest Tool</h3>
-        <p>Ensure your tool is always up to date to access the latest features.</p>
         <button class="btn" style="margin-top: 10px;">Download v1.0.0</button>
     </div>
 </div>

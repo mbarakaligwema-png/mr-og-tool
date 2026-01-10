@@ -8,5 +8,5 @@
     "users": {
         "admin": "admin"
     },
-    "server_url": "http://127.0.0.1:8000"
+    "server_url": "https://mr-og-tool.onrender.com"
 }

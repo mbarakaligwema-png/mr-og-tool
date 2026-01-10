@@ -11,6 +11,9 @@ class LoginWindow(ctk.CTk):
         
         self.on_login_success = on_login_success
         
+        # Load saved credentials (last used) - MOVED TO TOP
+        self.load_config()
+        
         self.title("Login - MR OG TOOL")
         self.title("Login - MR OG TOOL")
         self.geometry("400x580") # Reduced height
@@ -105,10 +108,11 @@ class LoginWindow(ctk.CTk):
         buy_btn.pack(side="top", pady=(0, 5)) # Reduced
 
         # Register Link
-        # Assuming server port 8000 or production URL. Using config if possible, else generic.
+        # Dynamic URL from config
+        reg_url = self.config_data.get("server_url", "https://mr-og-tool.onrender.com") + "/register"
         reg_btn = ctk.CTkButton(self.social_frame, text="Register New Account", 
                                 font=link_font, text_color=styles.ACCENT_COLOR, fg_color="transparent", hover=False,
-                                command=lambda: webbrowser.open("http://127.0.0.1:8000/register")) # Default to local register
+                                command=lambda: webbrowser.open(reg_url)) 
         reg_btn.pack(side="top", pady=0)
         
         # Icons/Buttons Row
