@@ -45,5 +45,12 @@ try:
         else:
             print("\n[FAIL] 'expiry' field MISSING in response! Server code is likely OLD.")
 
+    with urllib.request.urlopen(server_url, context=ctx) as response:
+        home_html = response.read().decode()
+        if "(UPDATED)" in home_html:
+            print("\n[INFO] Home Page: FOUND '(UPDATED)' string. -> Version is OLD (approx step 426).")
+        else:
+            print("\n[INFO] Home Page: '(UPDATED)' string NOT found. -> Version is NEWER (approx step 481+).")
+
 except Exception as e:
     print(f"\n[ERROR] Request failed: {e}")

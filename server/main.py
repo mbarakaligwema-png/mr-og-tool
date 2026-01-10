@@ -10,6 +10,10 @@ import models, database, crud, auth
 import models, database, crud, auth
 import os
 
+@app.get("/health")
+def health_check():
+    return {"status": "ok", "version": "v1.5-EXPIRY-FIXED"}
+
 # Init DB
 models.Base.metadata.create_all(bind=database.engine)
 
