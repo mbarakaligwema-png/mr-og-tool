@@ -1,0 +1,12 @@
+{
+    "get_started": true,
+    "remember_me": true,
+    "username": "admin",
+    "password": "admin",
+    "last_user": "admin",
+    "last_pass": "admin",
+    "users": {
+        "admin": "admin"
+    },
+    "server_url": "http://127.0.0.1:8000"
+}

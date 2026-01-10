@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - MR OG TOOL{% endblock %}
+
+{% block content %}
+<div style="margin-top: 40px;">
+    <h1>Welcome, {{ user.username }}</h1>
+
+    <div class="card">
+        <h3>Account Status</h3>
+        <div style="display: flex; gap: 40px; margin-top: 20px;">
+            <div>
+                <label>Status</label>
+                <div style="font-size: 1.2rem; font-weight: bold;"
+                    class="{% if user.is_active %}status-active{% else %}status-blocked{% endif %}">
+                    {{ "ACTIVE" if user.is_active else "BLOCKED" }}
+                </div>
+            </div>
+            <div>
+                <label>License Expiry</label>
+                <div style="font-size: 1.2rem; font-weight: bold;">
+                    {{ user.expiry_date.strftime('%Y-%m-%d') if user.expiry_date else "LIFETIME" }}
+                </div>
+            </div>
+            <div>
+                <label>HWID Binding</label>
+                <div style="font-size: 1.2rem; font-weight: bold;">
+                    {{ "LOCKED" if user.hwid else "UNBOUND" }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Instructions / Download -->
+    <div class="card">
+        <h3>Download Latest Tool</h3>
+        <p>Ensure your tool is always up to date to access the latest features.</p>
+        <button class="btn" style="margin-top: 10px;">Download v1.0.0</button>
+    </div>
+</div>
+{% endblock %}

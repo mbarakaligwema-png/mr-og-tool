@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Register - MR OG TOOL{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 400px; margin: 50px auto;">
+    <h2 class="text-center">Create Account</h2>
+
+    {% if error %}
+    <div class="alert alert-error">{{ error }}</div>
+    {% endif %}
+
+    <form method="post" action="/register">
+        <div class="form-group">
+            <label>Username</label>
+            <input type="text" name="username" required>
+        </div>
+        <div class="form-group">
+            <label>Password</label>
+            <input type="password" name="password" required>
+        </div>
+        <div class="form-group">
+            <label>Confirm Password</label>
+            <input type="password" name="confirm_password" required>
+        </div>
+        <button type="submit" class="btn" style="width: 100%;">Register</button>
+    </form>
+    <p class="text-center mt-20">
+        Already have an account? <a href="/login" style="color: var(--accent-color);">Login</a>
+    </p>
+</div>
+{% endblock %}

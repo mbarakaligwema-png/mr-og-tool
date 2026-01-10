@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Panel - MR OG TOOL{% endblock %}
+
+{% block content %}
+<div style="margin-top: 40px;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h1>Admin Panel</h1>
+        <div>
+            <!-- Stats or global actions could go here -->
+            <span style="color: grey;">Total Users: {{ users|length }}</span>
+        </div>
+    </div>
+
+    <!-- Add User Quick Form -->
+    <div class="card">
+        <h3>Add User</h3>
+        <form method="post" action="/admin/users/add" style="display: flex; gap: 10px; align-items: flex-end;">
+            <div style="flex: 1;">
+                <label>Username</label>
+                <input type="text" name="username" required>
+            </div>
+            <div style="flex: 1;">
+                <label>Password</label>
+                <input type="text" name="password" required>
+            </div>
+            <div style="flex: 0;">
+                <label>Role</label>
+                <label style="display: inline-block; cursor: pointer;">
+                    <input type="checkbox" name="is_admin"> Admin
+                </label>
+            </div>
+            <button type="submit" class="btn">Add</button>
+        </form>
+        {% if error %}
+        <p class="alert-error" style="margin-top: 10px;">{{ error }}</p>
+        {% endif %}
+    </div>
+
+    <!-- User List -->
+    <div class="card">
+        <h3>Manage Users</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Status</th>
+                    <th>Role</th>
+                    <th>HWID</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr>
+                    <td>{{ u.id }}</td>
+                    <td>{{ u.username }}</td>
+                    <td>
+                        <span class="{% if u.is_active %}status-active{% else %}status-blocked{% endif %}">
+                            {{ "Active" if u.is_active else "Blocked" }}
+                        </span>
+                    </td>
+                    <td>{{ "Admin" if u.is_admin else "User" }}</td>
+                    <td style="font-family: monospace; font-size: 0.9em;">{{ u.hwid if u.hwid else "-" }}</td>
+                    <td>
+                        <form method="post" action="/admin/users/{{ u.id }}/toggle" style="display: inline;">
+                            <button type="submit" class="btn"
+                                style="padding: 5px 10px; font-size: 0.8rem; background-color: #555;">
+                                {{ "Block" if u.is_active else "Unblock" }}
+                            </button>
+                        </form>
+                        <form method="post" action="/admin/users/{{ u.id }}/delete" style="display: inline;">
+                            <button type="submit" class="btn btn-danger" style="padding: 5px 10px; font-size: 0.8rem;"
+                                onclick="return confirm('Are you sure?')">Del</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

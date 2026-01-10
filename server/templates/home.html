@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Home - MR OG TOOL{% endblock %}
+
+{% block content %}
+<div class="hero-section" style="text-align: center; padding: 50px 0;">
+    <h1 style="color: #007ACC; font-size: 3em;">MR OG TOOL</h1>
+    <h3 style="color: #aaa;">Ultimate Phone Repair & Unlocker Solution</h3>
+    <p style="margin: 20px 0; color: #ccc;">Pass FRP, Unlock Bootloader, Flash Firmware, and more with one click.</p>
+
+    <div class="cta-buttons" style="margin-top: 30px;">
+        <a href="/register" class="btn btn-primary"
+            style="background: #007ACC; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">Get
+            Started</a>
+        <a href="#features" class="btn btn-secondary"
+            style="background: #333; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-left: 10px;">Learn
+            More</a>
+    </div>
+</div>
+
+<div id="features" class="features-section" style="margin-top: 50px;">
+    <h2 style="text-align: center; border-bottom: 2px solid #333; padding-bottom: 10px;">Supported Brands & Features
+    </h2>
+
+    <div
+        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 30px;">
+
+        <div class="card" style="background: #252526; padding: 20px; border-radius: 10px;">
+            <h3 style="color: #007ACC;">Samsung</h3>
+            <ul style="color: #ccc; margin-top: 10px; padding-left: 20px;">
+                <li>Read Info (MTP)</li>
+                <li>FRP Bypass (2024)</li>
+                <li>Odin Flash Tool</li>
+                <li>Download Mode Helper</li>
+            </ul>
+        </div>
+
+        <div class="card" style="background: #252526; padding: 20px; border-radius: 10px;">
+            <h3 style="color: #007ACC;">ZTE / Unisoc</h3>
+            <ul style="color: #ccc; margin-top: 10px; padding-left: 20px;">
+                <li>A35 Bypass Logic</li>
+                <li>Bootloader Unlock</li>
+                <li>Format Userdata</li>
+                <li>Diag Mode Utils</li>
+            </ul>
+        </div>
+
+        <div class="card" style="background: #252526; padding: 20px; border-radius: 10px;">
+            <h3 style="color: #007ACC;">MediaTek (MTK)</h3>
+            <ul style="color: #ccc; margin-top: 10px; padding-left: 20px;">
+                <li>Auth Bypass</li>
+                <li>Scatter Flash (Coming Soon)</li>
+                <li>NVRAM Backup/Restore</li>
+                <li>Erase FRP (Brom)</li>
+            </ul>
+        </div>
+
+    </div>
+</div>
+
+<div class="pricing-section" style="margin-top: 60px; text-align: center;">
+    <h2>Pricing Plans</h2>
+    <div style="display: flex; justify-content: center; gap: 20px; margin-top: 30px;">
+        <div class="price-card"
+            style="background: #2D2D30; padding: 30px; border-radius: 10px; border: 1px solid #007ACC;">
+            <h3>Standard User</h3>
+            <h1 style="color: #FFD700;">FREE / TRIAL</h1>
+            <p>Basic Readings</p>
+            <p>Limited Flashing</p>
+            <a href="/register" style="display: inline-block; margin-top: 15px; color: #007ACC;">Register Now</a>
+        </div>
+        <div class="price-card"
+            style="background: #2D2D30; padding: 30px; border-radius: 10px; border: 1px solid #FFD700;">
+            <h3>Premium Activation</h3>
+            <h1 style="color: #FFD700;">$CONTACT US</h1>
+            <p>Full Access</p>
+            <p>All Brands Unlocked</p>
+            <p>24/7 Support</p>
+            <a href="https://wa.me/255683397833" target="_blank"
+                style="display: inline-block; margin-top: 15px; background: #25D366; color: white; padding: 8px 15px; text-decoration: none; border-radius: 4px;">Buy
+                on WhatsApp</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

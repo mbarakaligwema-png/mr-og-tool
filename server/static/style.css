@@ -1,0 +1,139 @@
+:root {
+    --bg-color: #121212;
+    --card-bg: #1e1e1e;
+    --text-primary: #e0e0e0;
+    --text-secondary: #a0a0a0;
+    --accent-color: #3f51b5;
+    --accent-hover: #303f9f;
+    --error-color: #cf6679;
+    --success-color: #4caf50;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Navbar */
+.navbar {
+    background-color: var(--card-bg);
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.brand {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--accent-color);
+    text-decoration: none;
+}
+
+.nav-links a {
+    color: var(--text-secondary);
+    text-decoration: none;
+    margin-left: 20px;
+    transition: color 0.3s;
+}
+
+.nav-links a:hover {
+    color: var(--text-primary);
+}
+
+/* Cards */
+.card {
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+/* Forms */
+.form-group {
+    margin-bottom: 15px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--text-secondary);
+}
+
+input[type="text"], input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    background-color: #2c2c2c;
+    border: 1px solid #333;
+    border-radius: 4px;
+    color: var(--text-primary);
+    box-sizing: border-box;
+}
+
+input:focus {
+    outline: none;
+    border-color: var(--accent-color);
+}
+
+.btn {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    font-size: 1rem;
+    transition: background 0.3s;
+}
+
+.btn:hover {
+    background-color: var(--accent-hover);
+}
+
+.btn-danger {
+    background-color: var(--error-color);
+}
+.btn-danger:hover {
+    background-color: #b05565;
+}
+
+/* Tables */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+th, td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #333;
+}
+
+th {
+    background-color: #252525;
+    color: var(--text-secondary);
+}
+
+.status-active { color: var(--success-color); }
+.status-blocked { color: var(--error-color); }
+
+/* Utility */
+.text-center { text-align: center; }
+.mt-20 { margin-top: 20px; }
+.alert { padding: 10px; border-radius: 4px; margin-bottom: 15px; }
+.alert-error { background-color: rgba(207, 102, 121, 0.1); color: var(--error-color); border: 1px solid var(--error-color); }
