@@ -7,7 +7,7 @@ from datetime import timedelta
 
 import models, database, crud, auth
 
-from . import models, database, crud, auth
+import models, database, crud, auth
 import os
 
 # Init DB
