@@ -14,9 +14,13 @@ ctk.set_appearance_mode("Dark")  # Modes: "System" (standard), "Dark", "Light"
 ctk.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
 
 class OGServiceToolApp(ctk.CTk):
-    def __init__(self, username="User"):
+    VERSION = "1.0.0"
+
+    def __init__(self, username="User", expiry_msg="LIFETIME"):
         super().__init__()
+
         self.username = username
+        self.expiry_msg = expiry_msg.replace("Expires: ", "") if "Expires: " in expiry_msg else expiry_msg
 
 
         # Window Setup
@@ -48,16 +52,27 @@ class OGServiceToolApp(ctk.CTk):
         ctk.CTkLabel(self.logo_frame, text="PREMIUM UNLOCKER", 
                      font=ctk.CTkFont(size=10, weight="bold"), 
                      text_color=styles.TEXT_SECONDARY).pack(anchor="w", pady=(0, 0))
-        self.version_label = ctk.CTkLabel(self.sidebar_frame, text="v1.0.0", font=ctk.CTkFont(size=12, family=styles.FONT_FAMILY), text_color=styles.TEXT_SECONDARY)
-        self.version_label.grid(row=1, column=0, padx=20, pady=(0, 20))
+        # Version Label
+        self.version_label = ctk.CTkLabel(self.sidebar_frame, text=f"v{self.VERSION}", font=ctk.CTkFont(size=12, weight="bold"), text_color="#666")
+        self.version_label.grid(row=1, column=0, padx=20, pady=(0, 10))
+        
+        # User Info (New)
+        expiry_text = "LIFETIME" # Default
+        # Try to parse expiry from passed argument or network check if possible
+        # For now, we will update this text if passed in constructor
+        
+        self.user_info_label = ctk.CTkLabel(self.sidebar_frame, text=f"User: {self.username}\nExp: {self.expiry_msg}", 
+                                            font=ctk.CTkFont(size=11), text_color="#888")
+        self.user_info_label.grid(row=2, column=0, padx=20, pady=(0, 20))
 
         # Separator Line
         self.sidebar_separator = ctk.CTkFrame(self.sidebar_frame, height=2, fg_color=styles.ACCENT_COLOR)
-        self.sidebar_separator.grid(row=2, column=0, sticky="ew", padx=20, pady=(0, 20))
+        self.sidebar_separator.grid(row=3, column=0, sticky="ew", padx=20, pady=(0, 20))
 
         # Sidebar Buttons
+        self.sidebar_buttons = []
         self.sidebar_button_dashboard = self.create_sidebar_button("DASHBOARD", command=self.show_dashboard)
-        self.sidebar_button_dashboard.grid(row=3, column=0, padx=20, pady=10)
+        self.sidebar_button_dashboard.grid(row=4, column=0, padx=20, pady=10)
 
         self.sidebar_button_adb = self.create_sidebar_button("ADB MODE", command=self.show_adb)
         self.sidebar_button_adb.grid(row=4, column=0, padx=20, pady=10)

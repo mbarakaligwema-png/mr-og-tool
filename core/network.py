@@ -61,7 +61,8 @@ def verify_user_license(server_url, username, hwid):
             if response.getcode() == 200:
                 body = json.loads(response.read().decode())
                 if body.get("status") == "OK":
-                    return True, body.get("message", "Access Granted")
+                    expiry = body.get("expiry", "Unknown")
+                    return True, f"Expires: {expiry}"
                 else:
                     return False, body.get("message", "Access Denied")
             else:

@@ -59,7 +59,11 @@ def main():
     ctk.set_appearance_mode("Dark")
     ctk.set_default_color_theme("blue")
     
-    # Pass the start_main_app function as a callback
+    # Pass    
+    def start_main_app(username, expiry_msg=""):
+        app = OGServiceToolApp(username, expiry_msg) # Assuming OGServiceToolApp is now MainWindow or has been renamed
+        app.mainloop()
+
     login_window = LoginWindow(on_login_success=start_main_app)
     login_window.mainloop()
 

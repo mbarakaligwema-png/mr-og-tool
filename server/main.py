@@ -166,11 +166,12 @@ async def verify_user(username: str = Form(...), hwid: str = Form(...), db: Sess
             # Check if admin allows reset (Manual) or auto-block
             return JSONResponse(content={"status": "BLOCK", "message": "HWID Mismatch. Locked to another PC."}, status_code=403)
     else:
-        # First time login = Bind HWID
+    # First time login = Bind HWID
         user.hwid = hwid
         db.commit()
     
-    return JSONResponse(content={"status": "OK", "message": "Access Granted."})
+    expiry_str = user.expiry_date.strftime('%Y-%m-%d %H:%M') if user.expiry_date else "LIFETIME"
+    return JSONResponse(content={"status": "OK", "message": "Access Granted.", "expiry": expiry_str})
 
 
 # --- HELPER ---

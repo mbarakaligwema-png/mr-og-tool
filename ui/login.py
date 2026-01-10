@@ -251,6 +251,7 @@ class LoginWindow(ctk.CTk):
 
         if is_allowed:
              self.save_config(username, password)
+             self.last_server_msg = msg # Store for passing to main app
              self.status_label.configure(text=f"Success! {msg}", text_color=styles.SUCCESS_COLOR)
              # Give time for success msg to show
              self.after(500, self.complete_login)
@@ -279,6 +280,7 @@ class LoginWindow(ctk.CTk):
     def complete_login(self):
         user = self.username_entry.get()
         self.destroy() # Close login window
-        self.on_login_success(user) # Callback to start main app with username
+        # msg is stored in self.last_msg or similar? No, let's store it in instance
+        self.on_login_success(user, self.last_server_msg) # Callback to start main app with username
 
 
