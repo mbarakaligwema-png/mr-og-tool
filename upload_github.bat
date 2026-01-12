@@ -17,8 +17,8 @@ if not exist "%GIT_PATH%" (
 echo [STEP 1] Configuring Git Identity (Lazima kwa GitHub)
 echo Tafadhali andika Email na Jina lako unalotumia GitHub.
 echo.
-set /p GIT_EMAIL="Enter GitHub Email: "
-set /p GIT_NAME="Enter GitHub Username: "
+set "GIT_EMAIL=mbarakaligwema@gmail.com"
+set "GIT_NAME=mr-og-tool"
 
 "%GIT_PATH%" config user.email "%GIT_EMAIL%"
 "%GIT_PATH%" config user.name "%GIT_NAME%"
