@@ -206,7 +206,7 @@ class LoginWindow(ctk.CTk):
     def load_config(self):
         # Legacy: checks if UI exists to decide what to do
         # Ideally we split this, but for now let's just make it safe
-        self.users_db = {"admin": "admin"} # Default
+        self.users_db = {} # Start EMPTY. Do NOT default to admin:admin
         self.config_data = {}
         try:
             if os.path.exists("config.json"):
@@ -343,9 +343,15 @@ class LoginWindow(ctk.CTk):
         
         # BYPASS FOR OFFLINE DEVELOPMENT if server is unreachable
         if not is_allowed and ("Connection Failed" in msg or "Server HTTP" in msg):
-             # For now, allow offline login if local password was correct
-             is_allowed = True
-             msg = "Offline Mode (Server Unreachable)"
+             # Only allow offline login if user exists locally!
+             if username in self.users_db:
+                 # Password was already verified above in Local Auth Check
+                 is_allowed = True
+                 msg = "Offline Mode (Server Unreachable)"
+             else:
+                 # Unknown user and no server to verify -> BLOCK
+                 is_allowed = False
+                 msg = "Login Failed: User not found (Offline)"
 
         if is_allowed:
              self.save_config(username, password)
