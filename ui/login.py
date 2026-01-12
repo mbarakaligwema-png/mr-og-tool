@@ -104,7 +104,7 @@ class LoginWindow(ctk.CTk):
                                 width=160, height=30,
                                 font=ctk.CTkFont(size=12, weight="bold"),
                                 fg_color="#FFD700", text_color="#000000", hover_color="#FFC107", # Gold background, black text
-                                command=lambda: webbrowser.open("https://mrogtool.com/#distributors")) 
+                                command=lambda: webbrowser.open("https://mrogtool.com/resellers")) 
         buy_btn.pack(side="top", pady=(0, 5)) # Reduced
 
         # Register Link
@@ -179,12 +179,20 @@ class LoginWindow(ctk.CTk):
             current_data["last_user"] = ""
             current_data["last_pass"] = ""
             
-        # Do NOT force overwrite "users" from self.users_db unless we are sure.
-        # gui_main.py handles user adds. Login window shouldn't be managing specific user DB logic heavily.
-        # But we need to make sure we don't LOSE users if current_data was empty.
+        # CRITICAL FIX: Do NOT write 'users' from self.users_db back to file.
+        # self.users_db is a snapshot from startup. If we write it back, 
+        # we overwrite any users added by gui_main.py while this window was open/cached.
+        # We only WANT to save remember_me settings here.
+        
+        # Ensure we don't accidentally delete users if we started with none but file has some now
+        # Actually, since we read 'current_data' at start of this fn, it has the LATEST users.
+        # We just touch the keys we care about.
+        
+        # IF for some reason 'users' key is missing in current_data (file didn't exist),
+        # AND we have a default admin in self.users_db, maybe we write it?
+        # But generally, let's trust what's on disk for users.
         
         if "users" not in current_data and self.users_db:
-             # Only if missing from file, restore what we have in memory
              current_data["users"] = self.users_db
         
         try:

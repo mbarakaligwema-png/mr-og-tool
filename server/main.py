@@ -60,6 +60,10 @@ async def home(request: Request, db: Session = Depends(get_db)):
 async def login_page(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
 
+@app.get("/resellers", response_class=HTMLResponse)
+async def resellers_page(request: Request):
+    return templates.TemplateResponse("resellers.html", {"request": request})
+
 @app.post("/login", response_class=HTMLResponse)
 async def login(request: Request, username: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
     user = crud.get_user(db, username)
