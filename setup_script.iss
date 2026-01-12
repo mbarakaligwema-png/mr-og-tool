@@ -16,6 +16,13 @@ Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
 SetupIconFile=C:\Users\mbara\Documents\MR_OG_TOOL\assets\logo.ico
+DisableDirPage=no
+UsePreviousAppDir=yes
+
+[InstallDelete]
+; Clean up old desktop shortcut if it exists
+Type: files; Name: "{autodesktop}\MR_OG_TOOL.lnk"
+Type: files; Name: "{autodesktop}\MR OG TOOL.lnk"
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"

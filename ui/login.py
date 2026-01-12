@@ -53,10 +53,12 @@ class LoginWindow(ctk.CTk):
         # Username
         self.username_entry = ctk.CTkEntry(self, placeholder_text="Username", width=280, height=40)
         self.username_entry.pack(pady=5) # Reduced
+        self.create_context_menu(self.username_entry) # Add Right Click
 
         # Password
         self.password_entry = ctk.CTkEntry(self, placeholder_text="Password", width=280, height=40, show="*")
         self.password_entry.pack(pady=5) # Reduced
+        self.create_context_menu(self.password_entry) # Add Right Click
 
         # Options Frame (Show Pass & Remember Me)
         self.options_frame = ctk.CTkFrame(self, fg_color="transparent", width=280)
@@ -131,11 +133,78 @@ class LoginWindow(ctk.CTk):
                                     command=lambda: webbrowser.open("https://www.youtube.com/@GSMFAMILY1"))
         youtube_btn.pack(side="left", padx=5)
 
-        # Load saved credentials (last used)
-        self.load_config()
+        # Version Label
+        self.version_label = ctk.CTkLabel(self, text="v1.5", text_color="#666666", font=ctk.CTkFont(size=10))
+        self.version_label.pack(side="bottom", pady=5)
+        
+        # Cleanup Legacy Admin on Startup
+        self.cleanup_legacy_admin()
+
+    def create_context_menu(self, widget):
+        import tkinter as tk
+        try:
+            # Target the internal entry widget if it exists (CustomTkinter)
+            target = widget._entry if hasattr(widget, "_entry") else widget
+        except:
+            target = widget
+
+        menu = tk.Menu(target, tearoff=0)
+        menu.add_command(label="Cut", command=lambda: target.event_generate("<<Cut>>"))
+        menu.add_command(label="Copy", command=lambda: target.event_generate("<<Copy>>"))
+        menu.add_command(label="Paste", command=lambda: target.event_generate("<<Paste>>"))
+        
+        def show_menu(event):
+            menu.tk_popup(event.x_root, event.y_root)
+            
+        # Bind to both the wrapper and the internal entry to be safe
+        widget.bind("<Button-3>", show_menu) 
+        if hasattr(widget, "_entry"):
+            widget._entry.bind("<Button-3>", show_menu)
+
+    def cleanup_legacy_admin(self):
+        try:
+            config_path = "config.json"
+            data = {}
+            if os.path.exists(config_path):
+                with open(config_path, "r") as f:
+                    try: 
+                        data = json.load(f)
+                    except: 
+                        data = {}
+            
+            if "users" not in data:
+                data["users"] = {}
+                
+            users = data["users"]
+            changed = False
+            
+            # 1. Force Remove 'admin' (Legacy)
+            if "admin" in users:
+                del users["admin"]
+                changed = True
+                
+            # 2. Force Create 'mrogtool' if missing
+            if "mrogtool" not in users:
+                users["mrogtool"] = {"password": "dell", "expiry": "Unlimited"}
+                changed = True
+            
+            # 3. Ensure password is correct if user exists (Optional, but safe for 'default' user)
+            # Uncomment if we want to reset password to 'dell' every time:
+            # elif users["mrogtool"].get("password") != "dell":
+            #     users["mrogtool"]["password"] = "dell"
+            #     changed = True
+
+            if changed:
+                data["users"] = users
+                with open(config_path, "w") as f:
+                    json.dump(data, f, indent=4)
+                print("User database updated: Legacy admin removed, 'mrogtool' ensured.")
+                
+        except Exception as e:
+            print(f"Error ensuring admin users: {e}")
 
     def load_config(self):
-        # Legacy wrapper: checks if UI exists to decide what to do
+        # Legacy: checks if UI exists to decide what to do
         # Ideally we split this, but for now let's just make it safe
         self.users_db = {"admin": "admin"} # Default
         self.config_data = {}

@@ -42,9 +42,9 @@ def get_db():
 def startup_event():
     db = database.SessionLocal()
     try:
-        if not crud.get_user(db, "admin"):
-            crud.create_user(db, "admin", "admin", is_admin=True)
-            print("--- DEFAULT ADMIN CREATED: admin / admin ---")
+        if not crud.get_user(db, "mrogtool"):
+            crud.create_user(db, "mrogtool", "dell", is_admin=True)
+            print("--- DEFAULT ADMIN CREATED: mrogtool / dell ---")
     finally:
         db.close()
 

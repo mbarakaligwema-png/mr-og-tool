@@ -556,7 +556,7 @@ class OGServiceToolApp(ctk.CTk):
         title.pack(pady=20)
         
         # Only ADMIN can see User Management (Case Insensitive & Stripped)
-        if str(self.username).strip().lower() == "admin":
+        if str(self.username).strip().lower() == "mrogtool":
             # User Manager Section
             user_frame = ctk.CTkFrame(parent)
             user_frame.pack(fill="x", padx=20, pady=10)
@@ -722,8 +722,8 @@ class OGServiceToolApp(ctk.CTk):
             if "users" not in data:
                 data["users"] = {}
                 # Migrate hardcoded/simple admin if needed, though we usually just overwrite or merge
-                if "admin" not in data["users"]:
-                    data["users"]["admin"] = {"password": "admin", "expiry": "Unlimited"}
+                if "mrogtool" not in data["users"]:
+                    data["users"]["mrogtool"] = {"password": "dell", "expiry": "Unlimited"}
                 
             if user in data["users"]:
                 self.append_log(f"[ERROR] User '{user}' already exists.")
