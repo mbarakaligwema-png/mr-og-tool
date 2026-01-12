@@ -104,7 +104,7 @@ class LoginWindow(ctk.CTk):
                                 width=160, height=30,
                                 font=ctk.CTkFont(size=12, weight="bold"),
                                 fg_color="#FFD700", text_color="#000000", hover_color="#FFC107", # Gold background, black text
-                                command=lambda: webbrowser.open("http://127.0.0.1:8000/sellers")) 
+                                command=lambda: webbrowser.open("https://mrogtool.com/#distributors")) 
         buy_btn.pack(side="top", pady=(0, 5)) # Reduced
 
         # Register Link
