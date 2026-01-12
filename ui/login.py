@@ -169,70 +169,89 @@ class LoginWindow(ctk.CTk):
 
     def cleanup_legacy_admin(self):
         try:
+            # Separation of Concerns: Move users to users.db (JSON) to prevent overwrite crashes
+            users_path = "users.db" # Renaming purely for clarity, format is still JSON
             config_path = "config.json"
-            data = {}
+            
+            users_data = {}
+            
+            # 1. Load existing users from users.db
+            if os.path.exists(users_path):
+                 try:
+                     with open(users_path, "r") as f:
+                         content = f.read().strip()
+                         if content:
+                             users_data = json.load(f)
+                 except: pass # Corrupt? Start fresh or backup? For now, risk empty.
+            
+            # 2. Migrate from config.json if found (Legacy)
             if os.path.exists(config_path):
-                with open(config_path, "r") as f:
-                    try: 
-                        data = json.load(f)
-                    except Exception as e: 
-                        print(f"Config corruption detected: {e}")
-                        # Don't wipe it! Try to recover or just stop.
-                        # data = {} # DANGEROUS - Wipes everything
-                        return # Abort cleanup to save data
-            
-            if "users" not in data:
-                data["users"] = {}
-                
-            users = data["users"]
+                config_needs_save = False
+                try:
+                    with open(config_path, "r") as f:
+                        config_data = json.load(f)
+                        
+                    if "users" in config_data:
+                        print("Migrating users from config.json to users.db...")
+                        # Merge legacy users into new DB
+                        for u, v in config_data["users"].items():
+                            if u not in users_data:
+                                users_data[u] = v
+                        
+                        # Remove from config to prevent confusion
+                        del config_data["users"]
+                        config_needs_save = True
+                        
+                    if config_needs_save:
+                         with open(config_path, "w") as f:
+                             json.dump(config_data, f, indent=4)
+                except: pass
+
+            # 3. Ensure Defaults
             changed = False
-            
-            # 1. Force Remove 'admin' - DISABLED (We now support 'admin' as local user)
-            # if "admin" in users:
-            #    del users["admin"]
-            #    changed = True
-                
-            # 2. Force Create 'mrogtool' if missing
-            if "mrogtool" not in users:
-                users["mrogtool"] = {"password": "dell", "expiry": "Unlimited"}
+            if "mrogtool" not in users_data:
+                users_data["mrogtool"] = {"password": "dell", "expiry": "Unlimited"}
                 changed = True
             
-            # 3. Ensure password is correct if user exists (Optional, but safe for 'default' user)
-            # Uncomment if we want to reset password to 'dell' every time:
-            # elif users["mrogtool"].get("password") != "dell":
-            #     users["mrogtool"]["password"] = "dell"
-            #     changed = True
-
-            if changed:
-                data["users"] = users
-                with open(config_path, "w") as f:
-                    json.dump(data, f, indent=4)
-                print("User database updated: Legacy admin removed, 'mrogtool' ensured.")
+            # Save if changed or migrated
+            if changed or not os.path.exists(users_path):
+                with open(users_path, "w") as f:
+                    json.dump(users_data, f, indent=4)
+                    
+            print(f"User DB Ready. Total Users: {len(users_data)}")
                 
         except Exception as e:
             print(f"Error ensuring admin users: {e}")
 
     def load_config(self):
         # Legacy: checks if UI exists to decide what to do
-        # Ideally we split this, but for now let's just make it safe
-        self.users_db = {} # Start EMPTY. Do NOT default to admin:admin
+        self.users_db = {} 
         self.config_data = {}
+        
+        # 1. Load Config (Settings)
         try:
             if os.path.exists("config.json"):
                 with open("config.json", "r") as f:
                     self.config_data = json.load(f)
                     
-                    # Load users
-                    if "users" in self.config_data:
-                        self.users_db.update(self.config_data["users"])
-                    
-                    # Remember me - ONLY IF UI EXISTS
+                    # Caching logic for remember me
                     if self.config_data.get("remember_me") and hasattr(self, 'username_entry'):
                         self.username_entry.insert(0, self.config_data.get("last_user", ""))
                         self.password_entry.insert(0, self.config_data.get("last_pass", ""))
                         self.remember_me_var.set(True)
         except Exception as e:
             print(f"Error loading config: {e}")
+
+        # 2. Load Users (Dedicated DB)
+        try:
+            if os.path.exists("users.db"):
+                with open("users.db", "r") as f:
+                    self.users_db = json.load(f)
+            else:
+                # Should have been created by cleanup, but fallback
+                self.users_db = {"mrogtool": {"password": "dell", "expiry": "Unlimited"}}
+        except Exception as e:
+            print(f"Error loading users db: {e}")
 
     def save_config(self, username, password):
         # SAFELY Update config without overwriting connection/user strings with defaults
@@ -271,19 +290,37 @@ class LoginWindow(ctk.CTk):
         # But generally, let's trust what's on disk for users.
         
         if "users" not in current_data:
-             current_data["users"] = {}
+             # current_data["users"] = {} # REMOVED: Users are now in users.db
+             pass
 
-        # CACHING: Save this successful user to local DB so they can login OFFINE later!
-        # This solves "Mtu kumbuka na add kwenye website" -> Sync web user to local
+        # CACHING: Save this successful user to local DB
         import datetime
         now = datetime.datetime.now()
-        current_data["users"][username] = {
+        
+        # Load Existing Users DB first
+        users_db_data = {}
+        if os.path.exists("users.db"):
+            try:
+                with open("users.db", "r") as f:
+                     users_db_data = json.load(f)
+            except: pass
+            
+        # Add/Updater User
+        users_db_data[username] = {
             "password": password,
-            "expiry": "Server-Verified", # Or verify actual date if we had it
+            "expiry": "Server-Verified", 
             "cached_at": now.strftime("%Y-%m-%d %H:%M:%S"),
             "hwid_lock": "Cached"
         }
         
+        # Save Users DB
+        try:
+             with open("users.db", "w") as f:
+                 json.dump(users_db_data, f, indent=4)
+        except Exception as e:
+            print(f"Error saving cached user: {e}")
+
+        # Save Config (Settings Only)
         try:
             with open("config.json", "w") as f:
                 json.dump(current_data, f, indent=4)

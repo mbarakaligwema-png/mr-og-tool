@@ -621,17 +621,15 @@ class OGServiceToolApp(ctk.CTk):
             return
 
         try:
-            config_path = "config.json"
-            if os.path.exists(config_path):
-                with open(config_path, "r") as f:
-                    data = json.load(f)
+            users_path = "users.db"
+            if os.path.exists(users_path):
+                with open(users_path, "r") as f:
+                    users = json.load(f)
                 
-                users = data.get("users", {})
                 if user_to_del in users:
                     del users[user_to_del]
-                    data["users"] = users
-                    with open(config_path, "w") as f:
-                        json.dump(data, f, indent=4)
+                    with open(users_path, "w") as f:
+                        json.dump(users, f, indent=4)
                     
                     self.append_log(f"[SUCCESS] User '{user_to_del}' deleted.")
                     self.del_user_entry.delete(0, "end")
@@ -646,43 +644,43 @@ class OGServiceToolApp(ctk.CTk):
         self.user_list_text.delete("1.0", "end")
         
         try:
-            config_path = "config.json"
-            if os.path.exists(config_path):
-                with open(config_path, "r") as f:
-                    data = json.load(f)
+            users_path = "users.db"
+            users = {}
+            if os.path.exists(users_path):
+                with open(users_path, "r") as f:
+                    users = json.load(f)
                     
-                users = data.get("users", {})
-                if not users:
-                    self.user_list_text.insert("end", "No users found.")
-                else:
-                    self.user_list_text.insert("end", f"{'USERNAME':<15} | {'PASSWORD':<15} | {'EXPIRY':<20} | {'HWID'}\n")
-                    self.user_list_text.insert("end", "-"*80 + "\n")
+            if not users:
+                self.user_list_text.insert("end", "No users found.")
+            else:
+                self.user_list_text.insert("end", f"{'USERNAME':<15} | {'PASSWORD':<15} | {'EXPIRY':<20} | {'HWID'}\n")
+                self.user_list_text.insert("end", "-"*80 + "\n")
+                
+                for user, info in users.items():
+                    pwd = "???"
+                    expiry = "N/A"
+                    hwid_status = "Unbound"
                     
-                    for user, info in users.items():
-                        pwd = "???"
-                        expiry = "N/A"
-                        hwid_status = "Unbound"
-                        
-                        if isinstance(info, dict):
-                            pwd = info.get("password", "???")
-                            expiry = info.get("expiry", "Unlimited")
-                            if info.get("hwid"):
-                                hwid_status = "LOCKED"
-                        else:
-                            pwd = str(info) # Legacy string format
-                        
-                        # Check expiry status for display
-                        status_marker = ""
-                        if expiry != "Unlimited" and expiry != "N/A":
-                            import datetime
-                            try:
-                                exp_dt = datetime.datetime.strptime(expiry, "%Y-%m-%d %H:%M:%S")
-                                if datetime.datetime.now() > exp_dt:
-                                    status_marker = " [EXPIRED]"
-                            except: pass
+                    if isinstance(info, dict):
+                        pwd = info.get("password", "???")
+                        expiry = info.get("expiry", "Unlimited")
+                        if info.get("hwid"):
+                            hwid_status = "LOCKED"
+                    else:
+                        pwd = str(info) # Legacy string format
+                    
+                    # Check expiry status for display
+                    status_marker = ""
+                    if expiry != "Unlimited" and expiry != "N/A" and "Server" not in expiry:
+                        import datetime
+                        try:
+                            exp_dt = datetime.datetime.strptime(expiry, "%Y-%m-%d %H:%M:%S")
+                            if datetime.datetime.now() > exp_dt:
+                                status_marker = " [EXPIRED]"
+                        except: pass
 
-                        line = f"{user:<15} | {pwd:<15} | {expiry:<20} | {hwid_status}{status_marker}\n"
-                        self.user_list_text.insert("end", line)
+                    line = f"{user:<15} | {pwd:<15} | {expiry:<20} | {hwid_status}{status_marker}\n"
+                    self.user_list_text.insert("end", line)
                         
         except Exception as e:
             self.user_list_text.insert("end", f"Error loading users: {e}")
@@ -713,30 +711,28 @@ class OGServiceToolApp(ctk.CTk):
             
             expiry_str = expiry_dt.strftime("%Y-%m-%d %H:%M:%S")
 
-            config_path = "config.json"
+            users_path = "users.db"
             data = {}
-            if os.path.exists(config_path):
-                with open(config_path, "r") as f:
+            if os.path.exists(users_path):
+                with open(users_path, "r") as f:
                     data = json.load(f)
             
-            if "users" not in data:
-                data["users"] = {}
-                # Migrate hardcoded/simple admin if needed, though we usually just overwrite or merge
-                if "mrogtool" not in data["users"]:
-                    data["users"]["mrogtool"] = {"password": "dell", "expiry": "Unlimited"}
-                
-            if user in data["users"]:
+            # Ensure admin exists if not present
+            if "mrogtool" not in data:
+                 data["mrogtool"] = {"password": "dell", "expiry": "Unlimited"}
+
+            if user in data:
                 self.append_log(f"[ERROR] User '{user}' already exists.")
                 return
             
             # Save structured data
-            data["users"][user] = {
+            data[user] = {
                 "password": pwd,
                 "expiry": expiry_str,
                 "created_at": now.strftime("%Y-%m-%d %H:%M:%S")
             }
             
-            with open(config_path, "w") as f:
+            with open(users_path, "w") as f:
                 json.dump(data, f, indent=4)
                 
             self.append_log(f"[SUCCESS] User '{user}' added! Expires: {expiry_str}")
