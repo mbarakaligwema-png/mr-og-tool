@@ -29,3 +29,50 @@ class MTKManager:
 
     def unlock_bootloader(self):
         self.cmd.log("Unlocking MTK Bootloader via Brom...")
+
+    def open_keypad_tool(self):
+        self.cmd.log("Opening Keypad Mobile Tool (SP Flash Tool)...")
+        import os
+        import subprocess
+        
+        # Expected path
+        tool_path = os.path.join(os.getcwd(), "assets", "tools", "mtk_keypad")
+        
+        # Search for exe in the directory
+        exe_path = None
+        if os.path.exists(tool_path):
+            # Priority 1: explicitly 'Flash_tool.exe'
+            common_names = ["Flash_tool.exe", "flash_tool.exe", "SP_Flash_Tool.exe"]
+            for name in common_names:
+                p = os.path.join(tool_path, name)
+                if os.path.exists(p):
+                    exe_path = p
+                    break
+            
+            # Priority 2: Scan for it if not found directly
+            if not exe_path:
+                for root, dirs, files in os.walk(tool_path):
+                    for file in files:
+                        if "flash_tool" in file.lower() and file.lower().endswith(".exe"):
+                             exe_path = os.path.join(root, file)
+                             break
+                    if exe_path: break
+
+            # Priority 3: Any exe (Fallback)
+            if not exe_path:
+                for root, dirs, files in os.walk(tool_path):
+                    for file in files:
+                        if file.lower().endswith(".exe"):
+                            exe_path = os.path.join(root, file)
+                            break
+                    if exe_path: break
+        
+        if exe_path:
+            self.cmd.log(f"[SUCCESS] Launching: {os.path.basename(exe_path)}")
+            try:
+                subprocess.Popen([exe_path], cwd=os.path.dirname(exe_path))
+            except Exception as e:
+                self.cmd.log(f"[ERROR] Failed to open tool: {e}")
+        else:
+             self.cmd.log(f"[ERROR] Keypad Tool not found in assets/tools/mtk_keypad")
+             self.cmd.log("[INFO] Please place the 'flash_tool.exe' folder inside 'assets/tools/mtk_keypad'.")

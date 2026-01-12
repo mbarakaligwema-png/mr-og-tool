@@ -109,7 +109,7 @@ class LoginWindow(ctk.CTk):
 
         # Register Link
         # Dynamic URL from config
-        reg_url = self.config_data.get("server_url", "https://mr-og-tool.onrender.com") + "/register"
+        reg_url = self.config_data.get("server_url", "https://mrogtool.com") + "/register"
         reg_btn = ctk.CTkButton(self.social_frame, text="Register New Account", 
                                 font=link_font, text_color=styles.ACCENT_COLOR, fg_color="transparent", hover=False,
                                 command=lambda: webbrowser.open(reg_url)) 
@@ -157,21 +157,39 @@ class LoginWindow(ctk.CTk):
             print(f"Error loading config: {e}")
 
     def save_config(self, username, password):
-        data = self.config_data
-        data["remember_me"] = self.remember_me_var.get()
+        # SAFELY Update config without overwriting connection/user strings with defaults
+        current_data = {}
+        try:
+            if os.path.exists("config.json"):
+                with open("config.json", "r") as f:
+                    current_data = json.load(f)
+        except:
+             # If read fails, current_data is empty.
+             # Be careful not to wipe if we just had a glitch, 
+             # but if file is corrupt, we might have to overwrite.
+             # However, let's try to preserve what we loaded validly in __init__ if possible.
+             current_data = self.config_data
+
+        # Update specific fields
+        current_data["remember_me"] = self.remember_me_var.get()
         if self.remember_me_var.get():
-            data["last_user"] = username
-            data["last_pass"] = password
+            current_data["last_user"] = username
+            current_data["last_pass"] = password
         else:
-            data["last_user"] = ""
-            data["last_pass"] = ""
+            current_data["last_user"] = ""
+            current_data["last_pass"] = ""
             
-        # Ensure users db is saved
-        data["users"] = self.users_db
+        # Do NOT force overwrite "users" from self.users_db unless we are sure.
+        # gui_main.py handles user adds. Login window shouldn't be managing specific user DB logic heavily.
+        # But we need to make sure we don't LOSE users if current_data was empty.
+        
+        if "users" not in current_data and self.users_db:
+             # Only if missing from file, restore what we have in memory
+             current_data["users"] = self.users_db
         
         try:
             with open("config.json", "w") as f:
-                json.dump(data, f, indent=4)
+                json.dump(current_data, f, indent=4)
         except Exception as e:
             print(f"Error saving config: {e}")
 

@@ -7,9 +7,13 @@ import sys
 try:
     with open("config.json", "r") as f:
         config = json.load(f)
-        server_url = config.get("server_url", "https://mr-og-tool.onrender.com")
+        # 1. Get Server URL
+    # server_url = config.get("server_url", "https://mrogtool.com")
+    
+    # HARDCODED TEST
+    server_url = "https://mrogtool.com"
 except:
-    server_url = "https://mr-og-tool.onrender.com"
+    server_url = "https://mrogtool.com"
 
 print(f"Target Server: {server_url}")
 

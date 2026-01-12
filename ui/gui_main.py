@@ -77,20 +77,21 @@ class OGServiceToolApp(ctk.CTk):
         self.sidebar_button_adb = self.create_sidebar_button("ADB MODE", command=self.show_adb)
         self.sidebar_button_adb.grid(row=4, column=0, padx=20, pady=10)
 
-        self.sidebar_button_fastboot = self.create_sidebar_button("FASTBOOT", command=self.show_fastboot)
-        self.sidebar_button_fastboot.grid(row=5, column=0, padx=20, pady=10)
+        # FASTBOOT button removed as requested
+        # self.sidebar_button_fastboot = self.create_sidebar_button("FASTBOOT", command=self.show_fastboot)
+        # self.sidebar_button_fastboot.grid(row=5, column=0, padx=20, pady=10)
         
         self.sidebar_button_mtk = self.create_sidebar_button("MEDIATEK", command=self.show_mtk)
-        self.sidebar_button_mtk.grid(row=6, column=0, padx=20, pady=10)
+        self.sidebar_button_mtk.grid(row=5, column=0, padx=20, pady=10)
 
         self.sidebar_button_samsung = self.create_sidebar_button("SAMSUNG", command=self.show_samsung)
-        self.sidebar_button_samsung.grid(row=7, column=0, padx=20, pady=10)
+        self.sidebar_button_samsung.grid(row=6, column=0, padx=20, pady=10)
 
         self.sidebar_button_spd = self.create_sidebar_button("SPD / UNISOC", command=self.show_spd)
-        self.sidebar_button_spd.grid(row=8, column=0, padx=20, pady=10)
+        self.sidebar_button_spd.grid(row=7, column=0, padx=20, pady=10)
 
         self.sidebar_button_zte = self.create_sidebar_button("ZTE", command=self.show_zte)
-        self.sidebar_button_zte.grid(row=9, column=0, padx=20, pady=10)
+        self.sidebar_button_zte.grid(row=8, column=0, padx=20, pady=10)
 
 
 
@@ -154,6 +155,82 @@ class OGServiceToolApp(ctk.CTk):
         # Initialize Defaults
         self.select_frame_by_name("DASHBOARD")
 
+        # Start Port Scanner (Threaded)
+        self.start_port_scanner()
+
+    def start_port_scanner(self):
+        import threading
+        import time
+        import subprocess
+        
+        def scan():
+            while True:
+                status_text = "Port: No Device"
+                color = "gray"
+                found = False
+
+                # 1. Check ADB
+                try:
+                    # startupinfo to hide window
+                    startupinfo = subprocess.STARTUPINFO()
+                    startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                    
+                    adb_res = subprocess.check_output("adb devices", startupinfo=startupinfo).decode()
+                    lines = adb_res.strip().split('\n')
+                    for line in lines:
+                        if "\tdevice" in line or "\trecovery" in line:
+                            dev_id = line.split('\t')[0]
+                            status_text = f"ADB: {dev_id}"
+                            color = "#00FF00" # Green
+                            found = True
+                            break
+                except: pass
+                
+                # 2. Check COM Ports (if no ADB found yet)
+                if not found:
+                    try:
+                        startupinfo = subprocess.STARTUPINFO()
+                        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                        
+                        cmd = 'wmic path Win32_PnPEntity where "Caption like \'%(COM%)\'" get Caption'
+                        com_res = subprocess.check_output(cmd, startupinfo=startupinfo).decode()
+                        
+                        lines = [x.strip() for x in com_res.split('\n') if x.strip() and "Caption" not in x]
+                        
+                        # Priority for known drivers
+                        priority_drivers = ["Mediatek", "Samsung", "Spreadtrum", "Qualcomm", "Unisoc", "Android", "USB Serial"]
+                        
+                        best_port = None
+                        for p in lines:
+                            for d in priority_drivers:
+                                if d.lower() in p.lower():
+                                    best_port = p
+                                    break
+                            if best_port: break
+                        
+                        if not best_port and lines:
+                            best_port = lines[0] # Grab first available if no priority match
+
+                        if best_port:
+                            # Truncate if too long
+                            if len(best_port) > 40:
+                                best_port = best_port[:37] + "..."
+                            status_text = f"{best_port}"
+                            color = "#00BFFF"
+                            found = True
+                    except: pass
+                
+                # Update UI
+                try:
+                    self.port_label.configure(text=status_text, text_color=color)
+                except: 
+                    break # Exit thread if UI dead
+                
+                time.sleep(2)
+        
+        t = threading.Thread(target=scan, daemon=True)
+        t.start()
+
     def append_log(self, text):
         if hasattr(self, 'console_text'):
             self.console_text.configure(state="normal")
@@ -210,7 +287,7 @@ class OGServiceToolApp(ctk.CTk):
 
     def select_frame_by_name(self, name):
         # Reset button styles
-        buttons = [self.sidebar_button_dashboard, self.sidebar_button_adb, self.sidebar_button_fastboot, 
+        buttons = [self.sidebar_button_dashboard, self.sidebar_button_adb, 
                    self.sidebar_button_mtk, self.sidebar_button_samsung, self.sidebar_button_spd, self.sidebar_button_zte]
         for btn in buttons:
             if btn.cget("text") == name:
@@ -330,13 +407,7 @@ class OGServiceToolApp(ctk.CTk):
          grid_frame.pack(fill="both", expand=True)
 
          buttons_data = [
-            ("Auth Bypass", self.mtk_manager.auth_bypass),
-            ("Read Info", self.mtk_manager.read_info),
-            ("Format Data", self.mtk_manager.format_data),
-            ("Erase FRP", self.mtk_manager.erase_frp),
-            ("Backup NVRAM", self.mtk_manager.backup_nvram),
-            ("Restore NVRAM", self.mtk_manager.restore_nvram),
-            ("Unlock Bootloader", self.mtk_manager.unlock_bootloader)
+            ("Keypad Mobile", self.mtk_manager.open_keypad_tool)
          ]
          
          for i, (text, cmd) in enumerate(buttons_data):
@@ -384,50 +455,22 @@ class OGServiceToolApp(ctk.CTk):
          odin_frame = ctk.CTkFrame(tab_odin, fg_color="transparent")
          odin_frame.pack(fill="both", expand=True, padx=20, pady=20)
          
-         files = ["BL", "AP", "CP", "CSC"]
-         self.odin_entries = {}
-         
-         for i, f_type in enumerate(files):
-             row_frame = ctk.CTkFrame(odin_frame, fg_color="transparent")
-             row_frame.pack(fill="x", pady=5)
-             
-             label = ctk.CTkLabel(row_frame, text=f_type, width=40, anchor="e", font=ctk.CTkFont(weight="bold"))
-             label.pack(side="left", padx=(0, 10))
-             
-             entry = ctk.CTkEntry(row_frame, placeholder_text=f"Select {f_type} file...")
-             entry.pack(side="left", fill="x", expand=True, padx=(0, 10))
-             self.odin_entries[f_type] = entry
-             
-             btn = ctk.CTkButton(row_frame, text="Browse", width=80, 
-                                 command=lambda ft=f_type: self.browse_odin_file(ft))
-             btn.pack(side="right")
+         # Description
+         ctk.CTkLabel(odin_frame, text="Samsung Odin Flash Tool", font=ctk.CTkFont(size=18, weight="bold")).pack(pady=(40, 10))
+         ctk.CTkLabel(odin_frame, text="Click below to open independent Odin Flash Tool", text_color="gray").pack(pady=(0, 30))
 
          # Flash Button
-         flash_btn = ctk.CTkButton(odin_frame, text="START FLASH", height=50, fg_color=styles.ACCENT_COLOR, 
+         flash_btn = ctk.CTkButton(odin_frame, text="OPEN ODIN", height=60, fg_color=styles.ACCENT_COLOR, 
                                    font=ctk.CTkFont(size=16, weight="bold"),
                                    command=self.perform_odin_flash)
-         flash_btn.pack(fill="x", pady=(30, 0))
+         flash_btn.pack(fill="x", padx=50)
 
     def browse_odin_file(self, file_type):
-        file_path = ctk.filedialog.askopenfilename(title=f"Select {file_type} File", 
-                                                   filetypes=[("Tar/MD5 Files", "*.tar *.tar.md5"), ("All Files", "*.*")])
-        if file_path:
-            self.odin_entries[file_type].delete(0, "end")
-            self.odin_entries[file_type].insert(0, file_path)
+        pass # Deprecated
 
     def perform_odin_flash(self):
-        files = {
-            "BL": self.odin_entries["BL"].get(),
-            "AP": self.odin_entries["AP"].get(),
-            "CP": self.odin_entries["CP"].get(),
-            "CSC": self.odin_entries["CSC"].get()
-        }
-        
-        # Validation: At least AP or BL required
-        if not files["AP"] and not files["BL"]:
-            self.append_log("[ERROR] At least 'AP' or 'BL' file is required to flash.")
-            return
-
+        # Directly launch Odin manager with empty files, which triggers the GUI launcher we implemented
+        files = {"BL": "", "AP": "", "CP": "", "CSC": ""} 
         self.samsung_manager.flash_odin(files)
 
 
@@ -438,10 +481,13 @@ class OGServiceToolApp(ctk.CTk):
          grid_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
          grid_frame.pack(fill="both", expand=True)
 
-         actions = ["Enter Diag Mode", "Read Info", "Remove FRP", "Format Userdata", "Backup NV", "Restore NV", "Sim Unlock"]
+         # Map actions to functions
+         buttons_data = [
+            # Waiting for user input on what to add here
+         ]
          
-         for i, action in enumerate(actions):
-             btn = ctk.CTkButton(grid_frame, text=action, height=50, fg_color=styles.CARD_BG, hover_color=styles.ACCENT_COLOR)
+         for i, (text, cmd) in enumerate(buttons_data):
+             btn = ctk.CTkButton(grid_frame, text=text, height=50, fg_color=styles.CARD_BG, hover_color=styles.ACCENT_COLOR, command=cmd)
              btn.grid(row=i//3, column=i%3, padx=10, pady=10, sticky="ew")
 
          grid_frame.grid_columnconfigure(0, weight=1)

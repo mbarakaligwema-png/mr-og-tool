@@ -43,14 +43,15 @@ This guide explains how to deploy the **MR OG TOOL Server** specifically to **Re
 
 ## Step 4: Configure the Tool (Client)
 - On your computer (and your customers' computers), open the `config.json` file in the MR OG TOOL folder.
-- Update `server_url` with your new online link:
+- Once deployed, Render will give you a URL like: `https://mrogtool.com` (after custom domain setup).
+- **IMPORTANT**: Paste this URL into `config.json` on your PC:
   ```json
   {
-      "server_url": "https://mr-og-tool.onrender.com"
+      "users": {...},
+      "server_url": "https://mrogtool.com"
   }
   ```
-- Now, when you open the tool, it will connect to this online server instead of looking for one on your computer!
-
-## Step 5: Create Admin User (Online)
-- The first time the server starts, it creates specific default users if defined in code, OR you might need to register.
-- Visit `https://mr-og-tool.onrender.com/register` to create your first account (or use `/admin` if default admin exists).
+  
+### 3. Create First User
+- Visit `https://mrogtool.com/register` to create your first account (or use `/admin` if default admin exists).
+- Log in to the tool using these details.

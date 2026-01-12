@@ -1,6 +1,6 @@
 import urllib.request
     
-url = "https://mr-og-tool.onrender.com/"
+url = "https://mrogtool.com/"
 print(f"Checking: {url}")
     
 try:

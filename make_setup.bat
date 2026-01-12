@@ -24,7 +24,7 @@ if not exist "%ISCC_PATH%" (
     echo.
     echo [ERROR] Inno Setup NOT FOUND!
     echo.
-    echo To create a "Setup.exe" (installer), you MUST install Inno Setup.
+    echo To create a "Setup.exe" ^(installer^), you MUST install Inno Setup.
     echo It is free/open source.
     echo.
     echo Opening download page...

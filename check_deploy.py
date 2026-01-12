@@ -2,7 +2,8 @@ import urllib.request
 import json
 import ssl
 
-url = "https://mr-og-tool.onrender.com/health"
+print("Checking Deployment Status...")
+url = "https://mrogtool.com/health"
 print(f"Checking: {url}")
 
 try:
