@@ -116,6 +116,12 @@ class LoginWindow(ctk.CTk):
                                 font=link_font, text_color=styles.ACCENT_COLOR, fg_color="transparent", hover=False,
                                 command=lambda: webbrowser.open(reg_url)) 
         reg_btn.pack(side="top", pady=0)
+
+        # Forgot Password (Added Request)
+        forgot_btn = ctk.CTkButton(self.social_frame, text="Forgot Password?", 
+                                font=ctk.CTkFont(size=10, underline=True), text_color="gray", fg_color="transparent", hover=False,
+                                command=lambda: webbrowser.open("https://wa.me/255683397833?text=Hello+Admin+I+forgot+my+password")) 
+        forgot_btn.pack(side="top", pady=0)
         
         # Icons/Buttons Row
         row_frame = ctk.CTkFrame(self.social_frame, fg_color="transparent")
@@ -169,8 +175,11 @@ class LoginWindow(ctk.CTk):
                 with open(config_path, "r") as f:
                     try: 
                         data = json.load(f)
-                    except: 
-                        data = {}
+                    except Exception as e: 
+                        print(f"Config corruption detected: {e}")
+                        # Don't wipe it! Try to recover or just stop.
+                        # data = {} # DANGEROUS - Wipes everything
+                        return # Abort cleanup to save data
             
             if "users" not in data:
                 data["users"] = {}
@@ -178,10 +187,10 @@ class LoginWindow(ctk.CTk):
             users = data["users"]
             changed = False
             
-            # 1. Force Remove 'admin' (Legacy)
-            if "admin" in users:
-                del users["admin"]
-                changed = True
+            # 1. Force Remove 'admin' - DISABLED (We now support 'admin' as local user)
+            # if "admin" in users:
+            #    del users["admin"]
+            #    changed = True
                 
             # 2. Force Create 'mrogtool' if missing
             if "mrogtool" not in users:
@@ -261,8 +270,19 @@ class LoginWindow(ctk.CTk):
         # AND we have a default admin in self.users_db, maybe we write it?
         # But generally, let's trust what's on disk for users.
         
-        if "users" not in current_data and self.users_db:
-             current_data["users"] = self.users_db
+        if "users" not in current_data:
+             current_data["users"] = {}
+
+        # CACHING: Save this successful user to local DB so they can login OFFINE later!
+        # This solves "Mtu kumbuka na add kwenye website" -> Sync web user to local
+        import datetime
+        now = datetime.datetime.now()
+        current_data["users"][username] = {
+            "password": password,
+            "expiry": "Server-Verified", # Or verify actual date if we had it
+            "cached_at": now.strftime("%Y-%m-%d %H:%M:%S"),
+            "hwid_lock": "Cached"
+        }
         
         try:
             with open("config.json", "w") as f:
@@ -341,6 +361,13 @@ class LoginWindow(ctk.CTk):
         
         is_allowed, msg = verify_user_license(server_url, username, hwid)
         
+        # LOCAL OVERRIDE: If user exists locally (Added by Admin), trust the config file!
+        if not is_allowed and username in self.users_db:
+             # Basic check to ensure password matches (redundant but safe)
+             if self.users_db[username].get("password") == password:
+                 is_allowed = True
+                 msg = f"Local Access (Server: {msg})"
+
         # BYPASS FOR OFFLINE DEVELOPMENT if server is unreachable
         if not is_allowed and ("Connection Failed" in msg or "Server HTTP" in msg):
              # Only allow offline login if user exists locally!

@@ -439,8 +439,7 @@ class OGServiceToolApp(ctk.CTk):
             ("Remove FRP (2024)", self.samsung_manager.remove_frp_2024),
             ("Soft Brick Fix", self.samsung_manager.soft_brick_fix),
             ("Exit Download Mode", self.samsung_manager.exit_download_mode),
-            ("ANTIRELOCK latest", self.samsung_manager.antirelock_latest),
-            ("MDM BYPASS 2025", self.samsung_manager.mdm_bypass_2025)
+            ("MDM BYPASS 2026", self.samsung_manager.mdm_bypass_2026)
          ]
          
          for i, (text, cmd) in enumerate(buttons_data):
@@ -556,7 +555,8 @@ class OGServiceToolApp(ctk.CTk):
         title.pack(pady=20)
         
         # Only ADMIN can see User Management (Case Insensitive & Stripped)
-        if str(self.username).strip().lower() == "mrogtool":
+        # Only ADMIN can see User Management (Case Insensitive & Stripped)
+        if str(self.username).strip().lower() in ["mrogtool", "admin"]:
             # User Manager Section
             user_frame = ctk.CTkFrame(parent)
             user_frame.pack(fill="x", padx=20, pady=10)
@@ -608,7 +608,7 @@ class OGServiceToolApp(ctk.CTk):
             ctk.CTkLabel(info_frame, text=f"Logged in as: {self.username}", font=ctk.CTkFont(size=14)).pack(pady=20)
             ctk.CTkLabel(info_frame, text="Standard User Restricted Mode", text_color="gray").pack(pady=5)
             # Debug hint
-            ctk.CTkLabel(info_frame, text=f"(Debug: System sees user as '{self.username}', expected 'admin')", text_color="red", font=ctk.CTkFont(size=10)).pack(pady=5)
+            ctk.CTkLabel(info_frame, text=f"(Debug: System sees user as '{self.username}', expected 'mrogtool' or 'admin')", text_color="red", font=ctk.CTkFont(size=10)).pack(pady=5)
 
     def delete_user(self):
         user_to_del = self.del_user_entry.get()
