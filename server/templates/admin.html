@@ -45,6 +45,7 @@
                 <tr>
                     <th>ID</th>
                     <th>Username</th>
+                    <th>Email</th>
                     <th>Expiry</th>
                     <th>HWID</th>
                     <th>Actions</th>
@@ -55,6 +56,7 @@
                 <tr>
                     <td>{{ u.id }}</td>
                     <td>{{ u.username }}</td>
+                    <td>{{ u.email if u.email else "No Email" }}</td>
                     <td>
                         {{ u.expiry_date.strftime('%Y-%m-%d') if u.expiry_date else "LIFETIME" }}
                     </td>
@@ -100,6 +102,7 @@
                 <tr>
                     <th>ID</th>
                     <th>Username</th>
+                    <th>Email</th>
                     <th>Status</th>
                     <th>Expiry</th>
                     <th>Actions</th>
@@ -110,6 +113,7 @@
                 <tr>
                     <td>{{ u.id }}</td>
                     <td>{{ u.username }}</td>
+                    <td>{{ u.email if u.email else "No Email" }}</td>
                     <td>
                         {% if not u.is_active %} <span class="status-blocked">BLOCKED</span>
                         {% elif u.is_expired() %} <span class="status-blocked">EXPIRED</span>

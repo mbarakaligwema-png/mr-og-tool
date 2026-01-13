@@ -84,14 +84,14 @@ async def register_page(request: Request):
     return templates.TemplateResponse("register.html", {"request": request})
 
 @app.post("/register", response_class=HTMLResponse)
-async def register(request: Request, username: str = Form(...), password: str = Form(...), confirm_password: str = Form(...), db: Session = Depends(get_db)):
+async def register(request: Request, username: str = Form(...), email: str = Form(...), password: str = Form(...), confirm_password: str = Form(...), db: Session = Depends(get_db)):
     if password != confirm_password:
         return templates.TemplateResponse("register.html", {"request": request, "error": "Passwords do not match"})
     
     if crud.get_user(db, username):
         return templates.TemplateResponse("register.html", {"request": request, "error": "Username already taken"})
     
-    crud.create_user(db, username, password)
+    crud.create_user(db, username, password, email=email)
     return RedirectResponse(url="/login?msg=registered", status_code=status.HTTP_303_SEE_OTHER)
 
 @app.get("/logout")
