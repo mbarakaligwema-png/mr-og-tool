@@ -156,6 +156,24 @@ async def extend_user(user_id: int, request: Request, duration: str = Form(...),
     crud.extend_user_expiry(db, user_id, duration)
     return RedirectResponse(url="/admin", status_code=status.HTTP_303_SEE_OTHER)
 
+@app.post("/admin/users/{user_id}/reset_password")
+async def reset_password(user_id: int, request: Request, new_password: str = Form(...), db: Session = Depends(get_db)):
+    user = get_current_user_from_cookie(request, db)
+    if not user or not user.is_admin:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    crud.reset_user_password(db, user_id, new_password)
+    return RedirectResponse(url="/admin", status_code=status.HTTP_303_SEE_OTHER)
+
+@app.post("/admin/users/{user_id}/reset_hwid")
+async def reset_hwid(user_id: int, request: Request, db: Session = Depends(get_db)):
+    user = get_current_user_from_cookie(request, db)
+    if not user or not user.is_admin:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    crud.reset_user_hwid(db, user_id)
+    return RedirectResponse(url="/admin", status_code=status.HTTP_303_SEE_OTHER)
+
 # --- API ENDPOINTS (For Desktop Tool) ---
 
 @app.post("/api/v1/verify")

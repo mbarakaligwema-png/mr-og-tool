@@ -37,65 +37,53 @@
         {% endif %}
     </div>
 
-    <!-- User List -->
+    <!-- ACTIVE USERS (PAID) -->
     <div class="card">
-        <h3>Manage Users</h3>
+        <h3 style="color: #4CAF50;">Active / Paid Users</h3>
         <table>
             <thead>
                 <tr>
                     <th>ID</th>
                     <th>Username</th>
-                    <th>Status</th>
-                    <th>Role</th>
                     <th>Expiry</th>
                     <th>HWID</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
-                {% for u in users %}
+                {% for u in users if u.is_active and not u.is_expired() %}
                 <tr>
                     <td>{{ u.id }}</td>
                     <td>{{ u.username }}</td>
-                    <td>
-                        <span class="{% if u.is_active %}status-active{% else %}status-blocked{% endif %}">
-                            {{ "Active" if u.is_active else "Blocked" }}
-                        </span>
-                    </td>
-                    <td>{{ "Admin" if u.is_admin else "User" }}</td>
                     <td>
                         {{ u.expiry_date.strftime('%Y-%m-%d') if u.expiry_date else "LIFETIME" }}
                     </td>
                     <td style="font-family: monospace; font-size: 0.9em;">{{ u.hwid if u.hwid else "-" }}</td>
                     <td>
-                        <div style="display: flex; gap: 5px; flex-wrap: wrap;">
-                            <!-- Toggle Block/Unblock -->
+                        <div style="display: flex; gap: 5px;">
+                            <!-- Block -->
                             <form method="post" action="/admin/users/{{ u.id }}/toggle" style="display: inline;">
                                 <button type="submit" class="btn"
-                                    style="padding: 5px 8px; font-size: 0.8rem; background-color: #555;">
-                                    {{ "Block" if u.is_active else "Unblock" }}
-                                </button>
+                                    style="background-color: #f44336; padding: 4px 8px;">Block</button>
                             </form>
-
-                            <!-- Delete -->
-                            <form method="post" action="/admin/users/{{ u.id }}/delete" style="display: inline;">
-                                <button type="submit" class="btn btn-danger"
-                                    style="padding: 5px 8px; font-size: 0.8rem;"
-                                    onclick="return confirm('Are you sure?')">Del</button>
+                            <!-- Reset HWID -->
+                            <form method="post" action="/admin/users/{{ u.id }}/reset_hwid" style="display: inline;">
+                                <button type="submit" class="btn"
+                                    style="background-color: #2196F3; padding: 4px 8px;">Reset HWID</button>
                             </form>
-
-                            <!-- Extend License -->
+                            <!-- Extend -->
                             <form method="post" action="/admin/users/{{ u.id }}/extend" style="display: inline;">
                                 <select name="duration" onchange="this.form.submit()"
-                                    style="padding: 5px; border-radius: 4px; border: 1px solid #444; background: #333; color: white;">
+                                    style="padding: 4px; border-radius: 4px; border: 1px solid #444; background: #333; color: white;">
                                     <option value="" disabled selected>+ Extend</option>
                                     <option value="6_hours">6 Hours</option>
                                     <option value="3_months">3 Months</option>
-                                    <option value="6_months">6 Months</option>
                                     <option value="1_year">1 Year</option>
-                                    <option value="lifetime">Lifetime</option>
                                 </select>
                             </form>
+                            <!-- Reset Password -->
+                            <button onclick="openResetModal('{{ u.id }}', '{{ u.username }}')" class="btn"
+                                style="background-color: #FF9800; padding: 4px 8px;">Reset Pass</button>
                         </div>
                     </td>
                 </tr>
@@ -103,5 +91,93 @@
             </tbody>
         </table>
     </div>
+
+    <!-- PENDING / EXPIRED / BLOCKED USERS -->
+    <div class="card" style="margin-top: 20px; border-top: 3px solid #f44336;">
+        <h3 style="color: #f44336;">Pending / Expired Users</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Status</th>
+                    <th>Expiry</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users if not u.is_active or u.is_expired() %}
+                <tr>
+                    <td>{{ u.id }}</td>
+                    <td>{{ u.username }}</td>
+                    <td>
+                        {% if not u.is_active %} <span class="status-blocked">BLOCKED</span>
+                        {% elif u.is_expired() %} <span class="status-blocked">EXPIRED</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {{ u.expiry_date.strftime('%Y-%m-%d') if u.expiry_date else "LIFETIME" }}
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 5px;">
+                            <!-- Unblock / Extend to Activate -->
+                            {% if not u.is_active %}
+                            <form method="post" action="/admin/users/{{ u.id }}/toggle" style="display: inline;">
+                                <button type="submit" class="btn"
+                                    style="background-color: #4CAF50; padding: 4px 8px;">Unblock</button>
+                            </form>
+                            {% endif %}
+
+                            <form method="post" action="/admin/users/{{ u.id }}/extend" style="display: inline;">
+                                <select name="duration" onchange="this.form.submit()"
+                                    style="padding: 4px; border-radius: 4px; border: 1px solid #444; background: #333; color: white;">
+                                    <option value="" disabled selected>Activate / Extend</option>
+                                    <option value="6_hours">6 Hours</option>
+                                    <option value="3_months">3 Months</option>
+                                    <option value="1_year">1 Year</option>
+                                </select>
+                            </form>
+
+                            <form method="post" action="/admin/users/{{ u.id }}/delete" style="display: inline;">
+                                <button type="submit" class="btn btn-danger" style="padding: 4px 8px;"
+                                    onclick="return confirm('Delete user?')">Del</button>
+                            </form>
+                            <!-- Reset Password -->
+                            <button onclick="openResetModal('{{ u.id }}', '{{ u.username }}')" class="btn"
+                                style="background-color: #FF9800; padding: 4px 8px;">Reset Pass</button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- PASSWORD RESET MODAL -->
+    <div id="resetModal"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); align-items:center; justify-content:center;">
+        <div class="card" style="width: 300px; background: #222;">
+            <h3>Reset Password</h3>
+            <p>User: <span id="modalUsername" style="color:cyan"></span></p>
+            <form id="resetForm" method="post" action="">
+                <input type="text" name="new_password" placeholder="New Password" required
+                    style="width: 100%; margin-bottom: 10px;">
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" class="btn" style="flex:1">Save</button>
+                    <button type="button" class="btn btn-danger"
+                        onclick="document.getElementById('resetModal').style.display='none'"
+                        style="flex:1">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openResetModal(id, username) {
+            document.getElementById('resetModal').style.display = 'flex';
+            document.getElementById('modalUsername').innerText = username;
+            document.getElementById('resetForm').action = "/admin/users/" + id + "/reset_password";
+        }
+    </script>
 </div>
 {% endblock %}

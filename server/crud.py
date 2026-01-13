@@ -60,3 +60,19 @@ def extend_user_expiry(db: Session, user_id: int, duration_type: str):
         
     db.commit()
     return user
+
+def reset_user_password(db: Session, user_id: int, new_password: str):
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if user:
+        user.hashed_password = auth.get_password_hash(new_password)
+        db.commit()
+        return user
+    return None
+    
+def reset_user_hwid(db: Session, user_id: int):
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if user:
+        user.hwid = None
+        db.commit()
+        return user
+    return None
