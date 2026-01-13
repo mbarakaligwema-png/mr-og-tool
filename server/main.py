@@ -19,7 +19,18 @@ app = FastAPI()
 
 @app.get("/health")
 def health_check():
-    return {"status": "ok", "version": "v1.5-EXPIRY-FIXED"}
+    return {"status": "ok", "version": "v1.6-DEBUG"}
+
+@app.get("/debug")
+def debug_info():
+    import os
+    return {
+        "db_path_var": database.DB_PATH,
+        "var_data_exists": os.path.exists("/var/data"),
+        "cwd": os.getcwd(),
+        "files_in_var_data": os.listdir("/var/data") if os.path.exists("/var/data") else "N/A",
+        "env_render": os.getenv("RENDER", "Not Found")
+    }
 
 # Absolute Path Resolution
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))

@@ -398,24 +398,25 @@ class LoginWindow(ctk.CTk):
         
         is_allowed, msg = verify_user_license(server_url, username, password, hwid)
         
-        # LOCAL OVERRIDE: If user exists locally (Added by Admin), trust the config file!
-        if not is_allowed and username in self.users_db:
-             # Basic check to ensure password matches (redundant but safe)
-             if self.users_db[username].get("password") == password:
-                 is_allowed = True
-                 msg = f"Local Access (Server: {msg})"
+        # LOCAL OVERRIDE: ONLY if server is unreachable (Offline Mode)
+        # We must NOT allow access if server explicitly said "BLOCK", "Wrong Password", "Expired", etc.
+        
+        server_rejected_keywords = ["Wrong Password", "BLOCKED", "Expired", "Access Denied", "HWID", "User not found"]
+        is_server_rejection = any(keyword in msg for keyword in server_rejected_keywords)
+        
+        if not is_allowed:
+            # If server explicitly rejected us, DO NOT ALLOW LOCAL BYPASS
+            if is_server_rejection:
+                pass # Remains False
+                
+            # Only if it's a connection error, try local cache
+            elif "Connection Failed" in msg or "Server HTTP" in msg or "Server Error" in msg:
+                 if username in self.users_db and self.users_db[username].get("password") == password:
+                     is_allowed = True
+                     msg = "Offline Mode (Server Unreachable)"
+                 else:
+                     msg = "Login Failed: Offline & Not Cached"
 
-        # BYPASS FOR OFFLINE DEVELOPMENT if server is unreachable
-        if not is_allowed and ("Connection Failed" in msg or "Server HTTP" in msg):
-             # Only allow offline login if user exists locally!
-             if username in self.users_db:
-                 # Password was already verified above in Local Auth Check
-                 is_allowed = True
-                 msg = "Offline Mode (Server Unreachable)"
-             else:
-                 # Unknown user and no server to verify -> BLOCK
-                 is_allowed = False
-                 msg = "Login Failed: User not found (Offline)"
 
         if is_allowed:
              self.save_config(username, password)

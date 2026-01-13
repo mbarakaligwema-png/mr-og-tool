@@ -8,8 +8,10 @@ import os
 # Check for DATABASE_URL env var or use specific path for Render Disk
 # On Render, we will mount a disk to /var/data
 if os.path.exists("/var/data"):
+    DB_PATH = "/var/data/users.db"
     SQLALCHEMY_DATABASE_URL = "sqlite:////var/data/users.db"
 else:
+    DB_PATH = "users.db (Local/Ephemeral)"
     SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./users.db")
 
 # Fix for Render using 'postgres://' instead of 'postgresql://'
