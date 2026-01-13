@@ -396,7 +396,7 @@ class LoginWindow(ctk.CTk):
         # But verify_user_license returns (False, error_msg).
         # Check if error message is connection related.
         
-        is_allowed, msg = verify_user_license(server_url, username, hwid)
+        is_allowed, msg = verify_user_license(server_url, username, password, hwid)
         
         # LOCAL OVERRIDE: If user exists locally (Added by Admin), trust the config file!
         if not is_allowed and username in self.users_db:

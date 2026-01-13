@@ -177,11 +177,15 @@ async def reset_hwid(user_id: int, request: Request, db: Session = Depends(get_d
 # --- API ENDPOINTS (For Desktop Tool) ---
 
 @app.post("/api/v1/verify")
-async def verify_user(username: str = Form(...), hwid: str = Form(...), db: Session = Depends(get_db)):
+@app.post("/api/v1/verify")
+async def verify_user(username: str = Form(...), password: str = Form(...), hwid: str = Form(...), db: Session = Depends(get_db)):
     user = crud.get_user(db, username)
     
     if not user:
         return JSONResponse(content={"status": "BLOCK", "message": "User not found."}, status_code=404)
+        
+    if not auth.verify_password(password, user.hashed_password):
+        return JSONResponse(content={"status": "BLOCK", "message": "Wrong Password."}, status_code=403)
     
     if not user.is_active:
         return JSONResponse(content={"status": "BLOCK", "message": "Account is BLOCKED."}, status_code=403)

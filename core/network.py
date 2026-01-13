@@ -44,14 +44,15 @@ def verify_server_access(server_url):
         print(f"Server Check Error: {e}")
         return False
 
-def verify_user_license(server_url, username, hwid):
+def verify_user_license(server_url, username, password, hwid):
     """
     Call API to verify user.
-    Returns: (bool is_allowed, str message)
+    Returns: (is_allowed: bool, message: str)
     """
     api_url = f"{server_url.rstrip('/')}/api/v1/verify"
     data = urllib.parse.urlencode({
         "username": username,
+        "password": password,
         "hwid": hwid
     }).encode()
     
