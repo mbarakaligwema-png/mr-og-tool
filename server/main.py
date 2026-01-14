@@ -221,6 +221,14 @@ async def verify_user(username: str = Form(...), password: str = Form(...), hwid
     expiry_str = user.expiry_date.strftime('%Y-%m-%d %H:%M') if user.expiry_date else "LIFETIME"
     return JSONResponse(content={"status": "OK", "message": "Access Granted.", "expiry": expiry_str})
 
+@app.get("/api/v1/latest_version")
+async def latest_version():
+    return {
+        "version": "1.5", 
+        "download_url": "https://mrogtool.com/download/latest",
+        "changelog": "New Features:\n- Resellers Page Added\n- Remember Me Fixed\n- Samsung Odin Integration"
+    }
+
 
 # --- HELPER ---
 def get_current_user_from_cookie(request: Request, db: Session):

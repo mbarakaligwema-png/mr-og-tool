@@ -14,7 +14,7 @@ ctk.set_appearance_mode("Dark")  # Modes: "System" (standard), "Dark", "Light"
 ctk.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
 
 class OGServiceToolApp(ctk.CTk):
-    VERSION = "1.0.0"
+    VERSION = "1.5.0"
 
     def __init__(self, username="User", expiry_msg="LIFETIME"):
         super().__init__()
@@ -157,6 +157,77 @@ class OGServiceToolApp(ctk.CTk):
 
         # Start Port Scanner (Threaded)
         self.start_port_scanner()
+        
+        # Check for Updates (Threaded)
+        self.check_for_updates()
+
+    def check_for_updates(self):
+        import threading
+        import requests
+        import webbrowser
+        
+        def check():
+            try:
+                # Assuming config.json has server_url, we need to load it again or pass it
+                # For now, let's try to get it from self.username if we stored it? No.
+                # Let's read config safely
+                server_url = "https://mrogtool.com" # Default
+                try:
+                    app_data = os.getenv('APPDATA')
+                    config_path = os.path.join(app_data, "MR_OG_TOOL", "config.json")
+                    if os.path.exists(config_path):
+                        with open(config_path, "r") as f:
+                            data = json.load(f)
+                            server_url = data.get("server_url", server_url)
+                except: pass
+                
+                api_url = f"{server_url}/api/v1/latest_version"
+                response = requests.get(api_url, timeout=5)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    server_ver = data.get("version", "1.0.0")
+                    download_url = data.get("download_url", "")
+                    changelog = data.get("changelog", "")
+                    
+                    # Simple Version Compare (String compare is risky for 1.10 vs 1.2, but ok for now)
+                    # Better: split by dot
+                    def parse_version(v):
+                        return tuple(map(int, (v.split("."))))
+                        
+                    local_v = parse_version(self.VERSION.replace("v",""))
+                    server_v = parse_version(server_ver.replace("v",""))
+                    
+                    if server_v > local_v:
+                        # Update Available!
+                        self.after(2000, lambda: self.show_update_dialog(server_ver, download_url, changelog))
+            except Exception as e:
+                print(f"Update Check User Error: {e}")
+
+        t = threading.Thread(target=check, daemon=True)
+        t.start()
+
+    def show_update_dialog(self, version, url, changelog):
+        dialog = ctk.CTkToplevel(self)
+        dialog.title("Update Available 🚀")
+        dialog.geometry("400x350")
+        dialog.attributes("-topmost", True)
+        dialog.configure(fg_color=styles.BACKGROUND)
+        
+        ctk.CTkLabel(dialog, text="NEW UPDATE AVAILABLE!", font=ctk.CTkFont(size=18, weight="bold"), text_color="#00FF00").pack(pady=(20, 10))
+        ctk.CTkLabel(dialog, text=f"Version: v{version}", font=ctk.CTkFont(size=14)).pack(pady=5)
+        
+        log_box = ctk.CTkTextbox(dialog, height=100)
+        log_box.pack(padx=20, pady=10, fill="x")
+        log_box.insert("1.0", f"Changelog:\n{changelog}")
+        log_box.configure(state="disabled")
+        
+        import webbrowser
+        def open_url():
+            webbrowser.open(url)
+            dialog.destroy()
+            
+        ctk.CTkButton(dialog, text="DOWNLOAD NOW", command=open_url, fg_color=styles.ACCENT_COLOR, height=40).pack(pady=20)
 
     def start_port_scanner(self):
         import threading

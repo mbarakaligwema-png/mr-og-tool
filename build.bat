@@ -16,6 +16,7 @@ echo.
 echo [*] Installing PyInstaller (if missing)...
 %PYTHON_EXE% -m pip install pyinstaller
 %PYTHON_EXE% -m pip install pillow
+%PYTHON_EXE% -m pip install requests
 
 echo.
 echo [*] Building Executable...

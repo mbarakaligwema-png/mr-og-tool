@@ -25,7 +25,7 @@ def main():
         # Create a hidden root just to show messagebox/dialog
         root = ctk.CTk()
         root.withdraw()
-        tkinter.messagebox.showerror("MR OG TOOL", "Tool is already running!\nTool hii imeshafunguliwa.")
+        tkinter.messagebox.showerror("MR OG TOOL", "Tool is already running!")
         root.destroy()
         return
 
