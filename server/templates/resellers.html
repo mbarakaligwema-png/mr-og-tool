@@ -1,35 +1,40 @@
 {% extends "base.html" %}
 
-{% block title %}Distributors - MR OG TOOL{% endblock %}
+{% block title %}Resellers - MR OG TOOL{% endblock %}
 
 {% block content %}
-<div class="distributors-page" style="text-align: center; padding: 40px 20px;">
-    <h1
-        style="border-bottom: 2px solid #333; padding-bottom: 15px; display: inline-block; color: #fff; margin-bottom: 40px;">
-        Distributors and Resellers</h1>
+<div id="resellers" class="resellers-section" style="margin-top: 60px; text-align: center;">
+    <h2 style="border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 30px;">Distributors & Resellers</h2>
 
-    <div style="display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; margin-top: 20px;">
+    <!-- Resellers Grid Container -->
+    <div
+        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; justify-content: center; padding: 0 20px;">
 
-        <!-- OFFICIAL RESELLER CARD -->
+        <!-- Reseller 1: FATIZZO -->
         <div class="card"
-            style="background: #1E1E1E; padding: 30px; border-radius: 15px; border: 1px solid #FFD700; width: 320px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
+            style="background: linear-gradient(145deg, #1e1e1e, #2d2d2d); padding: 30px; border-radius: 15px; border: 1px solid #FFD700; text-align: center; transition: transform 0.3s ease;">
             <div
-                style="background: #FFD700; color: black; padding: 5px 15px; border-radius: 20px; font-size: 0.8em; font-weight: bold; display: inline-block; margin-bottom: 15px;">
+                style="background: #FFD700; color: black; font-weight: bold; padding: 5px 15px; border-radius: 20px; display: inline-block; margin-bottom: 15px; font-size: 0.8em;">
                 OFFICIAL RESELLER</div>
+            <h2 style="color: #FFD700; margin-bottom: 10px;">FATIZZO</h2>
+            <h4 style="color: #fff; margin-bottom: 20px;">Tanzania 🇹🇿</h4>
+            <a href="https://wa.me/255621477755" target="_blank"
+                style="display: inline-flex; align-items: center; justify-content: center; background: #25D366; color: white; padding: 12px 25px; border-radius: 30px; text-decoration: none; font-weight: bold; font-size: 1.1em; transition: background 0.2s;">
+                <span style="font-size: 1.4em; margin-right: 10px;">📱</span> WhatsApp
+            </a>
+        </div>
 
-            <div style="margin-bottom: 15px;">
-                <img src="/static/fatizzo.png" alt="Fatizzo"
-                    style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 2px solid #FFD700;">
-            </div>
-
-            <h3 style="color: #FFD700; margin-bottom: 5px; font-size: 1.4em;">FATIZZO</h3>
-            <p style="color: white; font-size: 1.1em; margin-bottom: 10px;">🇹🇿 Tanzania</p>
-
-            <p style="color: #aaa; margin-bottom: 20px;">Contact for Activation</p>
-
-            <a href="https://wa.me/255711940922" target="_blank"
-                style="background: #25D366; color: white; text-decoration: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; display: inline-flex; align-items: center; gap: 8px;">
-                <i class="fab fa-whatsapp" style="font-size: 1.2em;"></i> WhatsApp
+        <!-- Reseller 2: CHERRYTZ -->
+        <div class="card"
+            style="background: linear-gradient(145deg, #1e1e1e, #2d2d2d); padding: 30px; border-radius: 15px; border: 1px solid #e91e63; text-align: center; transition: transform 0.3s ease;">
+            <div
+                style="background: #e91e63; color: white; font-weight: bold; padding: 5px 15px; border-radius: 20px; display: inline-block; margin-bottom: 15px; font-size: 0.8em;">
+                OFFICIAL RESELLER</div>
+            <h2 style="color: #e91e63; margin-bottom: 10px;">🍒 CHERRYTZ</h2>
+            <h4 style="color: #fff; margin-bottom: 20px;">Tanzania 🇹🇿</h4>
+            <a href="https://wa.me/255748618724" target="_blank"
+                style="display: inline-flex; align-items: center; justify-content: center; background: #25D366; color: white; padding: 12px 25px; border-radius: 30px; text-decoration: none; font-weight: bold; font-size: 1.1em; transition: background 0.2s;">
+                <span style="font-size: 1.4em; margin-right: 10px;">📱</span> WhatsApp
             </a>
         </div>
 
