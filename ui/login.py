@@ -11,6 +11,15 @@ class LoginWindow(ctk.CTk):
         
         self.on_login_success = on_login_success
         
+        # Setup AppData Paths
+        self.app_data = os.getenv('APPDATA')
+        self.tool_data_dir = os.path.join(self.app_data, "MR_OG_TOOL")
+        if not os.path.exists(self.tool_data_dir):
+            os.makedirs(self.tool_data_dir)
+            
+        self.config_path = os.path.join(self.tool_data_dir, "config.json")
+        self.users_db_path = os.path.join(self.tool_data_dir, "users.db")
+        
         # Load saved credentials (last used) - MOVED TO TOP
         self.load_config()
         
@@ -170,8 +179,8 @@ class LoginWindow(ctk.CTk):
     def cleanup_legacy_admin(self):
         try:
             # Separation of Concerns: Move users to users.db (JSON) to prevent overwrite crashes
-            users_path = "users.db" # Renaming purely for clarity, format is still JSON
-            config_path = "config.json"
+            users_path = self.users_db_path 
+            config_path = self.config_path
             
             users_data = {}
             
@@ -230,8 +239,8 @@ class LoginWindow(ctk.CTk):
         
         # 1. Load Config (Settings)
         try:
-            if os.path.exists("config.json"):
-                with open("config.json", "r") as f:
+            if os.path.exists(self.config_path):
+                with open(self.config_path, "r") as f:
                     self.config_data = json.load(f)
                     
                     # Caching logic for remember me
@@ -244,8 +253,8 @@ class LoginWindow(ctk.CTk):
 
         # 2. Load Users (Dedicated DB)
         try:
-            if os.path.exists("users.db"):
-                with open("users.db", "r") as f:
+            if os.path.exists(self.users_db_path):
+                with open(self.users_db_path, "r") as f:
                     self.users_db = json.load(f)
             else:
                 # Should have been created by cleanup, but fallback
@@ -257,8 +266,8 @@ class LoginWindow(ctk.CTk):
         # SAFELY Update config without overwriting connection/user strings with defaults
         current_data = {}
         try:
-            if os.path.exists("config.json"):
-                with open("config.json", "r") as f:
+            if os.path.exists(self.config_path):
+                with open(self.config_path, "r") as f:
                     current_data = json.load(f)
         except:
              # If read fails, current_data is empty.
@@ -299,9 +308,9 @@ class LoginWindow(ctk.CTk):
         
         # Load Existing Users DB first
         users_db_data = {}
-        if os.path.exists("users.db"):
+        if os.path.exists(self.users_db_path):
             try:
-                with open("users.db", "r") as f:
+                with open(self.users_db_path, "r") as f:
                      users_db_data = json.load(f)
             except: pass
             
@@ -315,14 +324,14 @@ class LoginWindow(ctk.CTk):
         
         # Save Users DB
         try:
-             with open("users.db", "w") as f:
+             with open(self.users_db_path, "w") as f:
                  json.dump(users_db_data, f, indent=4)
         except Exception as e:
             print(f"Error saving cached user: {e}")
 
         # Save Config (Settings Only)
         try:
-            with open("config.json", "w") as f:
+            with open(self.config_path, "w") as f:
                 json.dump(current_data, f, indent=4)
         except Exception as e:
             print(f"Error saving config: {e}")
