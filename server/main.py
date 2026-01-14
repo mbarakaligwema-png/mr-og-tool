@@ -102,8 +102,12 @@ async def register(request: Request, username: str = Form(...), email: str = For
     if crud.get_user(db, username):
         return templates.TemplateResponse("register.html", {"request": request, "error": "Username already taken"})
     
-    crud.create_user(db, username, password, email=email)
-    return RedirectResponse(url="/login?msg=registered", status_code=status.HTTP_303_SEE_OTHER)
+    try:
+        crud.create_user(db, username, password, email=email)
+        return RedirectResponse(url="/login?msg=registered", status_code=status.HTTP_303_SEE_OTHER)
+    except Exception as e:
+        print(f"--- REGISTRATION ERROR: {e} ---")
+        return templates.TemplateResponse("register.html", {"request": request, "error": f"Registration failed: {str(e)}"})
 
 @app.get("/logout")
 async def logout():
