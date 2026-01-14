@@ -3,7 +3,7 @@ import json
 import ssl
 
 print("Checking Deployment Status...")
-url = "https://mrogtool.com/health"
+url = "https://web-production-79cc.up.railway.app/health"
 print(f"Checking: {url}")
 
 try:

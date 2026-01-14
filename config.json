@@ -1,9 +1,9 @@
 {
     "get_started": true,
-    "remember_me": false,
+    "remember_me": true,
     "username": "admin",
     "password": "admin",
-    "last_user": "",
-    "last_pass": "",
-    "server_url": "https://mrogtool.com"
+    "last_user": "mrogtool",
+    "last_pass": "dell",
+    "server_url": "https://web-production-79cc.up.railway.app"
 }
