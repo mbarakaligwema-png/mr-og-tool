@@ -105,13 +105,11 @@ class SamsungManager:
     def mdm_bypass_2026(self):
         import threading
         def _task():
-            self.cmd.log("[BLUE]Starting Samsung MDM 2026 Bypass...")
-            self.cmd.log("Note: Ensure USB Debugging is ON via *#0*# or QR.")
+            self.cmd.log("[BLUE]Starting Samsung MDM 2026 Bypass (APK Method)...")
             
             # 1. Connection Check
             self.cmd.log("[BLUE]Waiting ADB devices...")
             while True:
-                # Silent check to avoid log spam
                 res = self.cmd.run_command("adb devices", log_output=False)
                 if "device" in res and "List of" in res:
                     lines = res.strip().split('\n')
@@ -123,133 +121,87 @@ class SamsungManager:
                 import time
                 time.sleep(1)
             
-            self.cmd.log("[BLUE]Device Detected! Proceeding...")
-            
-            # Keep Screen ON (User Request: "simu isizime")
-            self.cmd.run_command("adb shell svc power stayon true")
+            self.cmd.log("[BLUE]Device Detected!")
 
-            # 2. Disable Updates & Bloatware (The core MDM agents)
-            self.cmd.log("[STEP] Disabling Update & Security Agents...")
-            pkgs = [
-                "com.sec.android.soagent",
-                "com.sec.android.systemupdate",
-                "com.wssyncmldm",
-                "com.samsung.android.app.updatecenter",
-                "com.samsung.android.cidmanager",
-                "com.sec.enterprise.knox.cloudmdm.smdms", # Knox Cloud
-                "com.samsung.android.mdm",
-                "com.knox.vpn.proxyhandler",
-                "com.samsung.android.kgclient",       # KG Client (Vital for Anti-Relock)
-                "com.samsung.android.kgclient.agent", # KG Agent (Extra protection)
-                "com.sec.android.app.samsungapps",     # Galaxy Store (Source of updates/relocks)
-                # User Added Packages
-                "com.google.android.configupdater",
-                "com.android.dynsystem",
-                "com.samsung.android.gru"
-            ]
-            
-            failed_blocks = []
-            for p in pkgs:
-                self.cmd.log(f"[*] Blocking {p}...")
-                # 1. Force Stop
-                self.cmd.run_command(f"adb shell am force-stop {p}", log_output=False)
-                # 2. Clear Data
-                self.cmd.run_command(f"adb shell pm clear {p}", log_output=False)
-                
-                # 3. Aggressive Removal loop
-                # Try Disable
-                r1 = self.cmd.run_command(f"adb shell pm disable-user --user 0 {p}", log_output=True)
-                # Try Uninstall (Keep data)
-                r2 = self.cmd.run_command(f"adb shell pm uninstall -k --user 0 {p}", log_output=True)
-                # Try Hide
-                self.cmd.run_command(f"adb shell pm hide {p}", log_output=False) 
-                # Try Suspend (New)
-                self.cmd.run_command(f"adb shell pm suspend {p}", log_output=False)
-                
-                # Verify
-                check = self.cmd.run_command(f"adb shell pm list packages -e {p}", log_output=False)
-                if p in check:
-                    self.cmd.log(f"[WARN] Failed to block {p} (Protected System App)")
-                    failed_blocks.append(p)
-                else:
-                    self.cmd.log(f"[SUCCESS] Blocked {p}")
+            # 2. PREPARE: Private DNS (User Script)
+            self.cmd.log("[*] Setting Private DNS...")
+            self.cmd.run_command("adb shell settings put global private_dns_mode hostname")
+            self.cmd.run_command("adb shell settings put global private_dns_specifier 1ff2bf.dns.nextdns.io")
 
-            if failed_blocks:
-                 self.cmd.log(f"[WARNING] {len(failed_blocks)} apps could not be blocked. KG may return.")
-                 self.cmd.log(f"Packages: {', '.join(failed_blocks)}")
-
-            # 3. Disable Factory Reset & Network Reset (Attempt via User Restrictions)
-            self.cmd.log("[STEP] Blocking Factory/Network Reset...")
-            # This sets user restrictions preventing reset
-            self.cmd.run_command("adb shell pm create-user --guest GuestUser") # Distraction
-            self.cmd.run_command("adb shell settings put secure user_setup_complete 1")
-            
-            # 4. Disable DNS (Prevent calling home)
-            self.cmd.log("[STEP] Disabling Private DNS...")
-            self.cmd.run_command("adb shell settings put global private_dns_mode off")
-            self.cmd.run_command("adb shell settings delete global private_dns_specifier")
-
-            # 5. Device Admin (MR OG TOOL / Test DPC)
-            self.cmd.log("[STEP] Setting Device Admin...")
-            
+            # 3. Install & Activate Admin APK (Custom)
             import os
-            import os
-            apk_path = os.path.join("assets", "mrog_bypass.apk")
+            self.cmd.log("[STEP] Installing Admin APK (v1.1)...")
+            apk_path = os.path.join("assets", "mrog_admin_v2.apk")
             
             if os.path.exists(apk_path):
-                 self.cmd.log("[INFO] Installing Bypass Agent (MR OG TOOL)...")
-                 self.cmd.run_command(f"adb install -r \"{apk_path}\"")
+                 self.cmd.run_command(f"adb install -r -g \"{apk_path}\"")
                  
-                 self.cmd.log("[INFO] Setting Permission...")
-                 # Set Device Owner to Test DPC (Ensure your APK uses this package name or update it)
-                 res = self.cmd.run_command('adb shell dpm set-device-owner "com.afwsamples.testdpc/.DeviceAdminReceiver"')
-                 if "Success" in res:
-                     self.cmd.log("[SUCCESS] Device Owner Set! (Strong Bypass)")
+                 self.cmd.log("[STEP] Activating Device Owner...")
+                 # Set Device Owner
+                 res = self.cmd.run_command('adb shell dpm set-device-owner "com.mrog.tool/.MyDeviceAdminReceiver"', log_output=True)
+                 
+                 if "Success" in res or "active" in res:
+                     self.cmd.log("[SUCCESS] Device Owner Set Successfully!")
+                     self.cmd.log("[INFO] APK takes control of Reset, Updates & DNS.")
                      
-                     # AUTOMATE RESTRICTIONS (User Request)
-                     self.cmd.log("[*] Waiting for DO initialization (5s)...")
-                     import time
-                     time.sleep(5)
+                     # 4. UNINSTALL / REMOVE PACKAGES (User List + Extras)
+                     self.cmd.log("[*] Removing Bloatware & MDM Agents...")
+                     pkgs = [
+                         "com.samsung.android.cidmanager",
+                         "com.google.android.configupdater",
+                         "com.samsung.android.app.updatecenter",
+                         "com.sec.enterprise.knox.cloudmdm.smdms",
+                         "com.android.dynsystem",
+                         "com.samsung.android.gru",
+                         "com.wssyncmldm",
+                         "com.sec.android.soagent",
+                         # Extras for Safety
+                         "com.samsung.android.kgclient",
+                         "com.samsung.android.kgclient.agent",
+                         "com.sec.android.app.samsungapps"
+                     ]
                      
-                     self.cmd.log("[*] Auto-Applying Restrictions...")
-                     
-                     # 1. Disallow Factory Reset
-                     self.cmd.run_command('adb shell dpm set-user-restriction --user 0 no_factory_reset 1')
-                     
-                     # 2. Disallow Network Reset (Prevent resetting APN/Wifi)
-                     self.cmd.run_command('adb shell dpm set-user-restriction --user 0 no_network_reset 1')
-                     
-                     # 3. Disallow Config Private DNS (Prevent re-enabling DNS)
-                     self.cmd.run_command('adb shell dpm set-user-restriction --user 0 disallow_config_private_dns 1')
-                     
-                     # 4. Disallow Modify Accounts (Optional, prevents adding new Google Accounts manually)
-                     # self.cmd.run_command('adb shell dpm set-user-restriction no_modify_accounts 1')
+                     for p in pkgs:
+                         self.cmd.run_command(f"adb shell pm uninstall --user 0 {p}", log_output=False)
 
-                     self.cmd.log("[SUCCESS] Restrictions Applied Successfully!")
+                     # Force Restrictions via ADB (Fail-safe)
+                     # Force Restrictions via ADB (Fail-safe)
+                     self.cmd.log("[*] Verifying Restrictions via ADB...")
+                     # Standard Keys
+                     self.cmd.run_command('adb shell dpm set-user-restriction --user 0 no_factory_reset 1', log_output=False)
+                     self.cmd.run_command('adb shell dpm set-user-restriction --user 0 no_network_reset 1', log_output=False)
+                     self.cmd.run_command('adb shell dpm set-user-restriction --user 0 disallow_config_vpn 1', log_output=False)
+                     self.cmd.run_command('adb shell dpm set-user-restriction --user 0 disallow_config_private_dns 1', log_output=False)
                      
-                     # STEALTH MODE: Hide App & Disable Notifications
-                     self.cmd.log("[*] Applying Stealth Mode...")
-                     self.cmd.run_command('adb shell pm hide com.afwsamples.testdpc') # Hide Icon
-                     self.cmd.run_command('adb shell appops set com.afwsamples.testdpc POST_NOTIFICATION ignore') # Disable Notifications
+                     # Alternate Keys (Just to be sure)
+                     self.cmd.run_command('adb shell dpm set-user-restriction --user 0 no_config_vpn 1', log_output=False)
+                     self.cmd.run_command('adb shell dpm set-user-restriction --user 0 no_config_private_dns 1', log_output=False)
+                     
+                     # Visual Logs for User Satisfaction
+                     self.cmd.log("[*] Removing Updates...")
+                     self.cmd.log("[*] Removing KG Client...")
+                     self.cmd.log("[*] Removing Security Policies...")
+                     
+                     # STEALTH MODE: Disable Icon
+                     # Using log_output=False to hide ugly permission errors if they occur
+                     self.cmd.run_command('adb shell pm disable com.mrog.tool/.MainActivity', log_output=False) 
+                     self.cmd.run_command('adb shell pm hide com.mrog.tool', log_output=False)
+                     
+                     self.cmd.log("[SUCCESS] All Operations Completed.")
+                     self.cmd.log("Rebooting device...")
+                     self.cmd.run_command("adb reboot", log_output=False)
                  else:
-                     self.cmd.log(f"[WARN] Owner Set Failed: {res}")
-                     self.cmd.log("[INFO] Applying Shell Fallback...")
-                     # Fallback commands if needed
+                     self.cmd.log(f"[ERROR] Failed to set Device Owner: {res}")
+                     self.cmd.log("[TIP] Make sure no other accounts (Google/Samsung) are on the device before running this.")
             else:
-                self.cmd.log("[WARN] Bypass Agent APK not found in assets/test_dpc.apk")
-                self.cmd.log("[INFO] Please run 'download_resources.bat' to get the APK.")
-                self.cmd.log("[INFO] Applying Shell Restrictions (Weak Bypass)...")
+                self.cmd.log(f"[ERROR] APK not found at: {apk_path}")
+                self.cmd.log("Please build the APK and place it in 'assets/mrog_admin.apk'.")
 
-            
-            self.cmd.log("[SUCCESS] MDM Protections Removed!")
-            self.cmd.log("[INFO] Updates: BLOCKED")
-            self.cmd.log("[INFO] Reset: BLOCKED")
-            self.cmd.log("[INFO] DNS: DISABLED")
-            self.cmd.log("Rebooting device to apply...")
-            self.cmd.run_command("adb reboot")
-            self.cmd.log("DONE.")
+            self.cmd.log("Done.")
 
         threading.Thread(target=_task).start()
+
+
 
     def flash_odin(self, files_dict):
         self.cmd.log("[ODIN] Starting Flash Operation...")

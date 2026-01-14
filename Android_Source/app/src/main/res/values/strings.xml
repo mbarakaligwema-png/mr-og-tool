@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">mrogtool</string>
+    <string name="app_description">Device Manager for Security Compliance</string>
+    <string name="enable_admin">Activate Admin</string>
+    <string name="admin_active">Admin Active &amp; Protected</string>
+    <string name="status_inactive">Status: Inactive</string>
+    <string name="status_active">Status: Active (Restrictions Applied)</string>
+</resources>

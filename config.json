@@ -1,17 +1,9 @@
 {
     "get_started": true,
-    "remember_me": true,
+    "remember_me": false,
     "username": "admin",
     "password": "admin",
-    "last_user": "admin",
-    "last_pass": "admin",
-    "users": {
-        "admin": "admin",
-        "kjk": {
-            "password": "00",
-            "expiry": "2026-01-10 19:24:12",
-            "created_at": "2026-01-10 13:24:12"
-        }
-    },
+    "last_user": "",
+    "last_pass": "",
     "server_url": "https://mrogtool.com"
 }

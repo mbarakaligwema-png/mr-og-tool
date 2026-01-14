@@ -23,6 +23,11 @@ if os.path.exists(img_path):
         output = Image.new('RGBA', (256, 256), (0, 0, 0, 0))
         output.paste(img, (0, 0), mask=mask)
         
+        # Save as PNG (Round)
+        png_round_path = r"C:\Users\mbara\Documents\MR_OG_TOOL\assets\logo_round.png"
+        output.save(png_round_path, format='PNG')
+        print(f"Created Circular PNG: {png_round_path}")
+
         # Save as ICO
         output.save(ico_path, format='ICO', sizes=[(256, 256)])
         print(f"Created Circular Icon: {ico_path}")

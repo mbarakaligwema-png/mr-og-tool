@@ -5,14 +5,21 @@ from sqlalchemy.orm import sessionmaker
 import os
 
 # Check for DATABASE_URL env var (Provided by Render/Heroku)
-# Check for DATABASE_URL env var or use specific path for Render Disk
-# On Render, we will mount a disk to /var/data
-if os.path.exists("/var/data"):
+# Prioritize DATABASE_URL (Postgres) if it exists
+if os.getenv("DATABASE_URL"):
+    SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL")
+    DB_PATH = "PostgreSQL (Env Var)"
+    print(f"--- DATABASE: Using PostgreSQL from ENV ---")
+# Fallback to Render Disk if no DATABASE_URL
+elif os.path.exists("/var/data"):
     DB_PATH = "/var/data/users.db"
     SQLALCHEMY_DATABASE_URL = "sqlite:////var/data/users.db"
+    print(f"--- DATABASE: Using Render Persistent Disk ({DB_PATH}) ---")
+# Fallback to Ephemeral Local SQLite
 else:
     DB_PATH = "users.db (Local/Ephemeral)"
-    SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./users.db")
+    SQLALCHEMY_DATABASE_URL = "sqlite:///./users.db"
+    print(f"--- DATABASE: Using Ephemeral Local SQLite ({DB_PATH}) ---")
 
 # Fix for Render using 'postgres://' instead of 'postgresql://'
 if SQLALCHEMY_DATABASE_URL and SQLALCHEMY_DATABASE_URL.startswith("postgres://"):
