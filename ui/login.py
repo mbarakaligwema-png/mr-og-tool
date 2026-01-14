@@ -10,6 +10,8 @@ class LoginWindow(ctk.CTk):
         super().__init__()
         
         self.on_login_success = on_login_success
+        self.expiry_msg = "LIFETIME"
+        self.last_server_msg = "LIFETIME"
         
         # Setup AppData Paths
         self.app_data = os.getenv('APPDATA')
@@ -458,7 +460,7 @@ class LoginWindow(ctk.CTk):
     def complete_login(self):
         user = self.username_entry.get()
         self.destroy() # Close login window
-        # msg is stored in self.last_msg or similar? No, let's store it in instance
-        self.on_login_success(user, self.last_server_msg) # Callback to start main app with username
+        if self.on_login_success:
+            self.on_login_success(user, getattr(self, 'last_server_msg', "LIFETIME"))
 
 

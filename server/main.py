@@ -141,7 +141,7 @@ async def admin_add_user(request: Request, username: str = Form(...), password: 
         users = crud.get_users(db)
         return templates.TemplateResponse("admin.html", {"request": request, "user": user, "users": users, "error": "User already exists"})
     
-    crud.create_user(db, username, password, is_admin)
+    crud.create_user(db, username, password, email=None, is_admin=is_admin)
     return RedirectResponse(url="/admin", status_code=status.HTTP_303_SEE_OTHER)
 
 @app.post("/admin/users/{user_id}/toggle")
