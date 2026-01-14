@@ -1,8 +1,6 @@
 @echo off
-setlocal
-
 echo ===================================================
-echo   MR OG TOOL - INSTALLER GENERATOR (Chimera Style)
+echo   MR OG TOOL - INSTALLER GENERATOR
 echo ===================================================
 echo.
 
@@ -23,15 +21,7 @@ set "ISCC_PATH=C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
 if not exist "%ISCC_PATH%" (
     echo.
     echo [ERROR] Inno Setup NOT FOUND!
-    echo.
-    echo To create a "Setup.exe" ^(installer^), you MUST install Inno Setup.
-    echo It is free/open source.
-    echo.
-    echo Opening download page...
-    start https://jrsoftware.org/isdl.php
-    echo.
-    echo 1. Download and Install Inno Setup (QuickStart Pack).
-    echo 2. Run this script again.
+    echo Please install Inno Setup 6.
     pause
     exit /b
 )
@@ -52,8 +42,6 @@ echo ===================================================
 echo   SUCCESS! INSTALLER CREATED.
 echo ===================================================
 echo.
-echo Location: output\MR_OG_TOOL_Setup.exe (or similar)
-echo.
-echo You can now send this single file to anyone!
+echo Check the 'Output' folder.
 echo.
 pause

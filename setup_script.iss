@@ -12,6 +12,7 @@ DefaultDirName={autopf}\MR_OG_TOOL
 DisableProgramGroupPage=yes
 ; The [Icons] section below relies on this
 OutputBaseFilename=MR_OG_TOOL_Setup
+OutputDir=Output
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
