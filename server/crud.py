@@ -76,3 +76,15 @@ def reset_user_hwid(db: Session, user_id: int):
         db.commit()
         return user
     return None
+
+def set_user_admin_status(db: Session, user_id: int, is_admin: bool):
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if user:
+        user.is_admin = is_admin
+        # If admin, usually we want to clear expiry or set to None (Unlimited)
+        # But let's respect current logic.
+        if is_admin:
+            user.expiry_date = None # Auto Lifetime for Admin
+        db.commit()
+        return user
+    return None

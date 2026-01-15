@@ -172,7 +172,13 @@ async def extend_user(user_id: int, request: Request, duration: str = Form(...),
     if not user or not user.is_admin:
         raise HTTPException(status_code=403, detail="Not authorized")
     
-    crud.extend_user_expiry(db, user_id, duration)
+    if duration == "make_admin":
+        crud.set_user_admin_status(db, user_id, True)
+    elif duration == "revoke_admin":
+        crud.set_user_admin_status(db, user_id, False)
+    else:
+        crud.extend_user_expiry(db, user_id, duration)
+        
     return RedirectResponse(url="/admin", status_code=status.HTTP_303_SEE_OTHER)
 
 @app.post("/admin/users/{user_id}/reset_password")

@@ -89,11 +89,17 @@
                                 <form method="post" action="/admin/users/{{ u.id }}/extend" style="display: inline;">
                                     <select name="duration" onchange="this.form.submit()"
                                         style="padding: 5px; border-radius: 4px; border: 1px solid #555; background: #222; color: white; cursor: pointer;">
-                                        <option value="" disabled selected>+ Extend</option>
+                                        <option value="" disabled selected>+ Extend / Role</option>
                                         <option value="6_hours">6 Hours</option>
                                         <option value="3_months">3 Months</option>
                                         <option value="6_months">6 Months</option>
                                         <option value="1_year">1 Year</option>
+                                        <option disabled>──────</option>
+                                        {% if u.is_admin %}
+                                        <option value="revoke_admin">Demote from Admin</option>
+                                        {% else %}
+                                        <option value="make_admin">Promote to Admin</option>
+                                        {% endif %}
                                     </select>
                                 </form>
                                 <!-- Reset Password -->
@@ -154,11 +160,17 @@
                                 <form method="post" action="/admin/users/{{ u.id }}/extend" style="display: inline;">
                                     <select name="duration" onchange="this.form.submit()"
                                         style="padding: 5px; border-radius: 4px; border: 1px solid #555; background: #222; color: white; cursor: pointer;">
-                                        <option value="" disabled selected>Activate / Extend</option>
+                                        <option value="" disabled selected>Activate / Role</option>
                                         <option value="6_hours">6 Hours</option>
                                         <option value="3_months">3 Months</option>
                                         <option value="6_months">6 Months</option>
                                         <option value="1_year">1 Year</option>
+                                        <option disabled>──────</option>
+                                        {% if u.is_admin %}
+                                        <option value="revoke_admin">Demote from Admin</option>
+                                        {% else %}
+                                        <option value="make_admin">Promote to Admin</option>
+                                        {% endif %}
                                     </select>
                                 </form>
 
