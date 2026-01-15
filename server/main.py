@@ -181,7 +181,13 @@ async def reset_password(user_id: int, request: Request, new_password: str = For
     if not user or not user.is_admin:
         raise HTTPException(status_code=403, detail="Not authorized")
     
-    crud.reset_user_password(db, user_id, new_password)
+    print(f"--- RESETTING PASSWORD FOR USER ID: {user_id} ---")
+    updated_user = crud.reset_user_password(db, user_id, new_password)
+    if updated_user:
+        print(f"--- SUCCESS: Password updated for {updated_user.username} ---")
+    else:
+        print(f"--- FAILED: User {user_id} not found ---")
+        
     return RedirectResponse(url="/admin", status_code=status.HTTP_303_SEE_OTHER)
 
 @app.post("/admin/users/{user_id}/reset_hwid")
