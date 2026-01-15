@@ -12,6 +12,7 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     is_admin = Column(Boolean, default=False)
     hwid = Column(String, nullable=True)
+    last_hwid_reset = Column(DateTime, nullable=True)
     expiry_date = Column(DateTime, nullable=True) # None = Lifetime
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 

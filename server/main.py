@@ -227,13 +227,35 @@ async def verify_user(username: str = Form(...), password: str = Form(...), hwid
         return JSONResponse(content={"status": "BLOCK", "message": "License Expired."}, status_code=403)
     
     # HWID Logic
+    from datetime import datetime, timedelta
+    
     if user.hwid:
         if user.hwid != hwid:
-            # Check if admin allows reset (Manual) or auto-block
-            return JSONResponse(content={"status": "BLOCK", "message": "HWID Mismatch. Locked to another PC."}, status_code=403)
+            # Check 12 Hour Rule
+            now = datetime.utcnow()
+            allow_reset = False
+            remaining_hours = 0
+            
+            if user.last_hwid_reset:
+                 time_diff = now - user.last_hwid_reset
+                 if time_diff.total_seconds() > (12 * 3600): # 12 Hours
+                     allow_reset = True
+                 else:
+                     remaining_hours = 12 - (time_diff.total_seconds() / 3600)
+            else:
+                 # First time reset is free (or treat creation as reset? Let's give one free reset)
+                 allow_reset = True
+            
+            if allow_reset:
+                user.hwid = hwid
+                user.last_hwid_reset = now
+                db.commit()
+            else:
+                return JSONResponse(content={"status": "BLOCK", "message": f"HWID Mismatch. Try again in {int(remaining_hours)} hours."}, status_code=403)
     else:
     # First time login = Bind HWID
         user.hwid = hwid
+        user.last_hwid_reset = datetime.utcnow()
         db.commit()
     
     expiry_str = user.expiry_date.strftime('%Y-%m-%d %H:%M') if user.expiry_date else "LIFETIME"
