@@ -580,7 +580,6 @@ class OGServiceToolApp(ctk.CTk):
          grid_frame.pack(fill="both", expand=True)
 
          buttons_data = [
-            ("Smart Bypass (Auto)", self.zte_manager.detect_and_bypass),
             ("A34 Manual", self.zte_manager.a34_bypass),
             ("A35 Manual", self.zte_manager.a35_bypass),
             ("QR Code", self.show_zte_qr_window),
