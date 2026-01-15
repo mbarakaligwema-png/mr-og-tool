@@ -580,8 +580,8 @@ class OGServiceToolApp(ctk.CTk):
          grid_frame.pack(fill="both", expand=True)
 
          buttons_data = [
-            ("A34 Manual", self.zte_manager.a34_bypass),
-            ("A35 Manual", self.zte_manager.a35_bypass),
+            ("A34", self.zte_manager.a34_bypass),
+            ("A35", self.zte_manager.a35_bypass),
             ("QR Code", self.show_zte_qr_window),
             ("Factory Reset", self.zte_manager.sc9863a_factory_reset),
             ("FRP Remove", self.zte_manager.sc9863a_frp),
