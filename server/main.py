@@ -55,6 +55,24 @@ def get_db():
 def startup_event():
     db = database.SessionLocal()
     try:
+        # --- AUTO MIGRATION CHECK ---
+        from sqlalchemy import text
+        try:
+            # Try to select the new column. If it fails, we need to add it.
+            db.execute(text("SELECT last_hwid_reset FROM users LIMIT 1"))
+        except Exception as e:
+            print(f"--- MIGRATION NEEDED: {e} ---")
+            print("--- ADDING COLUMN: last_hwid_reset ---")
+            try:
+                # Add Column (Works for SQLite and Postgres)
+                db.rollback() # clear previous error state
+                db.execute(text("ALTER TABLE users ADD COLUMN last_hwid_reset DATETIME"))
+                db.commit()
+                print("--- MIGRATION SUCCESS! ---")
+            except Exception as e2:
+                print(f"--- MIGRATION FAILED: {e2} ---")
+        
+        # --- Create Default Admin ---
         if not crud.get_user(db, "mrogtool"):
             crud.create_user(db, "mrogtool", "dell", is_admin=True)
             print("--- DEFAULT ADMIN CREATED: mrogtool / dell ---")
