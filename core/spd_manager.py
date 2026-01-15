@@ -110,9 +110,22 @@ class SPDManager:
         REQUIRES: lpunpack.exe and lpmake.exe in assets/tools/
         """
         import tkinter as tk
-        from tkinter import filedialog
+        from tkinter import filedialog, messagebox
         import os
         import time
+
+        # CRIICAL WARNING regarding AVB/DM-Verity
+        warn_msg = (
+            "⚠️ CRITICAL WARNING ⚠️\n\n"
+            "Modifying the SUPER partition will break DM-VERITY signatures!\n\n"
+            "1. If the device has a LOCKED BOOTLOADER, it will NOT BOOT (Red State/Bootloop).\n"
+            "2. You MUST have an UNLOCKED BOOTLOADER to flash this custom image.\n"
+            "3. Or you must flash a patched vbmeta with verification disabled.\n\n"
+            "Do you want to proceed at your own risk?"
+        )
+        if not messagebox.askyesno("Risk Warning", warn_msg, icon="warning"):
+            self.cmd.log("[ABORT] Operation cancelled by user.")
+            return
 
         # 0. Check Dependencies
         tools_dir = os.path.abspath("assets/tools")
