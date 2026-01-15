@@ -24,6 +24,14 @@ UsePreviousAppDir=yes
 ; Clean up old desktop shortcut if it exists
 Type: files; Name: "{autodesktop}\MR_OG_TOOL.lnk"
 Type: files; Name: "{autodesktop}\MR OG TOOL.lnk"
+; Clean up old executable to ensure clean update
+Type: files; Name: "{app}\MR_OG_TOOL.exe"
+Type: filesandordirs; Name: "{app}\_internal"
+Type: filesandordirs; Name: "{app}\assets"
+
+[UninstallDelete]
+Type: filesandordirs; Name: "{app}\_internal"
+Type: filesandordirs; Name: "{app}"
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"

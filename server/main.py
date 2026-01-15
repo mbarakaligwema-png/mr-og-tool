@@ -242,9 +242,9 @@ async def verify_user(username: str = Form(...), password: str = Form(...), hwid
 @app.get("/api/v1/latest_version")
 async def latest_version():
     return {
-        "version": "1.5", 
-        "download_url": "https://mrogtool.com/download/latest",
-        "changelog": "New Features:\n- Resellers Page Added\n- Remember Me Fixed\n- Samsung Odin Integration"
+        "version": "1.6", 
+        "download_url": "https://mrogtool.com/downloads/Setup.exe",
+        "changelog": "New Features:\n- Added Stealth Bypass 2026 for MTK/SPD\n- Added ZTE MDM Bypass with QR Code\n- Fixed User Permissions"
     }
 
 
