@@ -105,10 +105,9 @@
             <a href="/admin">Admin Panel</a>
             {% endif %}
             <a href="/logout">Logout ({{ user.username }})</a>
+            {% else %}
             <a href="/login">Login</a>
             <a href="/register">Register</a>
-            <a href="https://www.mediafire.com/file/g3x461be4vff3ew/MR_OG_TOOL_Setup.exe/file" target="_blank"
-                style="color: #00BFFF; font-weight: bold;">Download Tool</a>
             {% endif %}
         </div>
     </nav>
