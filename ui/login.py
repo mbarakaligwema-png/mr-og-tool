@@ -281,78 +281,66 @@ class LoginWindow(ctk.CTk):
             print(f"Error populating fields: {e}")
 
     def save_config(self, username, password):
-        # SAFELY Update config without overwriting connection/user strings with defaults
+        # 1. Ensure Directory Exists
+        if not os.path.exists(self.tool_data_dir):
+            os.makedirs(self.tool_data_dir)
+
+        # 2. Load existing to merge (don't overwrite server_url)
         current_data = {}
         try:
             if os.path.exists(self.config_path):
                 with open(self.config_path, "r") as f:
                     current_data = json.load(f)
-        except:
-             # If read fails, current_data is empty.
-             # Be careful not to wipe if we just had a glitch, 
-             # but if file is corrupt, we might have to overwrite.
-             # However, let's try to preserve what we loaded validly in __init__ if possible.
-             current_data = self.config_data
+        except Exception as e:
+            print(f"Error reading config for save: {e}")
+            # Fallback to in-memory config if file read fails
+            current_data = self.config_data.copy()
 
-        # Update specific fields
+        # 3. Update Credential Fields
         current_data["remember_me"] = self.remember_me_var.get()
+        
         if self.remember_me_var.get():
             current_data["last_user"] = username
             current_data["last_pass"] = password
+            print(f"[DEBUG] Saving credentials for user: {username}")
         else:
             current_data["last_user"] = ""
             current_data["last_pass"] = ""
+            print("[DEBUG] Clearing saved credentials")
             
-        # CRITICAL FIX: Do NOT write 'users' from self.users_db back to file.
-        # self.users_db is a snapshot from startup. If we write it back, 
-        # we overwrite any users added by gui_main.py while this window was open/cached.
-        # We only WANT to save remember_me settings here.
+        # 4. Save Cache to Users DB (Backup)
+        # ... (Existing users DB logic omitted for brevity, it was fine) ...
+        # But we need to keep the users db saving logic here if we replaced the whole function
         
-        # Ensure we don't accidentally delete users if we started with none but file has some now
-        # Actually, since we read 'current_data' at start of this fn, it has the LATEST users.
-        # We just touch the keys we care about.
-        
-        # IF for some reason 'users' key is missing in current_data (file didn't exist),
-        # AND we have a default admin in self.users_db, maybe we write it?
-        # But generally, let's trust what's on disk for users.
-        
-        if "users" not in current_data:
-             # current_data["users"] = {} # REMOVED: Users are now in users.db
-             pass
-
-        # CACHING: Save this successful user to local DB
+        # (Re-implementing the user-db save part briefly to ensure it stays)
         import datetime
         now = datetime.datetime.now()
-        
-        # Load Existing Users DB first
         users_db_data = {}
-        if os.path.exists(self.users_db_path):
-            try:
+        try:
+            if os.path.exists(self.users_db_path):
                 with open(self.users_db_path, "r") as f:
-                     users_db_data = json.load(f)
-            except: pass
-            
-        # Add/Updater User
+                    users_db_data = json.load(f)
+        except: pass
+        
         users_db_data[username] = {
             "password": password,
-            "expiry": "Server-Verified", 
+            "expiry": "Server-Verified",
             "cached_at": now.strftime("%Y-%m-%d %H:%M:%S"),
             "hwid_lock": "Cached"
         }
-        
-        # Save Users DB
         try:
              with open(self.users_db_path, "w") as f:
                  json.dump(users_db_data, f, indent=4)
-        except Exception as e:
-            print(f"Error saving cached user: {e}")
+        except: pass
 
-        # Save Config (Settings Only)
+        # 5. Write Config to Disk
         try:
             with open(self.config_path, "w") as f:
                 json.dump(current_data, f, indent=4)
+            print(f"[SUCCESS] Config saved to {self.config_path}")
         except Exception as e:
-            print(f"Error saving config: {e}")
+            print(f"[ERROR] Failed to save config: {e}")
+            self.status_label.configure(text=f"Warning: Could not save settings ({e})")
 
     def toggle_password(self):
         if self.show_password_var.get():
