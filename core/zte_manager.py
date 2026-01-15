@@ -265,6 +265,82 @@ class ZTEManager:
 
         threading.Thread(target=_task).start()
 
+    def a75_bypass(self):
+        """
+        Specific Bypass Logic for ZTE A75 (Blade A75 5G usually).
+        Uses mrog_admin_v2 and removes updates.
+        """
+        if self.is_running:
+             self.cmd.log("[WARN] Operation already running.")
+             return
+
+        def _task():
+            self.is_running = True
+            try:
+                self.cmd.log("Phone Mode: ADB Debuging")
+                self.cmd.log("Operation: A75 Bypass (mrog_admin_v2)")
+                self.cmd.log("Check Authority: OK")
+                
+                # Check Connection
+                self.cmd.log("Starting server... OK")
+                self.cmd.run_command("adb start-server")
+                
+                self.cmd.log("[BLUE]Waiting ADB devices...")
+                while True:
+                    output = self.cmd.run_command("adb devices", log_output=False)
+                    if "device" in output and not output.strip().endswith("List of devices attached"):
+                         break
+                    time.sleep(1)
+    
+                self.cmd.log("[BLUE]Check Conection... OK")
+                
+                # Uninstalling unwanted apps & Updates
+                self.cmd.log("[STEP] Stopping System Updates & Removing Bloat...")
+                packages = [
+                    # Updates
+                    "com.google.android.configupdater",
+                    "com.google.android.gms.suprvision",
+                    "com.android.dynsystem",
+                    "com.zte.zdmdaemon",
+                    "com.zte.zdmdaemon.install",
+                    # Common Bloat
+                    "com.android.vending", # Store (Optional, but often requested to stop auto-updates)
+                    "com.zte.devicemanager.client",
+                    "com.facebook.system",
+                    "com.facebook.appmanager",
+                    "com.facebook.services"
+                ]
+                
+                for pkg in packages:
+                    self.cmd.log(f"Uninstalling {pkg}...")
+                    self.cmd.run_command(f"adb shell pm uninstall --user 0 {pkg}")
+
+                # Install mrog_admin_v2.apk
+                self.cmd.log("[STEP] Installing mrog_admin_v2...")
+                
+                import os
+                apk_path = os.path.abspath("assets/mrog_admin_v2.apk")
+                
+                if os.path.exists(apk_path):
+                     self.cmd.run_command(f"adb install -r \"{apk_path}\"")
+                     
+                     # Set Device Owner
+                     self.cmd.log("[STEP] Setting device owner...")
+                     self.cmd.run_command("adb shell dpm set-device-owner com.mrog.admin/.AdminReceiver")
+                     
+                     self.cmd.log("[SUCCESS] A75 Bypass (Stealth) Complete!")
+                     self.cmd.log("Updates Disabled. Admin Hidden.")
+                     self.cmd.log("Please reboot manually.")
+                else:
+                     self.cmd.log(f"[ERROR] mrog_admin_v2.apk not found in assets folder!")
+
+            except Exception as e:
+                 self.cmd.log(f"[ERROR] Operation Failed: {e}")
+            finally:
+                 self.is_running = False
+
+        threading.Thread(target=_task).start()
+
     def qr_code_op(self):
         # Placeholder for QR Code operation
         self.cmd.log("[INFO] See popup window.")
