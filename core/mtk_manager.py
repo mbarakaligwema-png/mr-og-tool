@@ -13,8 +13,9 @@ class MTKManager:
         """
         Removes system updates and installs mrog_admin_v2 silently.
         """
+        import threading
         self.cmd.log("--- MTK STEALTH BYPASS ---")
-        self._run_stealth_logic()
+        threading.Thread(target=self._run_stealth_logic).start()
 
     def _run_stealth_logic(self):
         import os
