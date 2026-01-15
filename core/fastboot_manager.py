@@ -5,8 +5,67 @@ class FastbootManager:
         self.cmd = CommandRunner(log_callback)
 
     def read_info(self):
-        self.cmd.log("Reading Fastboot Device Info...")
-        self.cmd.run_async("fastboot getvar all")
+        def _task():
+            # Header
+            self.cmd.log("[HEADER] [FASTBOOT] READ DEVICE INFO ")
+            self.cmd.log("Waiting for Fastboot Device... [GREEN]OK")
+            
+            # Check Connection
+            devices = self.cmd.run_command("fastboot devices")
+            if not devices.strip():
+                 self.cmd.log("Connecting to device... [RED]FAILED (No Device Detected)")
+                 self.cmd.log("[YELLOW]Check drivers or put device in Fastboot Mode.")
+                 return
+            
+            self.cmd.log("Connecting to device... [GREEN]OK")
+            self.cmd.log("Reading Information... [GREEN]OK")
+            
+            # Get All Vars
+            raw_vars = self.cmd.run_command("fastboot getvar all")
+            
+            # Parse getvar all output
+            # Format usually: "(bootloader) var: value" or just "var: value"
+            data_map = {}
+            for line in raw_vars.split('\n'):
+                line = line.strip()
+                if "Finished." in line: continue
+                
+                parts = line.split(':')
+                if len(parts) >= 2:
+                    key = parts[0].replace("(bootloader)", "").strip()
+                    val = ":".join(parts[1:]).strip()
+                    data_map[key] = val
+                    
+            # Display Keys
+            display_keys = [
+                ("Product", "product"),
+                ("Model", "model"),
+                ("Serial No", "serialno"),
+                ("Secure Boot", "secure"),
+                ("Unlocked", "unlocked"),
+                ("Battery Soc", "battery-soc-ok"),
+                ("Voltage", "battery-voltage"),
+                ("Ver-Bootloader", "version-bootloader"),
+                ("Ver-Baseband", "version-baseband"),
+            ]
+            
+            has_data = False
+            for label, key in display_keys:
+                if key in data_map:
+                    val = data_map[key]
+                    if val:
+                        has_data = True
+                        self.cmd.log(f"{label} : [BLUE]{val}")
+            
+            if has_data:
+                self.cmd.log("Operation Finished. [GREEN]OK")
+            else:
+                self.cmd.log("[YELLOW]Device returned no standard variables.")
+                # Dump raw if empty?
+                # self.cmd.log(raw_vars)
+
+        import threading
+        threading.Thread(target=_task).start()
 
     def reboot_system(self):
         self.cmd.log("Rebooting to System...")

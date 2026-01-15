@@ -83,12 +83,22 @@ def main():
     ctk.set_default_color_theme("blue")
     
     # Pass    
-    def start_main_app(username, expiry_msg=""):
-        app = OGServiceToolApp(username, expiry_msg) # Assuming OGServiceToolApp is now MainWindow or has been renamed
-        app.mainloop()
+    # Pass data container
+    login_data = {}
 
-    login_window = LoginWindow(on_login_success=start_main_app)
+    def on_login(username, expiry_msg):
+        login_data["username"] = username
+        login_data["expiry"] = expiry_msg
+        # Do NOT start main app here, just return to let login window close naturally
+
+    login_window = LoginWindow(on_login_success=on_login)
     login_window.mainloop()
+
+    # Check if login was successful
+    if "username" in login_data:
+        # Now start the main app clean
+        app = OGServiceToolApp(login_data["username"], login_data["expiry"])
+        app.mainloop()
 
 if __name__ == "__main__":
     main()

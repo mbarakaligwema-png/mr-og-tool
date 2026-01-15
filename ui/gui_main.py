@@ -303,38 +303,47 @@ class OGServiceToolApp(ctk.CTk):
         t.start()
 
     def append_log(self, text):
+        import re
         if hasattr(self, 'console_text'):
             self.console_text.configure(state="normal")
             
-            # Define tags if they don't exist (idempotent)
-            # CTkTextbox uses the underlying tkinter Text widget for tags
-            # We use a bright cyan/blue for visibility on dark theme
-            self.console_text.tag_config("blue", foreground="#00BFFF") 
-            self.console_text.tag_config("green", foreground="#00FF00")
-            self.console_text.tag_config("red", foreground="#FF4444")
+            # --- Configure Styles (Hacker / Pro Theme) ---
+            # Header: Blue block with white text
+            self.console_text.tag_config("HEADER", background="#007ACC", foreground="white", spacing1=5, spacing3=5)
             
-            # Check for color prefixes
-            # We strip the newline from input text first to handle it manually
-            clean_text = text
-            tag = None
+            # Colors
+            self.console_text.tag_config("GREEN", foreground="#00FF00")   # Success / Go
+            self.console_text.tag_config("BLUE", foreground="#00BFFF")    # Info / Data
+            self.console_text.tag_config("RED", foreground="#FF4444")     # Error / Stop
+            self.console_text.tag_config("YELLOW", foreground="#FFD700")  # Warning / Process
+            self.console_text.tag_config("WHITE", foreground="#FFFFFF")   # Standard Text
+            self.console_text.tag_config("GRAY", foreground="#888888")    # Debug / Low priority
             
-            if "[BLUE]" in text:
-                clean_text = text.replace("[BLUE]", "")
-                tag = "blue"
-            elif "[GREEN]" in text: # specific success
-                clean_text = text.replace("[GREEN]", "")
-                tag = "green"
-            elif "[RED]" in text:
-                clean_text = text.replace("[RED]", "")
-                tag = "red"
-            elif "ERROR" in text or "FAIL" in text:
-                tag = "red" # Auto-color errors
+            # --- Parse & Insert ---
+            # Split by tags: [TAG]
+            parts = re.split(r'(\[(?:HEADER|GREEN|BLUE|RED|YELLOW|WHITE|GRAY)\])', text)
             
-            self.console_text.insert("end", clean_text + "\n", tag)
+            current_tag = "GRAY" # Default color for lines without tags
+            
+            # Special case: If line starts with [HEADER], apply to whole line usually, 
+            # but our loop handles it chunk by chunk.
+            
+            for part in parts:
+                if part.startswith("[") and part.endswith("]"):
+                    tag_candidate = part[1:-1]
+                    if tag_candidate in ["HEADER", "GREEN", "BLUE", "RED", "YELLOW", "WHITE", "GRAY"]:
+                        current_tag = tag_candidate
+                else:
+                    if part:
+                        self.console_text.insert("end", part, current_tag)
+            
+            self.console_text.insert("end", "\n")
             self.console_text.see("end")
             self.console_text.configure(state="disabled")
         else:
-            print(text)
+            # Fallback for CLI debugging
+            clean = re.sub(r'\[.*?\]', '', text)
+            print(clean)
 
     def create_sidebar_button(self, text, command):
         """Helper to create consistent sidebar buttons."""

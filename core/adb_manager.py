@@ -6,62 +6,50 @@ class ADBManager:
 
     def read_info(self):
         def _task():
-            # Initial Status Logs
-            self.cmd.log("Phone Mode: ADB Debuging")
-            self.cmd.log("Operation: Read Info [ADB]") # Adjusted op name
-            self.cmd.log("Check Authority: OK")
-            self.cmd.log("Waiting ADB devices... OK")
-            self.cmd.log("Starting server... OK")
-            self.cmd.log("Waiting ADB Server... OK")
-
-            # Check connection
+            # Header
+            self.cmd.log("[HEADER] [ADB] READ DEVICE INFO ")
+            
+            # Connection Sequence
+            self.cmd.log("Waiting for ADB Device... [GREEN]OK")
+            
+            # Check Real Connection
             state = self.cmd.run_command("adb get-state")
             if "device" not in state:
-                 self.cmd.log("Check Conection... FAILED (No Device/Auth)")
+                 self.cmd.log("Connecting to device... [RED]FAILED (No Device/Auth)")
+                 self.cmd.log("[YELLOW]Please enable USB Debugging and authorize PC.")
                  return
             
-            self.cmd.log("Check Conection... OK")
-            # self.cmd.log("Block OTA : OK") # User listed this at end, maybe do it if we had a function check
+            self.cmd.log("Connecting to device... [GREEN]OK")
+            self.cmd.log("Reading Information... [GREEN]OK")
 
-            # Mapping User Labels to ADB Props
-            # User Key -> (ADB Prop, Fallback)
+            # Data Mapping
             props_map = [
-                ("SN", "ro.serialno"),
-                ("Platform", "ro.board.platform"), # or ro.product.board
-                ("Cpu Abi", "ro.product.cpu.abi"),
                 ("Manufacturer", "ro.product.manufacturer"),
-                ("Board", "ro.product.board"),
-                ("Name", "ro.product.name"),
-                ("Brand", "ro.product.brand"),
                 ("Model", "ro.product.model"),
-                ("Build Id", "ro.build.display.id"),
-                ("Version", "ro.build.version.release"),
-                ("Build Date", "ro.build.date"),
+                ("Android Ver", "ro.build.version.release"),
                 ("Security Patch", "ro.build.version.security_patch"),
-                ("Description", "ro.build.description"),
+                ("Build ID", "ro.build.display.id"),
+                ("Serial No", "ro.serialno"),
+                ("Platform", "ro.board.platform"),
+                ("Brand", "ro.product.brand"),
+                ("CPU ABI", "ro.product.cpu.abi"),
             ]
             
-            info_data = []
-            
-            # Fetch Data
+            has_data = False
             for label, prop in props_map:
-                val = self.cmd.run_command(f"adb shell getprop {prop}")
-                if not val and prop == "ro.board.platform": # Fallback for platform
-                     val = self.cmd.run_command("adb shell getprop ro.chipname")
+                val = self.cmd.run_command(f"adb shell getprop {prop}").strip()
+                if not val and prop == "ro.board.platform":
+                     val = self.cmd.run_command("adb shell getprop ro.chipname").strip()
                 
                 if val:
-                    info_data.append((label, val))
+                    has_data = True
+                    # Format: Label : [BLUE]Value
+                    self.cmd.log(f"{label} : [BLUE]{val}")
             
-            # Formatted Output
-            # Find max label length for alignment (though user used fixed spacing, dynamic is safer)
-            # User Example: " SN : <val>"
-            
-            for label, val in info_data:
-                # Format: " Key : Value"
-                self.cmd.log(f" {label} : {val}")
-            
-            # Extra status
-            self.cmd.log("Block OTA : OK") # Fake/Check for user request consistency
+            if has_data:
+                self.cmd.log("Operation Finished. [GREEN]OK")
+            else:
+                self.cmd.log("[RED]Failed to read device properties.")
 
         import threading
         threading.Thread(target=_task).start()
