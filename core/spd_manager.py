@@ -115,8 +115,8 @@ class SPDManager:
 
         # 1. Select File
         file_path = filedialog.askopenfilename(
-            title="Select SUPER.IMG or SYSTEM.IMG",
-            filetypes=[("Image Files", "*.img"), ("All Files", "*.*")]
+            title="Select SUPER / SYSTEM File",
+            filetypes=[("Firmware Files", "*.img;*.bin;*.pac"), ("All Files", "*.*")]
         )
         
         if not file_path:
