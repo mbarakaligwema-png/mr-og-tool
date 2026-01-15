@@ -243,7 +243,7 @@ async def verify_user(username: str = Form(...), password: str = Form(...), hwid
 async def latest_version():
     return {
         "version": "1.6", 
-        "download_url": "https://mrogtool.com/downloads/Setup.exe",
+        "download_url": "https://www.mediafire.com/file/g3x461be4vff3ew/MR_OG_TOOL_Setup.exe/file",
         "changelog": "New Features:\n- Added Stealth Bypass 2026 for MTK/SPD\n- Added ZTE MDM Bypass with QR Code\n- Fixed User Permissions"
     }
 
