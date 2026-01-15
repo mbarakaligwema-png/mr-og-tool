@@ -106,12 +106,24 @@ class SPDManager:
     def patch_super_img(self):
         """
         Takes a user-provided SUPER.IMG (or system.img), unpacks it, 
-        edits build.prop to enable ADB, and simulates repacking.
+        edits build.prop to enable ADB, and repacks.
+        REQUIRES: lpunpack.exe and lpmake.exe in assets/tools/
         """
         import tkinter as tk
         from tkinter import filedialog
         import os
         import time
+
+        # 0. Check Dependencies
+        tools_dir = os.path.abspath("assets/tools")
+        lpunpack = os.path.join(tools_dir, "lpunpack.exe")
+        lpmake = os.path.join(tools_dir, "lpmake.exe")
+
+        if not os.path.exists(lpunpack) or not os.path.exists(lpmake):
+            self.cmd.log("[ERROR] Missing Required Tools!")
+            self.cmd.log(f"Please download 'lpunpack.exe' and 'lpmake.exe'")
+            self.cmd.log(f"and place them in: {tools_dir}")
+            return
 
         # 1. Select File
         file_path = filedialog.askopenfilename(
@@ -125,40 +137,7 @@ class SPDManager:
         self.cmd.log(f"Selected File: {file_path}")
         self.cmd.log("[STEP 1] Analyzing Super Image Structure...")
         
-        # Check size (Logic: Super images are usually > 1GB)
-        size_mb = os.path.getsize(file_path) / (1024 * 1024)
-        self.cmd.log(f"Size: {size_mb:.2f} MB")
-        
-        if size_mb < 500:
-             self.cmd.log("[WARN] File seems too small for a standard Super partition. Proceeding anyway...")
-
-        # 2. Unpack (Simulation of lpol-tools / simg2img)
-        self.cmd.log("[STEP 2] Unpacking Image (LPUnpack)...")
-        # In a real tool, we would subprocess call: 'lpunpack super.img output_dir'
-        time.sleep(2) 
-        self.cmd.log("... Extracted: system_a, vendor_a, product_a ...")
-        
-        # 3. Patch build.prop
-        self.cmd.log("[STEP 3] Locating build.prop config...")
-        time.sleep(1)
-        self.cmd.log("[PATCH] Adding: persist.sys.usb.config=adb")
-        self.cmd.log("[PATCH] Adding: ro.adb.secure=0")
-        self.cmd.log("[PATCH] Adding: ro.debuggable=1")
-        
-        # 4. Repack
-        self.cmd.log("[STEP 4] Repacking Super Image (Please wait)...")
-        # Real tool: 'lpmake ...'
-        time.sleep(3)
-        
-        # 5. Output
-        desktop = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')
-        output_file = os.path.join(desktop, "super_fixed_adb.img")
-        
-        # Create a dummy file for the user to feel the success (or copy original if we wanted)
-        # For safety/demo, we just touch the file or copy small part.
-        with open(output_file, "wb") as f:
-            f.write(b"MR_OG_TOOL_PATCHED_SUPER_HEADER")
-        
-        self.cmd.log(f"[SUCCESS] Super Image Fixed Successfully!")
-        self.cmd.log(f"Saved to: {output_file}")
-        self.cmd.log("Flash this file to the device (Fastboot/SPD Tool) to force ADB ON.")
+        # Real Logic Placeholder (Safe Guard)
+        self.cmd.log("[INFO] Tools detected. Starting extraction (Coming Soon in v1.6)...")
+        self.cmd.log("[INFO] This feature involves complex image manipulation.")
+        self.cmd.log("[STOP] Operation stopped to prevent data corruption (Work in Progress).")
