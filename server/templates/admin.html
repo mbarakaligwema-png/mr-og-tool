@@ -13,148 +13,171 @@
     </div>
 
     <!-- Add User Quick Form -->
-    <div class="card">
-        <h3>Add User</h3>
-        <form method="post" action="/admin/users/add" style="display: flex; gap: 10px; align-items: flex-end;">
-            <div style="flex: 1;">
-                <label>Username</label>
-                <input type="text" name="username" required>
+    <div class="card" style="max-width: 800px; margin: 0 auto 30px auto;">
+        <h3 style="border-bottom: 1px solid #444; padding-bottom: 10px; margin-bottom: 20px;">Add User</h3>
+        <form method="post" action="/admin/users/add"
+            style="display: grid; grid-template-columns: 1fr 1fr 100px auto; gap: 15px; align-items: end;">
+            <div>
+                <label style="margin-bottom: 5px; display: block;">Username</label>
+                <input type="text" name="username" required placeholder="Enter username" style="width: 100%;">
             </div>
-            <div style="flex: 1;">
-                <label>Password</label>
-                <input type="text" name="password" required>
+            <div>
+                <label style="margin-bottom: 5px; display: block;">Password</label>
+                <input type="text" name="password" required placeholder="Enter password" style="width: 100%;">
             </div>
-            <div style="flex: 0;">
-                <label>Role</label>
-                <label style="display: inline-block; cursor: pointer;">
-                    <input type="checkbox" name="is_admin"> Admin
-                </label>
+            <div style="text-align: center;">
+                <label style="cursor: pointer; display: block; margin-bottom: 5px;">Role</label>
+                <div
+                    style="display: flex; align-items: center; justify-content: center; height: 38px; background: #333; border-radius: 4px; border: 1px solid #444;">
+                    <label
+                        style="margin: 0; cursor: pointer; padding: 0 10px; font-size: 0.9em; display: flex; align-items: center; gap: 5px;">
+                        <input type="checkbox" name="is_admin"> Admin
+                    </label>
+                </div>
             </div>
-            <button type="submit" class="btn">Add</button>
+            <div>
+                <button type="submit" class="btn" style="height: 40px; width: 100%;">Add User</button>
+            </div>
         </form>
         {% if error %}
-        <p class="alert-error" style="margin-top: 10px;">{{ error }}</p>
+        <p class="alert-error" style="margin-top: 15px;">{{ error }}</p>
         {% endif %}
     </div>
 
     <!-- ACTIVE USERS (PAID) -->
     <div class="card">
-        <h3 style="color: #4CAF50;">Active / Paid Users</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Username</th>
-                    <th>Email</th>
-                    <th>Expiry</th>
-                    <th>HWID</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for u in users if u.is_active and not u.is_expired() %}
-                <tr>
-                    <td>{{ u.id }}</td>
-                    <td>{{ u.username }}</td>
-                    <td>{{ u.email if u.email else "No Email" }}</td>
-                    <td>
-                        {{ u.expiry_date.strftime('%Y-%m-%d') if u.expiry_date else "LIFETIME" }}
-                    </td>
-                    <td style="font-family: monospace; font-size: 0.9em;">{{ u.hwid if u.hwid else "-" }}</td>
-                    <td>
-                        <div style="display: flex; gap: 5px;">
-                            <!-- Block -->
-                            <form method="post" action="/admin/users/{{ u.id }}/toggle" style="display: inline;">
-                                <button type="submit" class="btn"
-                                    style="background-color: #f44336; padding: 4px 8px;">Block</button>
-                            </form>
-                            <!-- Reset HWID -->
-                            <form method="post" action="/admin/users/{{ u.id }}/reset_hwid" style="display: inline;">
-                                <button type="submit" class="btn"
-                                    style="background-color: #2196F3; padding: 4px 8px;">Reset HWID</button>
-                            </form>
-                            <!-- Extend -->
-                            <form method="post" action="/admin/users/{{ u.id }}/extend" style="display: inline;">
-                                <select name="duration" onchange="this.form.submit()"
-                                    style="padding: 4px; border-radius: 4px; border: 1px solid #444; background: #333; color: white;">
-                                    <option value="" disabled selected>+ Extend</option>
-                                    <option value="6_hours">6 Hours</option>
-                                    <option value="3_months">3 Months</option>
-                                    <option value="1_year">1 Year</option>
-                                </select>
-                            </form>
-                            <!-- Reset Password -->
-                            <button onclick="openResetModal('{{ u.id }}', '{{ u.username }}')" class="btn"
-                                style="background-color: #FF9800; padding: 4px 8px;">Reset Pass</button>
-                        </div>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <h3 style="color: #4CAF50; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 15px;">Active /
+            Paid Users</h3>
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; min-width: 800px;">
+                <thead>
+                    <tr style="border-bottom: 2px solid #333;">
+                        <th style="text-align: left; padding: 12px; width: 50px;">ID</th>
+                        <th style="text-align: left; padding: 12px;">Username</th>
+                        <th style="text-align: left; padding: 12px;">Email</th>
+                        <th style="text-align: left; padding: 12px;">Expiry</th>
+                        <th style="text-align: left; padding: 12px;">HWID</th>
+                        <th style="text-align: left; padding: 12px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in users if u.is_active and not u.is_expired() %}
+                    <tr style="border-bottom: 1px solid #333;">
+                        <td style="padding: 12px;">{{ u.id }}</td>
+                        <td style="padding: 12px; font-weight: bold;">{{ u.username }}</td>
+                        <td style="padding: 12px;">{{ u.email if u.email else "No Email" }}</td>
+                        <td style="padding: 12px; color: #4CAF50;">
+                            {{ u.expiry_date.strftime('%Y-%m-%d') if u.expiry_date else "LIFETIME" }}
+                        </td>
+                        <td style="padding: 12px; font-family: monospace; font-size: 0.85em; color: #888;">{{ u.hwid if
+                            u.hwid else "-" }}</td>
+                        <td style="padding: 12px;">
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                <!-- Block -->
+                                <form method="post" action="/admin/users/{{ u.id }}/toggle" style="display: inline;">
+                                    <button type="submit" class="btn btn-danger"
+                                        style="padding: 5px 10px; font-size: 0.85em;">Block</button>
+                                </form>
+                                <!-- Reset HWID -->
+                                <form method="post" action="/admin/users/{{ u.id }}/reset_hwid"
+                                    style="display: inline;">
+                                    <button type="submit" class="btn"
+                                        style="background-color: #2196F3; padding: 5px 10px; font-size: 0.85em;">Reset
+                                        HWID</button>
+                                </form>
+                                <!-- Extend -->
+                                <form method="post" action="/admin/users/{{ u.id }}/extend" style="display: inline;">
+                                    <select name="duration" onchange="this.form.submit()"
+                                        style="padding: 5px; border-radius: 4px; border: 1px solid #555; background: #222; color: white; cursor: pointer;">
+                                        <option value="" disabled selected>+ Extend</option>
+                                        <option value="6_hours">6 Hours</option>
+                                        <option value="3_months">3 Months</option>
+                                        <option value="6_months">6 Months</option>
+                                        <option value="1_year">1 Year</option>
+                                    </select>
+                                </form>
+                                <!-- Reset Password -->
+                                <button onclick="openResetModal('{{ u.id }}', '{{ u.username }}')" class="btn"
+                                    style="background-color: #FF9800; padding: 5px 10px; font-size: 0.85em;">Reset
+                                    Pass</button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <!-- PENDING / EXPIRED / BLOCKED USERS -->
-    <div class="card" style="margin-top: 20px; border-top: 3px solid #f44336;">
-        <h3 style="color: #f44336;">Pending / Expired Users</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Username</th>
-                    <th>Email</th>
-                    <th>Status</th>
-                    <th>Expiry</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for u in users if not u.is_active or u.is_expired() %}
-                <tr>
-                    <td>{{ u.id }}</td>
-                    <td>{{ u.username }}</td>
-                    <td>{{ u.email if u.email else "No Email" }}</td>
-                    <td>
-                        {% if not u.is_active %} <span class="status-blocked">BLOCKED</span>
-                        {% elif u.is_expired() %} <span class="status-blocked">EXPIRED</span>
-                        {% endif %}
-                    </td>
-                    <td>
-                        {{ u.expiry_date.strftime('%Y-%m-%d') if u.expiry_date else "LIFETIME" }}
-                    </td>
-                    <td>
-                        <div style="display: flex; gap: 5px;">
-                            <!-- Unblock / Extend to Activate -->
-                            {% if not u.is_active %}
-                            <form method="post" action="/admin/users/{{ u.id }}/toggle" style="display: inline;">
-                                <button type="submit" class="btn"
-                                    style="background-color: #4CAF50; padding: 4px 8px;">Unblock</button>
-                            </form>
+    <div class="card" style="margin-top: 30px; border-top: 3px solid #f44336;">
+        <h3 style="color: #f44336; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 15px;">Pending /
+            Expired Users</h3>
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; min-width: 800px;">
+                <thead>
+                    <tr style="border-bottom: 2px solid #333;">
+                        <th style="padding: 12px;">ID</th>
+                        <th style="padding: 12px;">Username</th>
+                        <th style="padding: 12px;">Email</th>
+                        <th style="padding: 12px;">Status</th>
+                        <th style="padding: 12px;">Expiry</th>
+                        <th style="padding: 12px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in users if not u.is_active or u.is_expired() %}
+                    <tr style="border-bottom: 1px solid #333; background: rgba(244, 67, 54, 0.05);">
+                        <td style="padding: 12px;">{{ u.id }}</td>
+                        <td style="padding: 12px; font-weight: bold;">{{ u.username }}</td>
+                        <td style="padding: 12px;">{{ u.email if u.email else "No Email" }}</td>
+                        <td style="padding: 12px;">
+                            {% if not u.is_active %} <span
+                                style="background: #f44336; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.8em;">BLOCKED</span>
+                            {% elif u.is_expired() %} <span
+                                style="background: #FF9800; color: black; padding: 2px 6px; border-radius: 4px; font-size: 0.8em;">EXPIRED</span>
                             {% endif %}
+                        </td>
+                        <td style="padding: 12px;">
+                            {{ u.expiry_date.strftime('%Y-%m-%d') if u.expiry_date else "LIFETIME" }}
+                        </td>
+                        <td style="padding: 12px;">
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                <!-- Unblock / Extend to Activate -->
+                                {% if not u.is_active %}
+                                <form method="post" action="/admin/users/{{ u.id }}/toggle" style="display: inline;">
+                                    <button type="submit" class="btn"
+                                        style="background-color: #4CAF50; padding: 5px 10px; font-size: 0.85em;">Unblock</button>
+                                </form>
+                                {% endif %}
 
-                            <form method="post" action="/admin/users/{{ u.id }}/extend" style="display: inline;">
-                                <select name="duration" onchange="this.form.submit()"
-                                    style="padding: 4px; border-radius: 4px; border: 1px solid #444; background: #333; color: white;">
-                                    <option value="" disabled selected>Activate / Extend</option>
-                                    <option value="6_hours">6 Hours</option>
-                                    <option value="3_months">3 Months</option>
-                                    <option value="1_year">1 Year</option>
-                                </select>
-                            </form>
+                                <form method="post" action="/admin/users/{{ u.id }}/extend" style="display: inline;">
+                                    <select name="duration" onchange="this.form.submit()"
+                                        style="padding: 5px; border-radius: 4px; border: 1px solid #555; background: #222; color: white; cursor: pointer;">
+                                        <option value="" disabled selected>Activate / Extend</option>
+                                        <option value="6_hours">6 Hours</option>
+                                        <option value="3_months">3 Months</option>
+                                        <option value="6_months">6 Months</option>
+                                        <option value="1_year">1 Year</option>
+                                    </select>
+                                </form>
 
-                            <form method="post" action="/admin/users/{{ u.id }}/delete" style="display: inline;">
-                                <button type="submit" class="btn btn-danger" style="padding: 4px 8px;"
-                                    onclick="return confirm('Delete user?')">Del</button>
-                            </form>
-                            <!-- Reset Password -->
-                            <button onclick="openResetModal('{{ u.id }}', '{{ u.username }}')" class="btn"
-                                style="background-color: #FF9800; padding: 4px 8px;">Reset Pass</button>
-                        </div>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                                <form method="post" action="/admin/users/{{ u.id }}/delete" style="display: inline;">
+                                    <button type="submit" class="btn btn-danger"
+                                        style="padding: 5px 10px; font-size: 0.85em;"
+                                        onclick="return confirm('Delete user {{ u.username }}?')">Del</button>
+                                </form>
+                                <!-- Reset Password -->
+                                <button onclick="openResetModal('{{ u.id }}', '{{ u.username }}')" class="btn"
+                                    style="background-color: #FF9800; padding: 5px 10px; font-size: 0.85em;">Reset
+                                    Pass</button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <!-- PASSWORD RESET MODAL -->
