@@ -64,13 +64,16 @@ def startup_event():
             print(f"--- MIGRATION NEEDED: {e} ---")
             print("--- ADDING COLUMN: last_hwid_reset ---")
             try:
-                # Add Column (Works for SQLite and Postgres)
+                # Add Column (TIMESTAMP is safer for Postgres than DATETIME)
                 db.rollback() # clear previous error state
-                db.execute(text("ALTER TABLE users ADD COLUMN last_hwid_reset DATETIME"))
+                # Check if sqlite or postgres to be safe, but TIMESTAMP works for both usually (SQLite adapts)
+                # But to be absolutely safe, let's just use generic SQL
+                db.execute(text("ALTER TABLE users ADD COLUMN last_hwid_reset TIMESTAMP"))
                 db.commit()
                 print("--- MIGRATION SUCCESS! ---")
             except Exception as e2:
                 print(f"--- MIGRATION FAILED: {e2} ---")
+                # Don't raise, let app start even if migration failed (Model usage might crash later, but app will come up)
         
         # --- Create Default Admin ---
         if not crud.get_user(db, "mrogtool"):
