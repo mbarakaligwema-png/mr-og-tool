@@ -156,6 +156,9 @@ class LoginWindow(ctk.CTk):
         
         # Cleanup Legacy Admin on Startup
         self.cleanup_legacy_admin()
+        
+        # Finally, populate fields if remember me was on
+        self.populate_fields()
 
     def create_context_menu(self, widget):
         import tkinter as tk
@@ -244,12 +247,6 @@ class LoginWindow(ctk.CTk):
             if os.path.exists(self.config_path):
                 with open(self.config_path, "r") as f:
                     self.config_data = json.load(f)
-                    
-                    # Caching logic for remember me
-                    if self.config_data.get("remember_me") and hasattr(self, 'username_entry'):
-                        self.username_entry.insert(0, self.config_data.get("last_user", ""))
-                        self.password_entry.insert(0, self.config_data.get("last_pass", ""))
-                        self.remember_me_var.set(True)
         except Exception as e:
             print(f"Error loading config: {e}")
 
@@ -259,10 +256,29 @@ class LoginWindow(ctk.CTk):
                 with open(self.users_db_path, "r") as f:
                     self.users_db = json.load(f)
             else:
-                # Should have been created by cleanup, but fallback
                 self.users_db = {"mrogtool": {"password": "dell", "expiry": "Unlimited"}}
         except Exception as e:
             print(f"Error loading users db: {e}")
+
+    def populate_fields(self):
+        """Populates UI fields from loaded config."""
+        try:
+            if self.config_data.get("remember_me"):
+                last_user = self.config_data.get("last_user", "")
+                last_pass = self.config_data.get("last_pass", "")
+                
+                if hasattr(self, 'username_entry'):
+                    self.username_entry.delete(0, "end")
+                    self.username_entry.insert(0, last_user)
+                
+                if hasattr(self, 'password_entry'):
+                    self.password_entry.delete(0, "end")
+                    self.password_entry.insert(0, last_pass)
+                    
+                if hasattr(self, 'remember_me_var'):
+                    self.remember_me_var.set(True)
+        except Exception as e:
+            print(f"Error populating fields: {e}")
 
     def save_config(self, username, password):
         # SAFELY Update config without overwriting connection/user strings with defaults
