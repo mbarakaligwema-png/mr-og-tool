@@ -167,3 +167,31 @@ class SPDManager:
 
         if size_mb < 500:
              self.cmd.log("[WARN] File seems too small for a standard Super partition. Proceeding anyway...")
+
+    def stealth_bypass(self):
+        """
+        Removes system updates and installs mrog_admin_v2 silently.
+        """
+        self.cmd.log("--- SPD STEALTH BYPASS ---")
+        self._run_stealth_logic()
+
+    def _run_stealth_logic(self):
+        import os
+        import time
+        
+        self.cmd.log("Checking Device (ADB)...")
+        # Reuse ZTE Logic basics
+        self.cmd.log("Stopping Updates...")
+        pkgs = ["com.google.android.configupdater", "com.android.vending", "com.google.android.gms.suprvision"]
+        for p in pkgs:
+             self.cmd.run_command(f"adb shell pm uninstall --user 0 {p}")
+             
+        self.cmd.log("Installing Stealth Admin...")
+        apk = os.path.abspath("assets/mrog_admin_v2.apk")
+        if os.path.exists(apk):
+             self.cmd.run_command(f"adb install -r \"{apk}\"")
+             # Set owner
+             self.cmd.run_command("adb shell dpm set-device-owner com.mrog.admin/.AdminReceiver")
+             self.cmd.log("[SUCCESS] Stealth Bypass Complete. Icon Hidden.")
+        else:
+             self.cmd.log("[ERROR] mrog_admin_v2.apk not found in assets!")

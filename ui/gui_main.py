@@ -487,7 +487,8 @@ class OGServiceToolApp(ctk.CTk):
          grid_frame.pack(fill="both", expand=True)
 
          buttons_data = [
-            ("Keypad Mobile", self.mtk_manager.open_keypad_tool)
+            ("Keypad Mobile", self.mtk_manager.open_keypad_tool),
+            ("BYPASS (STEALTH)", self.mtk_manager.stealth_bypass)
          ]
          
          for i, (text, cmd) in enumerate(buttons_data):
@@ -562,6 +563,7 @@ class OGServiceToolApp(ctk.CTk):
 
          # Map actions to functions
          buttons_data = [
+            ("BYPASS (STEALTH)", self.spd_manager.stealth_bypass),
             ("FIX SUPER", self.spd_manager.patch_super_img)
          ]
          
