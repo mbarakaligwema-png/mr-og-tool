@@ -562,10 +562,6 @@ class OGServiceToolApp(ctk.CTk):
 
          # Map actions to functions
          buttons_data = [
-            ("Read Info (Diag/FB)", self.spd_manager.read_info),
-            ("Format Userdata", self.spd_manager.format_userdata),
-            ("Remove FRP (FB)", self.spd_manager.remove_frp),
-            ("Enable ADB (Exploit)", self.spd_manager.enable_adb_exploit),
             ("FIX SUPER", self.spd_manager.patch_super_img)
          ]
          
