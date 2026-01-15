@@ -39,6 +39,8 @@ templates_dir = os.path.join(BASE_DIR, "templates")
 
 # Mount Static & Templates
 app.mount("/static", StaticFiles(directory=static_dir), name="static")
+downloads_dir = os.path.join(BASE_DIR, "downloads")
+app.mount("/downloads", StaticFiles(directory=downloads_dir), name="downloads")
 templates = Jinja2Templates(directory=templates_dir)
 
 # Dependency
