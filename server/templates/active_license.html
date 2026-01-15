@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Active License - MR OG TOOL{% endblock %}
+
+{% block content %}
+<div id="active-license" class="license-section" style="margin-top: 60px; text-align: center;">
+    <h2 style="border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 30px;">Price MR OG TOOL</h2>
+
+    <!-- Packages Grid Container -->
+    <div
+        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; justify-content: center; padding: 0 20px;">
+
+        <!-- Package 1: 3 Months -->
+        <div class="card"
+            style="background: #fff; padding: 30px; border-radius: 5px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); text-align: center; color: #333;">
+
+            <img src="{{ url_for('static', path='/product_box.jpg') }}" alt="MR OG TOOL"
+                style="width: 70%; height: auto; margin-bottom: 15px; display: block; margin-left: auto; margin-right: auto;">
+
+            <h2 style="color: #000; margin-bottom: 10px;">MR OG TOOL</h2>
+
+            <div style="text-align: left; margin-bottom: 20px; margin-left: 20px;">
+                <p style="margin: 5px 0;"><strong style="font-size: 1.1em;">Package :</strong> <span
+                        style="background: #000; color: #fff; padding: 2px 8px; border-radius: 3px; font-weight: bold;">M3</span>
+                </p>
+                <p style="margin: 5px 0;"><strong style="font-size: 1.1em;">License time :</strong> 3 months</p>
+            </div>
+
+            <a href="/resellers"
+                style="display: inline-flex; align-items: center; justify-content: center; background: #FFC107; color: black; padding: 10px 25px; text-decoration: none; font-weight: bold; font-size: 1.1em; border-radius: 5px;">
+                <span style="font-size: 1.2em; margin-right: 8px;">🛒</span> Active Now
+            </a>
+        </div>
+
+        <!-- Package 2: 6 Months -->
+        <div class="card"
+            style="background: #fff; padding: 30px; border-radius: 5px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); text-align: center; color: #333;">
+
+            <img src="{{ url_for('static', path='/product_box.jpg') }}" alt="MR OG TOOL"
+                style="width: 70%; height: auto; margin-bottom: 15px; display: block; margin-left: auto; margin-right: auto;">
+
+            <h2 style="color: #000; margin-bottom: 10px;">MR OG TOOL</h2>
+
+            <div style="text-align: left; margin-bottom: 20px; margin-left: 20px;">
+                <p style="margin: 5px 0;"><strong style="font-size: 1.1em;">Package :</strong> <span
+                        style="background: #000; color: #fff; padding: 2px 8px; border-radius: 3px; font-weight: bold;">M6</span>
+                </p>
+                <p style="margin: 5px 0;"><strong style="font-size: 1.1em;">License time :</strong> 6 months</p>
+            </div>
+
+            <a href="/resellers"
+                style="display: inline-flex; align-items: center; justify-content: center; background: #FFC107; color: black; padding: 10px 25px; text-decoration: none; font-weight: bold; font-size: 1.1em; border-radius: 5px;">
+                <span style="font-size: 1.2em; margin-right: 8px;">🛒</span> Active Now
+            </a>
+        </div>
+
+        <!-- Package 3: 12 Months -->
+        <div class="card"
+            style="background: #fff; padding: 30px; border-radius: 5px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); text-align: center; color: #333;">
+
+            <img src="{{ url_for('static', path='/product_box.jpg') }}" alt="MR OG TOOL"
+                style="width: 70%; height: auto; margin-bottom: 15px; display: block; margin-left: auto; margin-right: auto;">
+
+            <h2 style="color: #000; margin-bottom: 10px;">MR OG TOOL</h2>
+
+            <div style="text-align: left; margin-bottom: 20px; margin-left: 20px;">
+                <p style="margin: 5px 0;"><strong style="font-size: 1.1em;">Package :</strong> <span
+                        style="background: #000; color: #fff; padding: 2px 8px; border-radius: 3px; font-weight: bold;">M12</span>
+                </p>
+                <p style="margin: 5px 0;"><strong style="font-size: 1.1em;">License time :</strong> 12 months</p>
+            </div>
+
+            <a href="/resellers"
+                style="display: inline-flex; align-items: center; justify-content: center; background: #FFC107; color: black; padding: 10px 25px; text-decoration: none; font-weight: bold; font-size: 1.1em; border-radius: 5px;">
+                <span style="font-size: 1.2em; margin-right: 8px;">🛒</span> Active Now
+            </a>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

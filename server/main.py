@@ -75,6 +75,10 @@ async def login_page(request: Request):
 async def resellers_page(request: Request):
     return templates.TemplateResponse("resellers.html", {"request": request})
 
+@app.get("/active-license", response_class=HTMLResponse)
+async def active_license_page(request: Request):
+    return templates.TemplateResponse("active_license.html", {"request": request})
+
 @app.post("/login", response_class=HTMLResponse)
 async def login(request: Request, username: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
     user = crud.get_user(db, username)
