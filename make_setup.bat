@@ -44,4 +44,4 @@ echo ===================================================
 echo.
 echo Check the 'Output' folder.
 echo.
-pause
+:: pause

@@ -47,4 +47,4 @@ echo      BUILD COMPLETE!
 echo      File copied to: %USERPROFILE%\Desktop\MR_OG_TOOL.exe
 echo ==========================================
 echo.
-pause
+:: pause
