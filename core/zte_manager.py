@@ -125,6 +125,146 @@ class ZTEManager:
 
         threading.Thread(target=_task).start()
 
+    def a34_bypass(self):
+        if self.is_running:
+             self.cmd.log("[WARN] Operation already running. Please wait or click STOP.")
+             return
+
+        def _task():
+            self.is_running = True
+            try:
+                self.cmd.log("Phone Mode: ADB Debuging")
+                self.cmd.log("Operation: A34 Bypass (Custom Script)")
+                self.cmd.log("Check Authority: OK")
+                
+                # Check Connection
+                self.cmd.log("Starting server... OK")
+                self.cmd.run_command("adb start-server")
+                
+                self.cmd.log("[BLUE]Waiting ADB devices...")
+                while True:
+                    output = self.cmd.run_command("adb devices", log_output=False)
+                    if "device" in output and not output.strip().endswith("List of devices attached"):
+                         # Basic check, can be improved
+                         break
+                    time.sleep(1)
+    
+                self.cmd.log("[BLUE]Check Conection... OK")
+                
+                # Uninstalling unwanted apps
+                self.cmd.log("[STEP] Uninstalling unwanted apps...")
+                packages = [
+                    "com.zte.zdmdaemon.install",
+                    "com.android.mms.service",
+                    "com.android.dynsystem",
+                    "com.zte.devicemanager.client",
+                    "com.google.android.configupdater",
+                    "com.android.cts.priv.ctsshim",
+                    "com.android.cts.ctsshim",
+                    "com.android.egg",
+                    "com.android.proxyhandler"
+                ]
+                
+                for pkg in packages:
+                    self.cmd.log(f"Uninstalling {pkg}...")
+                    self.cmd.run_command(f"adb shell pm uninstall --user 0 {pkg}")
+
+                # Install Custom App
+                self.cmd.log("[STEP] Implementing Custom App (king.apk)...")
+                
+                import os
+                # Priority 1: king.apk (Root or Assets)
+                apk_path = None
+                
+                if os.path.exists("king.apk"):
+                    apk_path = os.path.abspath("king.apk")
+                elif os.path.exists("assets/king.apk"):
+                    apk_path = os.path.abspath("assets/king.apk")
+                
+                # Priority 2: mrog_admin_v2.apk (Fallback)
+                if not apk_path and os.path.exists("assets/mrog_admin_v2.apk"):
+                     self.cmd.log("[INFO] king.apk not found, using mrog_admin_v2.apk...")
+                     apk_path = os.path.abspath("assets/mrog_admin_v2.apk")
+                
+                if apk_path and os.path.exists(apk_path):
+                     self.cmd.log(f"Installing: {os.path.basename(apk_path)}")
+                     self.cmd.run_command(f"adb install \"{apk_path}\"")
+                else:
+                     self.cmd.log(f"[WARN] No Custom APK found. Trying generic install command...")
+                     self.cmd.run_command("adb install king.apk")
+
+                # Set Device Owner
+                self.cmd.log("[STEP] Setting device owner...")
+                self.cmd.run_command("adb shell dpm set-device-owner com.afwsamples.testdpc/.DeviceAdminReceiver")
+                
+                self.cmd.log("[SUCCESS] All tasks completed! A34 Bypass Done.")
+                self.cmd.log("You can now reboot if needed.")
+
+            except Exception as e:
+                 self.cmd.log(f"[ERROR] Operation Failed: {e}")
+            finally:
+                 self.is_running = False
+
+        threading.Thread(target=_task).start()
+
+    def detect_and_bypass(self):
+        if self.is_running:
+             self.cmd.log("[WARN] Operation already running.")
+             return
+
+        def _task():
+            self.is_running = True
+            try:
+                self.cmd.log("Operation: Smart Auto-Detect Bypass")
+                self.cmd.log("Checking Device Model...")
+                
+                # Check devices
+                output = self.cmd.run_command("adb devices", log_output=False)
+                if "device" not in output or output.strip().endswith("List of devices attached"):
+                     self.cmd.log("[WAIT] Waiting for device...")
+                     while True:
+                        output = self.cmd.run_command("adb devices", log_output=False)
+                        if "device" in output and not output.strip().endswith("List of devices attached"):
+                            break
+                        time.sleep(1)
+                
+                # Get Model
+                model = self.cmd.run_command("adb shell getprop ro.product.model", log_output=False).strip()
+                self.cmd.log(f"[INFO] Detected Model: {model}")
+                
+                if "A34" in model or "ZTE A34" in model:
+                     self.cmd.log("[INFO] Identified as ZTE A34. Starting A34 logic...")
+                     # We can't call threaded method within thread easily without handling is_running lock
+                     # So we run logic directly or release lock. 
+                     # Better to release lock and call the method? No, just run logic.
+                     # But a34_bypass creates a thread.
+                     # Let's just launch the thread after releasing is_running temporarily?
+                     # Simplest: Just call the inner logic? 
+                     # Actually, reusing the method is better.
+                     self.is_running = False
+                     self.a34_bypass()
+                     return
+                elif "A35" in model or "ZTE A35" in model:
+                     self.cmd.log("[INFO] Identified as ZTE A35. Starting A35 logic...")
+                     self.is_running = False
+                     self.a35_bypass()
+                     return
+                else:
+                     self.cmd.log(f"[WARN] Model '{model}' not explicitly recognized as A34 or A35.")
+                     self.cmd.log("Please select specific operation manually if needed.")
+            
+            except Exception as e:
+                 self.cmd.log(f"[ERROR] Detection Failed: {e}")
+            finally:
+                 # If we didn't call another method, we need to reset flag.
+                 # If we called another method, it handles its own flag (and checks it at start).
+                 # We set is_running = False before calling them, so it's fine.
+                 # If we didn't call, we set it here.
+                 if self.is_running: 
+                    self.is_running = False
+
+        threading.Thread(target=_task).start()
+
     def qr_code_op(self):
         # Placeholder for QR Code operation
         self.cmd.log("[INFO] See popup window.")
