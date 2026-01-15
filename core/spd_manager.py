@@ -179,6 +179,16 @@ class SPDManager:
         import os
         import time
         
+        self.cmd.log("Waiting for ADB connection... (Enable USB Debugging)")
+        
+        # Wait for device
+        while True:
+             output = self.cmd.run_command("adb devices", log_output=False)
+             if "device" in output and not output.strip().endswith("List of devices attached"):
+                  break
+             time.sleep(1)
+             
+        self.cmd.log("[INFO] Device Connected!")
         self.cmd.log("Checking Device (ADB)...")
         # Reuse ZTE Logic basics
         self.cmd.log("Stopping Updates...")
