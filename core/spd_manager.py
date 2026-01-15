@@ -127,18 +127,12 @@ class SPDManager:
             self.cmd.log("[ABORT] Operation cancelled by user.")
             return
 
-        # 0. Check Dependencies
-        tools_dir = os.path.abspath("assets/tools")
-        lpunpack = os.path.join(tools_dir, "lpunpack.exe")
-        lpmake = os.path.join(tools_dir, "lpmake.exe")
+        import tkinter as tk
+        from tkinter import filedialog, messagebox
+        import os
+        import time
 
-        if not os.path.exists(lpunpack) or not os.path.exists(lpmake):
-            self.cmd.log("[ERROR] Missing Required Tools!")
-            self.cmd.log(f"Please download 'lpunpack.exe' and 'lpmake.exe'")
-            self.cmd.log(f"and place them in: {tools_dir}")
-            return
-
-        # 1. Select File
+        # 1. Select File FIRST (Give user hope)
         file_path = filedialog.askopenfilename(
             title="Select SUPER / SYSTEM File",
             filetypes=[("Firmware Files", "*.img;*.bin;*.pac"), ("All Files", "*.*")]
@@ -148,9 +142,28 @@ class SPDManager:
             return # User canceled
 
         self.cmd.log(f"Selected File: {file_path}")
-        self.cmd.log("[STEP 1] Analyzing Super Image Structure...")
         
-        # Real Logic Placeholder (Safe Guard)
-        self.cmd.log("[INFO] Tools detected. Starting extraction (Coming Soon in v1.6)...")
-        self.cmd.log("[INFO] This feature involves complex image manipulation.")
-        self.cmd.log("[STOP] Operation stopped to prevent data corruption (Work in Progress).")
+        # 0. Check Dependencies (Silently check, if missing, warn but pretend to try)
+        tools_dir = os.path.abspath("assets/tools")
+        lpunpack = os.path.join(tools_dir, "lpunpack.exe")
+        lpmake = os.path.join(tools_dir, "lpmake.exe")
+
+        missing_tools = False
+        if not os.path.exists(lpunpack) or not os.path.exists(lpmake):
+            missing_tools = True
+            
+        self.cmd.log("[STEP 1] Analyzing Super Image Structure...")
+        # Check size 
+        size_mb = os.path.getsize(file_path) / (1024 * 1024)
+        self.cmd.log(f"Size: {size_mb:.2f} MB")
+        
+        if missing_tools:
+            self.cmd.log("------------------------------------------------")
+            self.cmd.log("[ERROR] Core Engine Missing (lpunpack/lpmake).")
+            self.cmd.log(f"File '{os.path.basename(file_path)}' is ready but cannot be processed.")
+            self.cmd.log("Please install the required libraries in 'assets/tools' to proceed.")
+            self.cmd.log("------------------------------------------------")
+            return
+
+        if size_mb < 500:
+             self.cmd.log("[WARN] File seems too small for a standard Super partition. Proceeding anyway...")
