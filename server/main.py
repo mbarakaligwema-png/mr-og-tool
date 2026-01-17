@@ -286,7 +286,7 @@ async def verify_user(username: str = Form(...), password: str = Form(...), hwid
 async def latest_version():
     return {
         "version": "1.7", 
-        "download_url": "https://www.mediafire.com/file/vgtedxcovf13no4/MR_OG_TOOL_Setup_v1.7.0.exe/file",
+        "download_url": "https://www.mediafire.com/file/vstjcu4mgo2qwe6/MR_OG_TOOL_Setup_v1.7.0.exe/file",
         "changelog": "New Features:\n- ADDED: ANDROID 16 KG/MDM PERMANENT BYPASS\n- ADDED: Factory Reset Interceptor (Accessibility)\n- IMPROVED: App Hiding & Persistence"
     }
 

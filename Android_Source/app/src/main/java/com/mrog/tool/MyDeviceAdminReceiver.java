@@ -75,14 +75,13 @@ public class MyDeviceAdminReceiver extends DeviceAdminReceiver {
                     "com.samsung.android.cidmanager",
                     "com.sec.enterprise.knox.cloudmdm.smdms",
                     "com.samsung.android.mdm",
-                    "com.knox.vpn.proxyhandler",
+                    // "com.knox.vpn.proxyhandler", // REMOVED to fix Internet
                     "com.samsung.android.kgclient",
                     "com.samsung.android.kgclient.agent",
                     "com.sec.android.app.samsungapps",
-                    "com.google.android.configupdater",
                     "com.sec.android.app.billing",
                     "com.samsung.android.scloud",
-                    "com.google.android.gms.policy_sidecar_aps",
+                    // "com.google.android.gms.policy_sidecar_aps", // REMOVED to fix Internet
                     // STRICT ADDITIONS
                     // "com.android.vending", // Play Store RESTORED
                     "com.samsung.android.settings.intelligence", // Settings Search
