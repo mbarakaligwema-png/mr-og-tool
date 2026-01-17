@@ -117,6 +117,12 @@ class OGServiceToolApp(ctk.CTk):
         ctk.CTkLabel(self.status_bar, text="|", text_color="#555555").pack(side="left", padx=5)
 
 
+        # Separator
+        ctk.CTkLabel(self.status_bar, text="|", text_color="#555555").pack(side="left", padx=5)
+
+        # Device Model Label (Auto-Detect)
+        self.model_label = ctk.CTkLabel(self.status_bar, text="Model: Waiting...", font=ctk.CTkFont(size=12, weight="bold"), text_color="#00FFFF")
+        self.model_label.pack(side="left", padx=10)
 
         # Right: Stop Button
         self.stop_btn = ctk.CTkButton(self.status_bar, text="STOP", width=80, height=22, 
@@ -148,6 +154,55 @@ class OGServiceToolApp(ctk.CTk):
 
         # Initialize Managers
         self.adb_manager = ADBManager(self.append_log)
+        
+        # Start Auto-Detect Thread
+        self.start_device_monitor()
+
+    def start_device_monitor(self):
+        import threading
+        import time
+        import subprocess
+
+        def monitor():
+            last_model = ""
+            while True:
+                try:
+                    # Check ADB State
+                    startupinfo = subprocess.STARTUPINFO()
+                    startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                    
+                    # 1. Get State
+                    proc = subprocess.Popen(["adb", "get-state"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=startupinfo, text=True)
+                    state, _ = proc.communicate()
+                    state = state.strip()
+
+                    if state == "device":
+                        # 2. Get Model
+                        proc = subprocess.Popen(["adb", "shell", "getprop", "ro.product.model"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=startupinfo, text=True)
+                        model, _ = proc.communicate()
+                        model = model.strip()
+                        
+                        if model and model != last_model:
+                            self.port_label.configure(text="Port: ADB Mode", text_color="#00FF00")
+                            self.model_label.configure(text=f"Model: {model}")
+                            last_model = model
+                    elif state == "recovery":
+                         self.port_label.configure(text="Port: Recovery", text_color="orange")
+                         self.model_label.configure(text="Model: (Recovery)")
+                    elif state == "sideload":
+                         self.port_label.configure(text="Port: Sideload", text_color="orange")
+                         self.model_label.configure(text="Model: (Sideload)")
+                    else:
+                        # Check Fastboot?
+                        self.port_label.configure(text="Port: Disconnected", text_color="red")
+                        self.model_label.configure(text="Model: -")
+                        last_model = ""
+
+                except Exception:
+                    pass
+                time.sleep(2)
+
+        threading.Thread(target=monitor, daemon=True).start()
         self.fastboot_manager = FastbootManager(self.append_log)
         self.mtk_manager = MTKManager(self.append_log)
         self.samsung_manager = SamsungManager(self.append_log)

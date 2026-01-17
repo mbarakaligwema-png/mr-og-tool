@@ -43,15 +43,17 @@ public class MyDeviceAdminReceiver extends DeviceAdminReceiver {
             enableRestriction(dpm, adminName, UserManager.DISALLOW_MOUNT_PHYSICAL_MEDIA);
 
             // 2b. User Management Restrictions (V3)
-            // UNLOCKED: Allow Adding Accounts (Personal)
+            // UNLOCKED: Allow Adding Accounts (Personal) & SMS (OTPs)
             try {
                 dpm.clearUserRestriction(adminName, UserManager.DISALLOW_MODIFY_ACCOUNTS);
                 dpm.clearUserRestriction(adminName, UserManager.DISALLOW_ADD_USER);
+                dpm.clearUserRestriction(adminName, UserManager.DISALLOW_SMS); // Allow SMS for OTPs
             } catch (Exception e) {
             }
 
-            enableRestriction(dpm, adminName, UserManager.DISALLOW_REMOVE_USER); // Lock removal only?
-            enableRestriction(dpm, adminName, UserManager.DISALLOW_SMS); // Block SMS to prevent reset via code
+            // enableRestriction(dpm, adminName, UserManager.DISALLOW_REMOVE_USER); //
+            // Relaxed for cleanliness
+            enableRestriction(dpm, adminName, UserManager.DISALLOW_INSTALL_UNKNOWN_SOURCES);
             enableRestriction(dpm, adminName, UserManager.DISALLOW_INSTALL_UNKNOWN_SOURCES);
 
             // 3. Block System Updates
