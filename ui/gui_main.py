@@ -14,7 +14,7 @@ ctk.set_appearance_mode("Dark")  # Modes: "System" (standard), "Dark", "Light"
 ctk.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
 
 class OGServiceToolApp(ctk.CTk):
-    VERSION = "1.6.0"
+    VERSION = "1.7.0"
 
     def __init__(self, username="User", expiry_msg="LIFETIME"):
         super().__init__()
@@ -75,23 +75,25 @@ class OGServiceToolApp(ctk.CTk):
         self.sidebar_button_dashboard.grid(row=4, column=0, padx=20, pady=10)
 
         self.sidebar_button_adb = self.create_sidebar_button("ADB MODE", command=self.show_adb)
-        self.sidebar_button_adb.grid(row=4, column=0, padx=20, pady=10)
+        self.sidebar_button_adb.grid(row=5, column=0, padx=20, pady=10)
 
-        # FASTBOOT button removed as requested
-        # self.sidebar_button_fastboot = self.create_sidebar_button("FASTBOOT", command=self.show_fastboot)
-        # self.sidebar_button_fastboot.grid(row=5, column=0, padx=20, pady=10)
-        
         self.sidebar_button_mtk = self.create_sidebar_button("MEDIATEK", command=self.show_mtk)
-        self.sidebar_button_mtk.grid(row=5, column=0, padx=20, pady=10)
+        self.sidebar_button_mtk.grid(row=6, column=0, padx=20, pady=10)
 
         self.sidebar_button_samsung = self.create_sidebar_button("SAMSUNG", command=self.show_samsung)
-        self.sidebar_button_samsung.grid(row=6, column=0, padx=20, pady=10)
+        self.sidebar_button_samsung.grid(row=7, column=0, padx=20, pady=10)
 
+        # SPD (Row 8)
         self.sidebar_button_spd = self.create_sidebar_button("SPD / UNISOC", command=self.show_spd)
-        self.sidebar_button_spd.grid(row=7, column=0, padx=20, pady=10)
+        self.sidebar_button_spd.grid(row=8, column=0, padx=20, pady=10)
 
+        # ZTE (Row 9)
         self.sidebar_button_zte = self.create_sidebar_button("ZTE", command=self.show_zte)
-        self.sidebar_button_zte.grid(row=8, column=0, padx=20, pady=10)
+        self.sidebar_button_zte.grid(row=9, column=0, padx=20, pady=10)
+        
+        # New Downgrade Button (Row 10)
+        self.sidebar_button_downgrade = self.create_sidebar_button("DOWNGRADE", command=self.show_downgrade)
+        self.sidebar_button_downgrade.grid(row=10, column=0, padx=20, pady=10)
 
 
 
@@ -368,7 +370,7 @@ class OGServiceToolApp(ctk.CTk):
     def select_frame_by_name(self, name):
         # Reset button styles
         buttons = [self.sidebar_button_dashboard, self.sidebar_button_adb, 
-                   self.sidebar_button_mtk, self.sidebar_button_samsung, self.sidebar_button_spd, self.sidebar_button_zte]
+                   self.sidebar_button_mtk, self.sidebar_button_samsung, self.sidebar_button_spd, self.sidebar_button_zte, self.sidebar_button_downgrade]
         for btn in buttons:
             if btn.cget("text") == name:
                  btn.configure(fg_color=styles.ACCENT_COLOR, text_color="white")
@@ -394,6 +396,8 @@ class OGServiceToolApp(ctk.CTk):
             self.show_spd_content()
         elif name == "ZTE":
             self.show_zte_content()
+        elif name == "DOWNGRADE":
+            self.show_downgrade_content()
         elif name == "SETTINGS":
             self.show_settings_content(self.main_frame)
 
@@ -417,6 +421,9 @@ class OGServiceToolApp(ctk.CTk):
     
     def show_zte(self):
         self.select_frame_by_name("ZTE")
+        
+    def show_downgrade(self):
+        self.select_frame_by_name("DOWNGRADE")
 
 
 
@@ -427,8 +434,8 @@ class OGServiceToolApp(ctk.CTk):
         card = ctk.CTkFrame(self.main_frame, fg_color=styles.CARD_BG, corner_radius=10)
         card.pack(fill="x", pady=10)
         
-        ctk.CTkLabel(card, text="Welcome to MR OG TOOL", font=ctk.CTkFont(size=20, weight="bold")).pack(padx=20, pady=(20, 5), anchor="w")
-        ctk.CTkLabel(card, text="Select a operation mode from the sidebar to begin.\n\nStatus: Connected to Server\nLicense: Valid", 
+        ctk.CTkLabel(card, text="Welcome to MR OG TOOL v1.7.0", font=ctk.CTkFont(size=20, weight="bold")).pack(padx=20, pady=(20, 5), anchor="w")
+        ctk.CTkLabel(card, text="LATEST: ANDROID 16 KG/MDM PERMANENT BYPASS ADDED!\nSelect a operation mode from the sidebar to begin.\n\nStatus: Connected to Server", 
                      text_color=styles.TEXT_SECONDARY, justify="left").pack(padx=20, pady=(0, 20), anchor="w")
 
     def show_adb_content(self):
@@ -488,7 +495,7 @@ class OGServiceToolApp(ctk.CTk):
 
          buttons_data = [
             ("Keypad Mobile", self.mtk_manager.open_keypad_tool),
-            ("BYPASS 2026", self.mtk_manager.stealth_bypass)
+            ("BYPASS", self.mtk_manager.stealth_bypass)
          ]
          
          for i, (text, cmd) in enumerate(buttons_data):
@@ -520,7 +527,7 @@ class OGServiceToolApp(ctk.CTk):
             ("Remove FRP (2024)", self.samsung_manager.remove_frp_2024),
             ("Soft Brick Fix", self.samsung_manager.soft_brick_fix),
             ("Exit Download Mode", self.samsung_manager.exit_download_mode),
-            ("MDM BYPASS 2026", self.samsung_manager.mdm_bypass_2026)
+            ("MDM BYPASS 2026", self.samsung_manager.kg_bypass_android_15_16)
          ]
          
          for i, (text, cmd) in enumerate(buttons_data):
@@ -563,8 +570,9 @@ class OGServiceToolApp(ctk.CTk):
 
          # Map actions to functions
          buttons_data = [
-            ("BYPASS 2026", self.spd_manager.stealth_bypass),
-            ("FIX SUPER", self.spd_manager.patch_super_img)
+            ("BYPASS", self.spd_manager.stealth_bypass),
+            ("FIX SUPER", self.spd_manager.patch_super_img),
+            ("FIX USB / DIAG", self.spd_manager.fix_usb_diag)
          ]
          
          for i, (text, cmd) in enumerate(buttons_data):
@@ -597,6 +605,25 @@ class OGServiceToolApp(ctk.CTk):
          grid_frame.grid_columnconfigure(0, weight=1)
          grid_frame.grid_columnconfigure(1, weight=1)
          grid_frame.grid_columnconfigure(2, weight=1)
+
+    def show_downgrade_content(self):
+        ctk.CTkLabel(self.main_frame, text="DOWNGRADE SERVICE", font=ctk.CTkFont(size=20, weight="bold")).pack(anchor="w", pady=10)
+        
+        grid_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
+        grid_frame.pack(fill="both", expand=True)
+        
+        # Button: ZTE A35 Downgrade
+        url = "https://www.mediafire.com/file/t79iffdv40qbfbb/a34+all+downgrade.rar/file"
+        import webbrowser
+        
+        btn = ctk.CTkButton(grid_frame, text="ZTE A35 DOWNGRADE", height=50, 
+                            fg_color=styles.CARD_BG, hover_color=styles.ACCENT_COLOR, 
+                            command=lambda: webbrowser.open(url))
+        btn.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
+
+        grid_frame.grid_columnconfigure(0, weight=1)
+        grid_frame.grid_columnconfigure(1, weight=1)
+        grid_frame.grid_columnconfigure(2, weight=1)
 
     def show_zte_qr_window(self):
         try:

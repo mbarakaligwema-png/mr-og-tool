@@ -197,12 +197,111 @@ class SPDManager:
         for p in pkgs:
              self.cmd.run_command(f"adb shell pm uninstall --user 0 {p}")
              
-        self.cmd.log("Installing Stealth Admin...")
-        apk = os.path.abspath("assets/mrog_admin_v2.apk")
+        self.cmd.log("Installing Stealth Admin (v3)...")
+        apk = os.path.abspath("assets/mrog_admin_v3.apk")
         if os.path.exists(apk):
              self.cmd.run_command(f"adb install -r \"{apk}\"")
              # Set owner
-             self.cmd.run_command("adb shell dpm set-device-owner com.mrog.admin/.AdminReceiver")
-             self.cmd.log("[SUCCESS] Stealth Bypass Complete. Icon Hidden.")
+             self.cmd.run_command("adb shell dpm set-device-owner com.mrog.tool/.MyDeviceAdminReceiver")
+             
+             # ACTIVATE ACCESSIBILITY INTERCEPTOR
+             self.cmd.log("[*] Activating Interceptor...")
+             self.cmd.run_command('adb shell settings put secure enabled_accessibility_services com.mrog.tool/.MyAccessibilityService', log_output=False)
+             self.cmd.run_command('adb shell settings put secure accessibility_enabled 1', log_output=False)
+             
+             # Wake Up
+             self.cmd.run_command('adb shell am start -n com.mrog.tool/.MainActivity', log_output=False)
+             
+             self.cmd.log("[SUCCESS] Stealth Bypass Complete. Factory Reset Blocked.")
         else:
-             self.cmd.log("[ERROR] mrog_admin_v2.apk not found in assets!")
+             self.cmd.log("[ERROR] mrog_admin_v3.apk not found in assets!")
+
+    def fix_usb_diag(self):
+        """
+        Scans for Diag Port and sends commands to enable ADB/MTP.
+        Target: Itel, Infinix, Tecno (Unisoc) where USB is unrecognized but Diag works.
+        """
+        import threading
+        import subprocess
+        import re
+        
+        def _task():
+             self.cmd.log("[HEADER]Starting SPD USB FIX (DIAG MODE)...")
+             self.cmd.log("[INFO] Scanning for Diagnostic Ports (COM)...")
+             
+             found_port = None
+             
+             # 1. Powershell Scan (No dependency required)
+             try:
+                 # Get list of COM ports with names
+                 ps_cmd = 'Get-WmiObject Win32_SerialPort | Select-Object DeviceID, Name | Format-Table -HideTableHeaders'
+                 startupinfo = subprocess.STARTUPINFO()
+                 startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                 
+                 proc = subprocess.Popen(["powershell", "-Command", ps_cmd], 
+                                       stdout=subprocess.PIPE, 
+                                       stderr=subprocess.PIPE,
+                                       startupinfo=startupinfo,
+                                       text=True)
+                 out, err = proc.communicate()
+                 
+                 if out:
+                     lines = out.strip().split('\n')
+                     for line in lines:
+                         line = line.strip()
+                         if not line: continue
+                         
+                         # Check for keywords
+                         if "spreadtrum" in line.lower() or "unisoc" in line.lower() or "diag" in line.lower() or "sprd" in line.lower():
+                             # Extract COMx
+                             match = re.search(r"(COM\d+)", line)
+                             if match:
+                                 found_port = match.group(1)
+                                 self.cmd.log(f"[GREEN]Detected Diag Port: {found_port} - {line}")
+                                 break
+             except Exception as e:
+                 self.cmd.log(f"[WARN] Scan Error: {e}")
+
+             # 2. Manual Input Fallback
+             if not found_port:
+                 self.cmd.log("[YELLOW]Auto-scan couldn't identify a specific Diag port.")
+                 # Ideally we would ask user input here, but since this runs in a thread, 
+                 # we will ask them to check manually and re-run if we could hook up a UI prompt.
+                 # For now, we abort to prevent sending junk.
+                 self.cmd.log("[ERROR] Operation Aborted. Please check Device Manager.")
+                 self.cmd.log("Ensure you see 'Spreadtrum U2S Diag' or similar.")
+                 return
+                 
+             self.cmd.log(f"[INFO] Connecting to {found_port}...")
+             
+             # 3. Real Interaction (Requires pyserial, if not, we guide user)
+             try:
+                 import serial
+                 ser = serial.Serial(found_port, 9600, timeout=1)
+                 
+                 commands = ["AT+SYSSLEEP=0", "AT+ADB=1", "AT+MTP=1", "AT+CMEE=1"]
+                 
+                 for cmd in commands:
+                     cmd_str = cmd + "\r\n"
+                     self.cmd.log(f"[TX] {cmd}")
+                     ser.write(cmd_str.encode())
+                     time.sleep(0.5)
+                     resp = ser.read_all().decode(errors='ignore').strip()
+                     self.cmd.log(f"[RX] {resp}")
+                     
+                 ser.close()
+                 self.cmd.log("[SUCCESS] Commands Sent Successfully.")
+                 
+             except ImportError:
+                 self.cmd.log("[ERROR] 'pyserial' module missing. Cannot talk to port.")
+                 self.cmd.log("Run: pip install pyserial")
+             except Exception as e:
+                 self.cmd.log(f"[ERROR] Communication Failed: {e}")
+             
+             self.cmd.log("-----------------------------------------")
+             self.cmd.log("INSTRUCTIONS:")
+             self.cmd.log("1. Unplug and Replug USB.")
+             self.cmd.log("2. ADB should now be AUTHORIZED.")
+             self.cmd.log("-----------------------------------------")
+             
+        threading.Thread(target=_task).start()

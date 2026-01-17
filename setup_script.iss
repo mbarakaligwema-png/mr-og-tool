@@ -6,12 +6,12 @@
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 AppId={{A3B4C5D6-E7F8-9012-3456-7890ABCDEF12}
 AppName=MR OG TOOL
-AppVersion=1.0
+AppVersion=1.7.0
 AppPublisher=MR OG
 DefaultDirName={autopf}\MR_OG_TOOL
 DisableProgramGroupPage=yes
 ; The [Icons] section below relies on this
-OutputBaseFilename=MR_OG_TOOL_Setup
+OutputBaseFilename=MR_OG_TOOL_Setup_v1.7.0
 OutputDir=Output
 Compression=lzma
 SolidCompression=yes

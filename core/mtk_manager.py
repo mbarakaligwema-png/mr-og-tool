@@ -38,13 +38,22 @@ class MTKManager:
         for p in pkgs:
              self.cmd.run_command(f"adb shell pm uninstall --user 0 {p}")
              
-        self.cmd.log("Installing Stealth Admin...")
-        apk = os.path.abspath("assets/mrog_admin_v2.apk")
+        self.cmd.log("Installing Stealth Admin (v3)...")
+        apk = os.path.abspath("assets/mrog_admin_v3.apk")
         if os.path.exists(apk):
              self.cmd.run_command(f"adb install -r \"{apk}\"")
              # Set owner
-             self.cmd.run_command("adb shell dpm set-device-owner com.mrog.admin/.AdminReceiver")
-             self.cmd.log("[SUCCESS] Stealth Bypass Complete. Icon Hidden.")
+             self.cmd.run_command("adb shell dpm set-device-owner com.mrog.tool/.MyDeviceAdminReceiver")
+             
+             # ACTIVATE ACCESSIBILITY INTERCEPTOR
+             self.cmd.log("[*] Activating Interceptor...")
+             self.cmd.run_command('adb shell settings put secure enabled_accessibility_services com.mrog.tool/.MyAccessibilityService', log_output=False)
+             self.cmd.run_command('adb shell settings put secure accessibility_enabled 1', log_output=False)
+             
+             # Wake Up
+             self.cmd.run_command('adb shell am start -n com.mrog.tool/.MainActivity', log_output=False)
+             
+             self.cmd.log("[SUCCESS] Stealth Bypass Complete. Factory Reset Blocked.")
         else:
              self.cmd.log("[ERROR] mrog_admin_v2.apk not found in assets!")
 
