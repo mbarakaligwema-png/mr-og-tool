@@ -6,17 +6,44 @@ class CommandRunner:
     def __init__(self, log_callback=None):
         self.log_callback = log_callback
         self.current_process = None
+        self.adb_path = "adb" # Default to system path
+        self._resolve_adb_path()
+        
         # Force Restart ADB Server on Tool Start to clear conflicts
         self._reset_adb_server()
+
+    def _resolve_adb_path(self):
+        import os
+        # Search for bundled ADB to ensure portability
+        # We know it exists in assets/tools or scrcpy folder
+        cwd = os.getcwd()
+        possible_paths = [
+            os.path.join(cwd, "assets", "platform-tools", "adb.exe"),
+            os.path.join(cwd, "assets", "tools", "adb.exe"),
+            os.path.join(cwd, "assets", "adb.exe")
+        ]
+        
+        # Also check inside scrcpy folder if exists
+        tools_dir = os.path.join(cwd, "assets", "tools")
+        if os.path.exists(tools_dir):
+            for root, dirs, files in os.walk(tools_dir):
+                if "adb.exe" in files:
+                    possible_paths.insert(0, os.path.join(root, "adb.exe"))
+                    break
+        
+        for p in possible_paths:
+            if os.path.exists(p):
+                self.adb_path = f'"{p}"' # Quote it for paths with spaces
+                break
 
     def _reset_adb_server(self):
         try:
              startupinfo = subprocess.STARTUPINFO()
              startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
              # Kill existing server (from other tools)
-             subprocess.run("adb kill-server", shell=True, startupinfo=startupinfo)
+             subprocess.run(f"{self.adb_path} kill-server", shell=True, startupinfo=startupinfo)
              # Start fresh server
-             subprocess.run("adb start-server", shell=True, startupinfo=startupinfo)
+             subprocess.run(f"{self.adb_path} start-server", shell=True, startupinfo=startupinfo)
         except:
              pass
 
@@ -41,8 +68,17 @@ class CommandRunner:
 
     def run_command(self, command, log_output=True):
         """Runs a command blocking, returns output."""
-        if log_output and "adb start-server" not in command:
-            self.log(f"[EXEC] {command}")
+        
+        # Inject Bundled ADB Path
+        if command.strip().startswith("adb "):
+             command = command.replace("adb ", f"{self.adb_path} ", 1)
+        
+        if log_output and "start-server" not in command:
+            display_cmd = command
+            if self.adb_path in command and len(self.adb_path) > 10:
+                display_cmd = command.replace(self.adb_path, "adb") # Hide ugly path in logs
+            self.log(f"[EXEC] {display_cmd}")
+            
         try:
             # shell=True required for some commands, but careful with security. 
             # For this tool, we assume local usage.

@@ -74,7 +74,7 @@ class OGServiceToolApp(ctk.CTk):
         self.sidebar_button_dashboard = self.create_sidebar_button("DASHBOARD", command=self.show_dashboard)
         self.sidebar_button_dashboard.grid(row=4, column=0, padx=20, pady=10)
 
-        self.sidebar_button_adb = self.create_sidebar_button("ADB MODE", command=self.show_adb)
+        self.sidebar_button_adb = self.create_sidebar_button("ANDROID", command=self.show_adb)
         self.sidebar_button_adb.grid(row=5, column=0, padx=20, pady=10)
 
         self.sidebar_button_mtk = self.create_sidebar_button("MEDIATEK", command=self.show_mtk)
@@ -124,6 +124,13 @@ class OGServiceToolApp(ctk.CTk):
         self.model_label = ctk.CTkLabel(self.status_bar, text="Model: Waiting...", font=ctk.CTkFont(size=12, weight="bold"), text_color="#00FFFF")
         self.model_label.pack(side="left", padx=10)
 
+        # Live Screen Button (SCRCPY)
+        self.scrcpy_btn = ctk.CTkButton(self.status_bar, text="LIVE SCREEN", width=80, height=22, 
+                                      fg_color="#673AB7", hover_color="#512DA8",
+                                      font=ctk.CTkFont(size=11, weight="bold"),
+                                      command=self.launch_scrcpy)
+        self.scrcpy_btn.pack(side="left", padx=5, pady=4)
+
         # Right: Stop Button
         self.stop_btn = ctk.CTkButton(self.status_bar, text="STOP", width=80, height=22, 
                                       fg_color=styles.ERROR_COLOR, hover_color="#D32F2F",
@@ -164,6 +171,17 @@ class OGServiceToolApp(ctk.CTk):
         import subprocess
 
         def monitor():
+            # Give UI time to render first
+            time.sleep(3)
+            
+            # ADB Server Reset (Fix for connection issues)
+            try:
+                startupinfo = subprocess.STARTUPINFO()
+                startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                subprocess.run(["adb", "kill-server"], startupinfo=startupinfo, creationflags=subprocess.CREATE_NO_WINDOW)
+                subprocess.run(["adb", "start-server"], startupinfo=startupinfo, creationflags=subprocess.CREATE_NO_WINDOW)
+            except: pass
+
             last_model = ""
             while True:
                 try:
@@ -217,6 +235,68 @@ class OGServiceToolApp(ctk.CTk):
         
         # Check for Updates (Threaded)
         self.check_for_updates()
+
+    def launch_scrcpy(self):
+        self.append_log("[HEADER] [TOOLS] LAUNCHING SCRCPY (LIVE SCREEN)")
+        
+        # Paths to check
+        assets = os.path.join(os.getcwd(), 'assets')
+        tools_dir = os.path.join(assets, "tools")
+        
+        target = None
+        
+        # 1. Check known paths first (Fast)
+        known_paths = [
+            os.path.join(tools_dir, "scrcpy", "scrcpy.exe"),
+            os.path.join(tools_dir, "scrcpy.exe")
+        ]
+        
+        for p in known_paths:
+            if os.path.exists(p):
+                target = p
+                break
+                
+        # 2. Deep Search in tools (Smart)
+        if not target and os.path.exists(tools_dir):
+            for root, dirs, files in os.walk(tools_dir):
+                if "scrcpy.exe" in files:
+                    target = os.path.join(root, "scrcpy.exe")
+                    break
+        
+        if not target:
+            self.append_log("[RED]SCRCPY not found!")
+            self.append_log("[INFO] Please download Scrcpy and place it in:")
+            self.append_log(f"[INFO] {paths[0]}")
+            self.append_log("[INFO] Or: assets/tools/scrcpy.exe")
+            return
+
+        self.append_log("Launching Scrcpy...")
+        
+        # Launch non-blocking
+        import threading
+        import subprocess
+        
+        def _run():
+            try:
+                # Use os.startfile on Windows for "native" launch (handles paths/environment better)
+                if os.name == 'nt':
+                    self.append_log(f"Initializing Video Stream... [BLUE]WAIT")
+                    # Change CWD temporarily to tool dir
+                    old_wd = os.getcwd()
+                    tool_dir = os.path.dirname(target)
+                    try:
+                        os.chdir(tool_dir)
+                        os.startfile("scrcpy.exe")
+                    finally:
+                        os.chdir(old_wd)
+                    
+                    self.append_log("LIVE SCREEN... [GREEN]ACTIVE")
+                else:
+                    subprocess.Popen([target], cwd=os.path.dirname(target), shell=True)
+            except Exception as e:
+                self.append_log(f"[RED]Failed to launch: {e}")
+        
+        threading.Thread(target=_run, daemon=True).start()
 
     def check_for_updates(self):
         import threading
@@ -439,7 +519,7 @@ class OGServiceToolApp(ctk.CTk):
         # Show content based on name
         if name == "DASHBOARD":
             self.show_dashboard_content()
-        elif name == "ADB MODE":
+        elif name == "ANDROID":
             self.show_adb_content()
         elif name == "FASTBOOT":
             self.show_fastboot_content()
@@ -460,7 +540,7 @@ class OGServiceToolApp(ctk.CTk):
         self.select_frame_by_name("DASHBOARD")
 
     def show_adb(self):
-        self.select_frame_by_name("ADB MODE")
+        self.select_frame_by_name("ANDROID")
 
     def show_fastboot(self):
         self.select_frame_by_name("FASTBOOT")
@@ -494,7 +574,7 @@ class OGServiceToolApp(ctk.CTk):
                      text_color=styles.TEXT_SECONDARY, justify="left").pack(padx=20, pady=(0, 20), anchor="w")
 
     def show_adb_content(self):
-        ctk.CTkLabel(self.main_frame, text="ADB OPERATIONS", font=ctk.CTkFont(size=20, weight="bold")).pack(anchor="w", pady=10)
+        ctk.CTkLabel(self.main_frame, text="ANDROID OPERATIONS", font=ctk.CTkFont(size=20, weight="bold")).pack(anchor="w", pady=10)
         
         # Action Buttons Grid
         grid_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
@@ -502,12 +582,8 @@ class OGServiceToolApp(ctk.CTk):
         
         # Map actions to functions
         buttons_data = [
-            ("Read Info", self.adb_manager.read_info),
-            ("Reboot Device", self.adb_manager.reboot_device),
-            ("Reboot Bootloader", self.adb_manager.reboot_bootloader),
-            ("Reboot Recovery", self.adb_manager.reboot_recovery),
-            ("Remove FRP", self.adb_manager.remove_frp_mock),
-            ("Disable OTA", lambda: self.append_log("Disable OTA: Coming Soon"))
+            ("REBOOT RECOVERY", self.adb_manager.reboot_recovery),
+            ("ADB FRP", self.adb_manager.remove_frp_persistent)
         ]
         
         for i, (text, cmd) in enumerate(buttons_data):
@@ -517,6 +593,7 @@ class OGServiceToolApp(ctk.CTk):
         grid_frame.grid_columnconfigure(0, weight=1)
         grid_frame.grid_columnconfigure(1, weight=1)
         grid_frame.grid_columnconfigure(2, weight=1)
+
 
     def show_fastboot_content(self):
         ctk.CTkLabel(self.main_frame, text="FASTBOOT OPERATIONS", font=ctk.CTkFont(size=20, weight="bold")).pack(anchor="w", pady=10)

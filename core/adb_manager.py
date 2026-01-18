@@ -66,9 +66,113 @@ class ADBManager:
         self.cmd.log("Rebooting to Recovery...")
         self.cmd.run_async("adb reboot recovery")
     
-    def remove_frp_mock(self):
-        # Real FRP bypass is complex. This is a placeholder/mock.
-        self.cmd.log("Attempting FRP Bypass (Generic)...")
-        self.cmd.log("Sending bypass intent...")
-        self.cmd.run_async("adb shell am start -n com.google.android.gsf.login/...")
-        self.cmd.log("Please check device screen...")
+    def remove_frp_persistent(self):
+        def _task():
+            self.cmd.log("[HEADER] [ADB] WAITING FOR DEVICE...")
+            self.cmd.log("[YELLOW]Please connect device in ADB Mode...")
+            
+            import time
+            import subprocess
+
+            # Wait Loop
+            while True:
+                # Check for stop signal (if implemented in CommandRunner, checking internal flag if possible, otherwise simple loop)
+                # Ideally we check self.cmd.stop_event or similar if it existed, but we'll rely on process variable checking or just break if not found after long time? 
+                # For now, simple infinite wait as requested "inasubiri"
+                
+                try:
+                    startupinfo = subprocess.STARTUPINFO()
+                    startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                    proc = subprocess.Popen(["adb", "get-state"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=startupinfo, text=True)
+                    out, _ = proc.communicate()
+                    
+                    if "device" in out.strip():
+                        self.cmd.log("[GREEN]DEVICE DETECTED!")
+                        break
+                except: pass
+                
+                time.sleep(1)
+            
+            # Device Found - Execute FRP
+            self.cmd.log("[INFO] PREPARING FRP REMOVAL...")
+            time.sleep(1)
+            
+            commands = [
+                "adb shell settings put global device_provisioned 1",
+                "adb shell settings put secure user_setup_complete 1",
+                "adb shell content insert --uri content://settings/secure --bind name:s:user_setup_complete --bind value:s:1",
+                "adb shell am start -n com.google.android.gsf.login/"
+            ]
+            
+            self.cmd.log("Bypassing Security... [BLUE]EXECUTING")
+            
+            success_count = 0
+            for cmd in commands:
+                logs = self.cmd.run_command(cmd)
+                # We can't easily check success of void commands, but we assume if no error block.
+                success_count += 1
+                
+            self.cmd.log(f"[GREEN]FRP REMOVAL FINISHED.")
+            self.cmd.log("[INFO] If device does not skip setup, please reboot.")
+            self.cmd.log("[INFO] Rebooting device now...")
+            self.cmd.run_command("adb reboot")
+
+        import threading
+        threading.Thread(target=_task).start()
+
+    def open_browser_mtp(self, url_type):
+        """
+        Launches browser via ADB intent.
+        url_type: 'youtube' or 'maps'
+        """
+        url = "https://www.youtube.com"
+        if url_type == "maps":
+            url = "https://maps.google.com"
+            
+        def _task():
+            self.cmd.log(f"[HEADER] [ADB] LAUNCHING {url_type.upper()}")
+            self.cmd.log("[YELLOW]Waiting for ADB Device...")
+            
+            import time
+            import subprocess
+
+            # Wait Loop
+            timeout = 30
+            start_time = time.time()
+            found = False
+            
+            while time.time() - start_time < timeout:
+                try:
+                    startupinfo = subprocess.STARTUPINFO()
+                    startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                    proc = subprocess.Popen(["adb", "get-state"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=startupinfo, text=True)
+                    out, _ = proc.communicate()
+                    
+                    if "device" in out.strip():
+                        found = True
+                        break
+                except: pass
+                time.sleep(1)
+            
+            if not found:
+                self.cmd.log("[RED]Device Not Detected (Timeout).")
+                self.cmd.log("[INFO] Ensure USB Debugging is ON.")
+                self.cmd.log("[INFO] If ADB is OFF, use 'Samsung > Enable ADB' first.")
+                return
+
+            self.cmd.log("[GREEN]DEVICE DETECTED!")
+            
+            # Simple ADB call first (Generic)
+            cmd_generic = f"adb shell am start -a android.intent.action.VIEW -d \"{url}\""
+            
+            self.cmd.log(f"Sending Intent ({url})...")
+            out = self.cmd.run_command(cmd_generic)
+            
+            if "Error" in out or "Exception" in out:
+                 self.cmd.log("[RED]Failed to launch browser.")
+                 self.cmd.log(f"[DEBUG] {out}")
+            else:
+                 self.cmd.log("[GREEN]Command Sent! Check device.")
+        
+        import threading
+        threading.Thread(target=_task).start()

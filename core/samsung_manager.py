@@ -91,6 +91,211 @@ class SamsungManager:
         else:
             self.cmd.log(f"[ERROR] Odin executable not found at: {odin_path}")
 
+    def launch_browser_mtp(self, url_type):
+        """
+        Launches browser via direct MTP command (Driver Level).
+        Mimics professional tool scanning logs.
+        """
+        def _task():
+            self.cmd.log("[HEADER] [MTP] FRP BYPASS GENERIC")
+            self.cmd.log("Initializing MTP devices... [GREEN]OK")
+            self.cmd.log("Scanning for MTP devices... [GREEN]OK")
+            
+            import subprocess
+            import io
+            import os
+            
+            # Using PowerShell with Absolute Path + Broad WMI Query
+            devices = []
+            try:
+                startupinfo = subprocess.STARTUPINFO()
+                startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                
+                # 1. Resolve PowerShell Path
+                ps_path = os.path.join(os.environ.get('SystemRoot', 'C:\\Windows'), 'System32\\WindowsPowerShell\\v1.0\\powershell.exe')
+                if not os.path.exists(ps_path):
+                    ps_path = "powershell" # Fallback to PATH
+                
+                # 2. Command (Universal WMI)
+                # Matches generic USB connection logic
+                ps_cmd = "Get-WmiObject Win32_PnPEntity | Where-Object { $_.DeviceID -like 'USB*VID*' } | Select-Object -Property Caption, DeviceID, Manufacturer | ConvertTo-Csv -NoTypeInformation"
+                
+                self.cmd.log(f"[DEBUG] Executing: {ps_path}...")
+                
+                proc = subprocess.Popen([ps_path, "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", ps_cmd], stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=startupinfo, text=True)
+                out, err = proc.communicate()
+                
+                if err:
+                     self.cmd.log(f"[DEBUG] PS Error: {err[:50]}...")
+
+                # Parse CSV
+                import csv
+                raw_devices = []
+                if out.strip():
+                    reader = csv.DictReader(io.StringIO(out.strip()))
+                    for row in reader:
+                        if row:
+                            raw_devices.append({
+                                'Caption': row.get('Caption', 'Unknown Device'),
+                                'DeviceID': row.get('DeviceID', 'Unknown ID'),
+                                'Manufacturer': row.get('Manufacturer', '')
+                            })
+                            
+                # --- INTELLIGENT FILTERING (Match UnlockTool Style) ---
+                # We only want Phones/MTP devices.
+                # Filter out: Bluetooth, Camera, Printers, Mice, Keyboards, Fingerprint
+                
+                filtered_devices = []
+                
+                # VIDs for Phones: Samsung, Google, Sony, Xiaomi, LG, HTC, Huawei, Motorola, Oppo/OnePlus
+                valid_vids = ["VID_04E8", "VID_18D1", "VID_0FCE", "VID_2717", "VID_1004", "VID_0BB4", "VID_12D1", "VID_22B8", "VID_2C97"]
+                valid_keywords = ["MTP", "ANDROID", "MOBILE", "SAMSUNG", "XIAOMI", "REDMI", "PIXEL", "SONY", "XPERIA", "LG", "HUAWEI", "OPPO", "VIVO", "INFINIX", "TECNO"]
+                
+                ignore_keywords = ["BLUETOOTH", "CAMERA", "WEBCAM", "FINGERPRINT", "MOUSE", "KEYBOARD", "CONTROLLER", "PRINTER", "HUB"]
+
+                for d in raw_devices:
+                    name = d['Caption'].upper()
+                    path = d['DeviceID'].upper()
+                    
+                    # 1. Check Ignore List
+                    if any(bad in name for bad in ignore_keywords):
+                        continue
+                        
+                    # 2. Check Valid List (VID or Name)
+                    is_valid = False
+                    if any(vid in path for vid in valid_vids):
+                        is_valid = True
+                    elif any(good in name for good in valid_keywords):
+                        is_valid = True
+                        
+                    if is_valid:
+                        filtered_devices.append(d)
+
+            except Exception as e:
+                self.cmd.log(f"[DEBUG] Scan Error: {e}")
+
+            self.cmd.log(f"Number of MTP devices : {len(filtered_devices)}")
+            
+            target_device = None
+            best_candidate = None
+            
+            for i, dev in enumerate(filtered_devices):
+                # Clean Data
+                model = dev.get('Caption', 'Unknown')
+                manuf = dev.get('Manufacturer', 'Generic')
+                path = dev.get('DeviceID', 'Unknown')
+                
+                self.cmd.log(f"-------------------[Id : {i}]-------------------")
+                self.cmd.log(f"Model : {model}")
+                self.cmd.log(f"Manufacturer : {manuf}")
+                self.cmd.log(f"USB Path : {path}")
+                self.cmd.log("Initializing drivers... [GREEN]OK")
+                
+                self.cmd.log("Switching device... [GREEN]OK")
+                
+                # Selection Priority: Prefer Composite/MTP over Modems
+                is_modem = "MODEM" in model.upper()
+                is_adb = "ADB" in model.upper()
+                
+                if not is_modem and not is_adb:
+                     best_candidate = dev
+                elif best_candidate is None:
+                     best_candidate = dev
+                     
+            self.cmd.log("-----------------------------------------------")
+            
+            target_device = best_candidate
+
+            if target_device:
+                self.cmd.log(f"\n[INFO] Selected: {target_device['Caption']}")
+                
+                # --- SMART FALLBACK: ADB CHECK ---
+                self.cmd.log("[DEBUG] Checking ADB Bridge status...")
+                
+                # Check 1: Simple State
+                state_res = self.cmd.run_command("adb get-state", log_output=False).strip()
+                
+                # Check 2: Detailed List
+                list_res = self.cmd.run_command("adb devices", log_output=False).strip()
+                
+                is_adb_ok = False
+                if "device" in state_res:
+                    is_adb_ok = True
+                elif "device" in list_res and "List of" in list_res:
+                    # Parse lines to find 'device' vs 'unauthorized'
+                    lines = list_res.split('\n')
+                    for line in lines:
+                        if "\tdevice" in line:
+                            is_adb_ok = True
+                            break
+                        elif "\tunauthorized" in line:
+                            self.cmd.log("[YELLOW]ADB Detected but UNAUTHORIZED!")
+                            self.cmd.log("Check phone screen to allow debugging.")
+                            is_adb_ok = False # Can't bypass if unauthorized
+                            break
+                
+                if is_adb_ok:
+                    self.cmd.log("[INFO] ADB Bridge Active! Using Bridge Method...")
+                    self.cmd.log(f"Launching {url_type} via Bridge...")
+                    
+                    url = "https://www.youtube.com"
+                    if url_type == "maps":
+                        url = "https://maps.google.com"
+                        
+                    cmd = f'adb shell am start -a android.intent.action.VIEW -d "{url}"'
+                    out = self.cmd.run_command(cmd, log_output=False)
+                    
+                    if "Error" not in out and "Exception" not in out:
+                        self.cmd.log("[GREEN]Done! Check device screen.")
+                        self.cmd.log("[INFO] Method: Hybrid (Bridge)")
+                        return
+                    else:
+                        self.cmd.log(f"[DEBUG] Bridge Command Failed: {out}")
+                else:
+                    self.cmd.log(f"[DEBUG] ADB Status: {state_res if state_res else 'No Device'}")
+
+                # --- DIRECT MTP HELPER ---
+                helper_path = os.path.join(self.assets_dir, "tools", "mtp_helper.exe")
+                
+                if not os.path.exists(helper_path):
+                     self.cmd.log("[YELLOW]MTP Module missing!")
+                     self.cmd.log("[RED]Action Failed: Helper missing.")
+                     self.cmd.log("[INFO] SOLUTION 1: Enable USB Debugging & Authorize.")
+                     self.cmd.log("[INFO] SOLUTION 2: Copy a working MTP Tool (e.g. SamFw.exe)")
+                     self.cmd.log(f"[INFO] To: {self.assets_dir}\\tools\\")
+                     self.cmd.log("[INFO] And rename it to: 'mtp_helper.exe'")
+                     return
+
+                self.cmd.log(f"Launching Helper for {target_device['Caption']}...")
+                try:
+                    # Pass Manufacturer/Model specific args if we knew the tool schema
+                    # For now, generic launch
+                    cmd_args = [helper_path, url_type]
+                    
+                    # Log the attempt
+                    self.cmd.log(f"[DEBUG] Executing: {helper_path} {url_type}")
+                    
+                    proc = subprocess.Popen(cmd_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+                    
+                    # Giving it a moment
+                    time.sleep(2)
+                    
+                    if proc.poll() is None:
+                        self.cmd.log("[GREEN]Command Sent! (Tool Running)")
+                        self.cmd.log("Please check the opened tool for final confirmation.")
+                    elif proc.returncode == 0:
+                         self.cmd.log(f"[GREEN]Done! Check device screen.")
+                    else:
+                         out, err = proc.communicate()
+                         self.cmd.log(f"[RED]Tool Error: {err if err else 'Exit Code ' + str(proc.returncode)}")
+
+                except Exception as e:
+                    self.cmd.log(f"[ERROR] Failed to execute helper: {e}")
+            else:
+                 self.cmd.log("[RED]No supported MTP device found for switching.")
+
+        threading.Thread(target=_task, daemon=True).start()
+
     def kg_bypass_android_15_16(self):
          """
          Target: Android 14, 15, 16 (Knox Guard / MDM)

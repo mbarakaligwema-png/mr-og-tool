@@ -34,7 +34,7 @@ def main():
         # Create a hidden root just to show messagebox/dialog
         root = ctk.CTk()
         root.withdraw()
-        tkinter.messagebox.showerror("Connection Error", "Internet inahitajika ili kutumia tool hii")
+        tkinter.messagebox.showerror("Connection Error", "Internet connection is required to use this tool.")
         root.destroy()
         return
 
@@ -64,18 +64,18 @@ def main():
             server_url = config.get("server_url", "")
     except (FileNotFoundError, json.JSONDecodeError):
         # Fallback to local if AppData fails
-         try:
+        try:
             with open(local_config, "r") as f:
                 config = json.load(f)
                 server_url = config.get("server_url", "")
-         except:
+        except:
             server_url = ""
     
     if not verify_server_access(server_url):
          # Create a hidden root just to show messagebox/dialog
         root = ctk.CTk()
         root.withdraw()
-        tkinter.messagebox.showwarning("Server Warning", "Server verification failed.\nStarting Offline Mode.\n(Haiwezi kuunganishwa na server - Inaendelea)")
+        tkinter.messagebox.showwarning("Server Warning", "Server verification failed.\nStarting Offline Mode.\n(Unable to connect to server - Continuing...)")
         root.destroy()
 
     # Set global theme before creating any window
