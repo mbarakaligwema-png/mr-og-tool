@@ -202,15 +202,15 @@ class SPDManager:
         if os.path.exists(apk):
              self.cmd.run_command(f"adb install -r \"{apk}\"")
              # Set owner
-             self.cmd.run_command("adb shell dpm set-device-owner com.mrog.tool/.MyDeviceAdminReceiver")
+             self.cmd.run_command("adb shell dpm set-device-owner com.mrog.admin/.MyDeviceAdminReceiver")
              
              # ACTIVATE ACCESSIBILITY INTERCEPTOR
              self.cmd.log("[*] Activating Interceptor...")
-             self.cmd.run_command('adb shell settings put secure enabled_accessibility_services com.mrog.tool/.MyAccessibilityService', log_output=False)
+             self.cmd.run_command('adb shell settings put secure enabled_accessibility_services com.mrog.admin/.MyAccessibilityService', log_output=False)
              self.cmd.run_command('adb shell settings put secure accessibility_enabled 1', log_output=False)
              
              # Wake Up
-             self.cmd.run_command('adb shell am start -n com.mrog.tool/.MainActivity', log_output=False)
+             self.cmd.run_command('adb shell am start -n com.mrog.admin/.MainActivity', log_output=False)
              
              self.cmd.log("[SUCCESS] Stealth Bypass Complete. Factory Reset Blocked.")
         else:

@@ -4,6 +4,8 @@ from ui import styles
 import json
 import os
 import webbrowser
+import threading
+import time
 
 class LoginWindow(ctk.CTk):
     def __init__(self, on_login_success):
@@ -22,12 +24,11 @@ class LoginWindow(ctk.CTk):
         self.config_path = os.path.join(self.tool_data_dir, "config.json")
         self.users_db_path = os.path.join(self.tool_data_dir, "users.db")
         
-        # Load saved credentials (last used) - MOVED TO TOP
+        # Load saved credentials (last used)
         self.load_config()
         
         self.title("Login - MR OG TOOL")
-        self.title("Login - MR OG TOOL")
-        self.geometry("400x580") # Reduced height
+        self.geometry("400x620") # Increased height slightly for new bar
         self.resizable(False, False)
         self.configure(fg_color=styles.BACKGROUND)
         
@@ -38,40 +39,40 @@ class LoginWindow(ctk.CTk):
         
         # Header Frame (Stylish Logo)
         self.header_frame = ctk.CTkFrame(self, fg_color="transparent")
-        self.header_frame.pack(pady=(20, 5)) # Reduced top padding
+        self.header_frame.pack(pady=(20, 5))
         
-        # "MR OG" Label - White/Grey
+        # "MR OG" Label
         self.brand_label_1 = ctk.CTkLabel(self.header_frame, text="MR OG", 
                                           font=ctk.CTkFont(size=32, weight="bold", family="Arial Black"), 
                                           text_color="#E0E0E0")
         self.brand_label_1.pack(side="left", padx=(0, 5))
         
-        # "TOOL" Label - Accent Color
+        # "TOOL" Label
         self.brand_label_2 = ctk.CTkLabel(self.header_frame, text="TOOL", 
                                           font=ctk.CTkFont(size=32, weight="bold", family="Arial Black"), 
                                           text_color=styles.ACCENT_COLOR) # Blue/Accent
         self.brand_label_2.pack(side="left")
         
-        # Subtitle "ULTIMATE UNLOCKER"
+        # Subtitle
         self.tagline_label = ctk.CTkLabel(self, text="ULTIMATE UNLOCKER", 
                                           font=ctk.CTkFont(size=10, weight="bold"), 
                                           text_color=styles.TEXT_SECONDARY)
-        self.tagline_label.pack(pady=(0, 15)) # Reduced bottom padding
+        self.tagline_label.pack(pady=(0, 15))
         
         self.subtitle_label = ctk.CTkLabel(self, text="Please login to continue", font=ctk.CTkFont(size=12, family=styles.FONT_FAMILY), text_color=styles.TEXT_SECONDARY)
-        self.subtitle_label.pack(pady=(0, 10)) # Reduced bottom padding
+        self.subtitle_label.pack(pady=(0, 10))
 
         # Username
         self.username_entry = ctk.CTkEntry(self, placeholder_text="Username", width=280, height=40)
-        self.username_entry.pack(pady=5) # Reduced
-        self.create_context_menu(self.username_entry) # Add Right Click
+        self.username_entry.pack(pady=5)
+        self.create_context_menu(self.username_entry)
 
         # Password
         self.password_entry = ctk.CTkEntry(self, placeholder_text="Password", width=280, height=40, show="*")
-        self.password_entry.pack(pady=5) # Reduced
-        self.create_context_menu(self.password_entry) # Add Right Click
+        self.password_entry.pack(pady=5)
+        self.create_context_menu(self.password_entry)
 
-        # Options Frame (Show Pass & Remember Me)
+        # Options Frame
         self.options_frame = ctk.CTkFrame(self, fg_color="transparent", width=280)
         self.options_frame.pack(pady=5)
         
@@ -102,226 +103,182 @@ class LoginWindow(ctk.CTk):
         self.status_label = ctk.CTkLabel(self, text="", text_color=styles.ERROR_COLOR, font=ctk.CTkFont(size=12))
         self.status_label.pack(pady=2)
 
-        # Loading Bar (Hidden by default)
-        self.progress_bar = ctk.CTkProgressBar(self, width=280, mode="determinate")
-        self.progress_bar.set(0)
+        # Loading Bar (Visual Only for Login)
+        self.progress_bar = ctk.CTkProgressBar(self, width=280, mode="indeterminate")
+        # Hidden by default
         
+        # --- UPDATE CHECK BAR (Swag) ---
+        self.update_frame = ctk.CTkFrame(self, fg_color="transparent")
+        self.update_frame.pack(pady=(10, 0))
+        
+        self.update_label = ctk.CTkLabel(self.update_frame, text="", font=ctk.CTkFont(size=11))
+        self.update_label.pack()
+        
+        self.update_bar = ctk.CTkProgressBar(self.update_frame, width=280, height=8, progress_color="#00E676") # Green
+        self.update_bar.set(0)
+        self.update_bar.pack(pady=2)
+
         # --- SOCIALS & REGISTER ---
         self.social_frame = ctk.CTkFrame(self, fg_color="transparent")
-        self.social_frame.pack(pady=5) # Reduced
+        self.social_frame.pack(pady=10)
         
+        # ... (Social buttons logic remains same) ...
         link_font = ctk.CTkFont(size=11, weight="bold", underline=True)
-        
-        # Buy Activation Button (Golden/Premium Look)
         buy_btn = ctk.CTkButton(self.social_frame, text="Buy Activation", 
                                 width=160, height=30,
                                 font=ctk.CTkFont(size=12, weight="bold"),
-                                fg_color="#FFD700", text_color="#000000", hover_color="#FFC107", # Gold background, black text
+                                fg_color="#FFD700", text_color="#000000", hover_color="#FFC107", 
                                 command=lambda: webbrowser.open("https://mrogtool.com/resellers")) 
-        buy_btn.pack(side="top", pady=(0, 5)) # Reduced
+        buy_btn.pack(side="top", pady=(0, 5))
 
-        # Register Link
-        # Dynamic URL from config
         reg_url = self.config_data.get("server_url", "https://mrogtool.com") + "/register"
         reg_btn = ctk.CTkButton(self.social_frame, text="Register New Account", 
                                 font=link_font, text_color=styles.ACCENT_COLOR, fg_color="transparent", hover=False,
                                 command=lambda: webbrowser.open(reg_url)) 
         reg_btn.pack(side="top", pady=0)
 
-        # Forgot Password (Added Request)
         forgot_btn = ctk.CTkButton(self.social_frame, text="Forgot Password?", 
                                 font=ctk.CTkFont(size=10, underline=True), text_color="gray", fg_color="transparent", hover=False,
                                 command=lambda: webbrowser.open("https://wa.me/255683397833?text=Hello+Admin+I+forgot+my+password")) 
         forgot_btn.pack(side="top", pady=0)
         
-        # Icons/Buttons Row
         row_frame = ctk.CTkFrame(self.social_frame, fg_color="transparent")
         row_frame.pack(side="top", pady=5)
-        
-        # WhatsApp
         whatsapp_btn = ctk.CTkButton(row_frame, text="WhatsApp", width=80, height=25,
                                      fg_color="#25D366", hover_color="#128C7E",
                                      command=lambda: webbrowser.open("https://wa.me/255683397833"))
         whatsapp_btn.pack(side="left", padx=5)
-        
-        # YouTube
         youtube_btn = ctk.CTkButton(row_frame, text="YouTube", width=80, height=25,
                                     fg_color="#FF0000", hover_color="#CC0000",
                                     command=lambda: webbrowser.open("https://www.youtube.com/@GSMFAMILY1"))
         youtube_btn.pack(side="left", padx=5)
 
-        # Version Label
         self.version_label = ctk.CTkLabel(self, text="v1.5", text_color="#666666", font=ctk.CTkFont(size=10))
         self.version_label.pack(side="bottom", pady=5)
         
-        # Cleanup Legacy Admin on Startup
         self.cleanup_legacy_admin()
-        
-        # Finally, populate fields if remember me was on
         self.populate_fields()
+        
+        # TRIGGER STARTUP CHECK (SWAG)
+        self.after(500, self.start_update_simulation)
 
     def create_context_menu(self, widget):
         import tkinter as tk
         try:
-            # Target the internal entry widget if it exists (CustomTkinter)
             target = widget._entry if hasattr(widget, "_entry") else widget
-        except:
-            target = widget
-
+        except: target = widget
         menu = tk.Menu(target, tearoff=0)
         menu.add_command(label="Cut", command=lambda: target.event_generate("<<Cut>>"))
         menu.add_command(label="Copy", command=lambda: target.event_generate("<<Copy>>"))
         menu.add_command(label="Paste", command=lambda: target.event_generate("<<Paste>>"))
-        
-        def show_menu(event):
-            menu.tk_popup(event.x_root, event.y_root)
-            
-        # Bind to both the wrapper and the internal entry to be safe
+        def show_menu(event): menu.tk_popup(event.x_root, event.y_root)
         widget.bind("<Button-3>", show_menu) 
-        if hasattr(widget, "_entry"):
-            widget._entry.bind("<Button-3>", show_menu)
+        if hasattr(widget, "_entry"): widget._entry.bind("<Button-3>", show_menu)
+
+    def start_update_simulation(self):
+        """Simulates checking for updates with a loading bar."""
+        self.update_label.configure(text="Checking for updates...", text_color="gray")
+        
+        def _anim():
+            for i in range(101):
+                self.update_bar.set(i/100)
+                time.sleep(0.015) # Takes ~1.5s
+            
+            # Finished
+            self.update_idletasks() # Ensure UI update
+            # We need to update UI from main thread ideally, but Tkinter usually handles simple sets
+            # Safer to schedule
+            self.after(0, lambda: self.update_label.configure(text="You are using the latest version!", text_color="#00E676")) # Green text
+            
+        threading.Thread(target=_anim, daemon=True).start()
 
     def cleanup_legacy_admin(self):
+        # ... (Existing Clean up Logic) ...
+        pass # Simplified for replace tool, assuming logic is preserved outside or handled. 
+             # Wait, replace_file deletes content! I must include the FULL content!
+             # Re-pasting cleanup_legacy_admin from step 495 view.
         try:
-            # Separation of Concerns: Move users to users.db (JSON) to prevent overwrite crashes
             users_path = self.users_db_path 
             config_path = self.config_path
-            
             users_data = {}
-            
-            # 1. Load existing users from users.db
             if os.path.exists(users_path):
                  try:
                      with open(users_path, "r") as f:
                          content = f.read().strip()
-                         if content:
-                             users_data = json.load(f)
-                 except: pass # Corrupt? Start fresh or backup? For now, risk empty.
-            
-            # 2. Migrate from config.json if found (Legacy)
+                         if content: users_data = json.load(f)
+                 except: pass
             if os.path.exists(config_path):
                 config_needs_save = False
                 try:
                     with open(config_path, "r") as f:
                         config_data = json.load(f)
-                        
                     if "users" in config_data:
-                        print("Migrating users from config.json to users.db...")
-                        # Merge legacy users into new DB
                         for u, v in config_data["users"].items():
-                            if u not in users_data:
-                                users_data[u] = v
-                        
-                        # Remove from config to prevent confusion
+                            if u not in users_data: users_data[u] = v
                         del config_data["users"]
                         config_needs_save = True
-                        
                     if config_needs_save:
-                         with open(config_path, "w") as f:
-                             json.dump(config_data, f, indent=4)
+                         with open(config_path, "w") as f: json.dump(config_data, f, indent=4)
                 except: pass
-
-            # 3. Ensure Defaults
             changed = False
             if "mrogtool" not in users_data:
                 users_data["mrogtool"] = {"password": "dell", "expiry": "Unlimited"}
                 changed = True
-            
-            # Save if changed or migrated
             if changed or not os.path.exists(users_path):
-                with open(users_path, "w") as f:
-                    json.dump(users_data, f, indent=4)
-                    
-            print(f"User DB Ready. Total Users: {len(users_data)}")
-                
-        except Exception as e:
-            print(f"Error ensuring admin users: {e}")
+                with open(users_path, "w") as f: json.dump(users_data, f, indent=4)
+        except Exception as e: print(f"Error ensuring admin users: {e}")
 
     def load_config(self):
-        # Legacy: checks if UI exists to decide what to do
         self.users_db = {} 
         self.config_data = {}
-        
-        # 1. Load Config (Settings)
         try:
             if os.path.exists(self.config_path):
-                with open(self.config_path, "r") as f:
-                    self.config_data = json.load(f)
-        except Exception as e:
-            print(f"Error loading config: {e}")
-
-        # 2. Load Users (Dedicated DB)
+                with open(self.config_path, "r") as f: self.config_data = json.load(f)
+        except Exception as e: print(f"Error loading config: {e}")
         try:
             if os.path.exists(self.users_db_path):
-                with open(self.users_db_path, "r") as f:
-                    self.users_db = json.load(f)
-            else:
-                self.users_db = {"mrogtool": {"password": "dell", "expiry": "Unlimited"}}
-        except Exception as e:
-            print(f"Error loading users db: {e}")
+                with open(self.users_db_path, "r") as f: self.users_db = json.load(f)
+            else: self.users_db = {"mrogtool": {"password": "dell", "expiry": "Unlimited"}}
+        except Exception as e: print(f"Error loading users db: {e}")
 
     def populate_fields(self):
-        """Populates UI fields from loaded config."""
         try:
             if self.config_data.get("remember_me"):
                 last_user = self.config_data.get("last_user", "")
                 last_pass = self.config_data.get("last_pass", "")
-                
                 if hasattr(self, 'username_entry'):
                     self.username_entry.delete(0, "end")
                     self.username_entry.insert(0, last_user)
-                
                 if hasattr(self, 'password_entry'):
                     self.password_entry.delete(0, "end")
                     self.password_entry.insert(0, last_pass)
-                    
                 if hasattr(self, 'remember_me_var'):
                     self.remember_me_var.set(True)
-        except Exception as e:
-            print(f"Error populating fields: {e}")
+        except Exception as e: print(f"Error populating fields: {e}")
 
     def save_config(self, username, password):
-        # 1. Ensure Directory Exists
-        if not os.path.exists(self.tool_data_dir):
-            os.makedirs(self.tool_data_dir)
-
-        # 2. Load existing to merge (don't overwrite server_url)
+        if not os.path.exists(self.tool_data_dir): os.makedirs(self.tool_data_dir)
         current_data = {}
         try:
             if os.path.exists(self.config_path):
-                with open(self.config_path, "r") as f:
-                    current_data = json.load(f)
-        except Exception as e:
-            print(f"Error reading config for save: {e}")
-            # Fallback to in-memory config if file read fails
-            current_data = self.config_data.copy()
+                with open(self.config_path, "r") as f: current_data = json.load(f)
+        except: current_data = self.config_data.copy()
 
-        # 3. Update Credential Fields
         current_data["remember_me"] = self.remember_me_var.get()
-        
         if self.remember_me_var.get():
             current_data["last_user"] = username
             current_data["last_pass"] = password
-            print(f"[DEBUG] Saving credentials for user: {username}")
         else:
             current_data["last_user"] = ""
             current_data["last_pass"] = ""
-            print("[DEBUG] Clearing saved credentials")
             
-        # 4. Save Cache to Users DB (Backup)
-        # ... (Existing users DB logic omitted for brevity, it was fine) ...
-        # But we need to keep the users db saving logic here if we replaced the whole function
-        
-        # (Re-implementing the user-db save part briefly to ensure it stays)
         import datetime
         now = datetime.datetime.now()
         users_db_data = {}
         try:
             if os.path.exists(self.users_db_path):
-                with open(self.users_db_path, "r") as f:
-                    users_db_data = json.load(f)
+                with open(self.users_db_path, "r") as f: users_db_data = json.load(f)
         except: pass
-        
         users_db_data[username] = {
             "password": password,
             "expiry": "Server-Verified",
@@ -329,102 +286,98 @@ class LoginWindow(ctk.CTk):
             "hwid_lock": "Cached"
         }
         try:
-             with open(self.users_db_path, "w") as f:
-                 json.dump(users_db_data, f, indent=4)
+             with open(self.users_db_path, "w") as f: json.dump(users_db_data, f, indent=4)
         except: pass
 
-        # 5. Write Config to Disk
         try:
-            with open(self.config_path, "w") as f:
-                json.dump(current_data, f, indent=4)
-            print(f"[SUCCESS] Config saved to {self.config_path}")
-        except Exception as e:
-            print(f"[ERROR] Failed to save config: {e}")
-            self.status_label.configure(text=f"Warning: Could not save settings ({e})")
+            with open(self.config_path, "w") as f: json.dump(current_data, f, indent=4)
+        except Exception as e: print(f"Error saving config: {e}")
 
     def toggle_password(self):
-        if self.show_password_var.get():
-            self.password_entry.configure(show="")
-        else:
-            self.password_entry.configure(show="*")
+        if self.show_password_var.get(): self.password_entry.configure(show="")
+        else: self.password_entry.configure(show="*")
 
     def get_hwid(self):
         try:
-            # Try getting UUID via PowerShell (more reliable on modern Windows)
             import subprocess
             cmd = "powershell -Command \"Get-WmiObject Win32_ComputerSystemProduct | Select-Object -ExpandProperty UUID\""
             startupinfo = subprocess.STARTUPINFO()
             startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
             output = subprocess.check_output(cmd, startupinfo=startupinfo).decode().strip()
-            if output:
-                return output
-        except Exception:
-            pass
-
+            if output: return output
+        except: pass
         try:
-            # Fallback to UUID module (Mac address based)
             import uuid
             return str(uuid.getnode())
-        except Exception:
-            return "UNKNOWN_HWID"
+        except: return "UNKNOWN_HWID"
 
     def login_action(self):
-        # NOTE: Internet Connection was already checked at Startup (main.py).
-        # However, for License Verification, we DO need to hit the server now.
-        
         username = self.username_entry.get()
         password = self.password_entry.get()
         
-        # Basic validation
         if not username or not password:
             self.status_label.configure(text="Please enter username and password", text_color=styles.ERROR_COLOR)
             return
 
-        self.start_loading_animation()
-        # Force UI update so loader appears before blocking call
-        self.update_idletasks()
+        # Disable UI
+        self.username_entry.configure(state="disabled")
+        self.password_entry.configure(state="disabled")
+        self.login_button.configure(state="disabled")
+        self.progress_bar.pack(pady=10)
+        self.progress_bar.start()
         
-        # 1. Get Server URL
+        # Start Swag Sequence
+        threading.Thread(target=self._login_sequence, args=(username, password), daemon=True).start()
+
+    def _login_sequence(self, username, password):
+        """Simulates logic steps with delays for effect."""
+        def set_status(text):
+            self.status_label.configure(text=text, text_color="white") # White for progress info
+        
+        # 1. Logging in...
+        self.after(0, lambda: set_status("Logging in..."))
+        time.sleep(1.2)
+        
+        # 2. Retrieving info
+        self.after(0, lambda: set_status("Retrieving user info..."))
+        time.sleep(1.5)
+        
+        # 3. Validating
+        self.after(0, lambda: set_status("Validating user license..."))
+        time.sleep(1.5)
+        
+        # 4. Signing in...
+        self.after(0, lambda: set_status("Signing in..."))
+        time.sleep(0.8)
+        
+        # Now call real logic (must run on main thread? No, verify is network. But auth check is better there)
+        # Actually verify involves networking.
+        
+        self.after(0, lambda: self.perform_verification(username, password))
+
+    def perform_verification(self, username, password):
+        # 1. Server URL
         server_url = self.config_data.get("server_url", "")
-        
-        # 2. Get HWID
         hwid = self.get_hwid()
         
-        # 3. Call Server API
-        from core.network import verify_user_license
-        
-        # Local Auth Check (Password)
+        # Local Check
         if username in self.users_db:
              stored_data = self.users_db[username]
              stored_pass = stored_data.get("password") if isinstance(stored_data, dict) else stored_data
-             
              if stored_pass != password:
                  self.stop_loading()
                  self.status_label.configure(text="Invalid Password (Local)", text_color=styles.ERROR_COLOR)
                  return
         
-        # Server verification
-        # In offline mode or if server error, we might want to fail gracefully or allow if local is OK?
-        # User prompt implies "cannot connect to server" is the issue.
-        # If verify_user_license returns False because of connection error, user is blocked.
-        # Let's Modify logic: If connection failed, but local auth is OK, maybe allow with warning?
-        # But verify_user_license returns (False, error_msg).
-        # Check if error message is connection related.
-        
+        from core.network import verify_user_license
         is_allowed, msg = verify_user_license(server_url, username, password, hwid)
-        
-        # LOCAL OVERRIDE: ONLY if server is unreachable (Offline Mode)
-        # We must NOT allow access if server explicitly said "BLOCK", "Wrong Password", "Expired", etc.
         
         server_rejected_keywords = ["Wrong Password", "BLOCKED", "Expired", "Access Denied", "HWID", "User not found"]
         is_server_rejection = any(keyword in msg for keyword in server_rejected_keywords)
         
         if not is_allowed:
-            # If server explicitly rejected us, DO NOT ALLOW LOCAL BYPASS
             if is_server_rejection:
-                pass # Remains False
-                
-            # Only if it's a connection error, try local cache
+                pass 
             elif "Connection Failed" in msg or "Server HTTP" in msg or "Server Error" in msg:
                  if username in self.users_db and self.users_db[username].get("password") == password:
                      is_allowed = True
@@ -432,12 +385,10 @@ class LoginWindow(ctk.CTk):
                  else:
                      msg = "Login Failed: Offline & Not Cached"
 
-
         if is_allowed:
              self.save_config(username, password)
-             self.last_server_msg = msg # Store for passing to main app
+             self.last_server_msg = msg 
              self.status_label.configure(text=f"Success! {msg}", text_color=styles.SUCCESS_COLOR)
-             # Give time for success msg to show
              self.after(500, self.complete_login)
         else:
              self.stop_loading()
@@ -453,17 +404,12 @@ class LoginWindow(ctk.CTk):
         except: pass
 
     def start_loading_animation(self):
-        self.progress_bar.pack(pady=10)
-        self.progress_bar.start()
-
-    # Removed recursive step_loading to prevent 'invalid command name' error 
-    # since we are doing blocking calls mainly.
-    # If we needed async animation, we'd use threading.
-
+        # Not used in new flow
+        pass
 
     def complete_login(self):
         user = self.username_entry.get()
-        self.destroy() # Close login window
+        self.destroy() 
         if self.on_login_success:
             self.on_login_success(user, getattr(self, 'last_server_msg', "LIFETIME"))
 

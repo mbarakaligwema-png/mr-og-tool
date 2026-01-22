@@ -218,7 +218,7 @@ class OGServiceToolApp(ctk.CTk):
 
                 except Exception:
                     pass
-                time.sleep(2)
+                time.sleep(5) # Slow down polling to prevent conflicts
 
         threading.Thread(target=monitor, daemon=True).start()
         self.fastboot_manager = FastbootManager(self.append_log)
@@ -496,11 +496,27 @@ class OGServiceToolApp(ctk.CTk):
     def stop_all_operations(self):
         """Stops any running command in all managers."""
         self.append_log("[USER] STOP REQUESTED...")
-        # We need to stop the command runner in each manager
-        managers = [self.adb_manager, self.fastboot_manager, self.mtk_manager, self.samsung_manager, self.spd_manager]
+        
+        stopped_something = False
+        managers = [self.adb_manager, self.fastboot_manager, self.mtk_manager, self.samsung_manager, self.spd_manager, self.zte_manager]
+        
         for mgr in managers:
             if hasattr(mgr, 'cmd'):
-                mgr.cmd.stop_current_process()
+                # We check if it WAS running before stopping
+                if mgr.cmd.process and mgr.cmd.process.poll() is None:
+                     mgr.cmd.stop_current_process()
+                     stopped_something = True
+                
+            # Also reset flags like 'is_running' for threaded tasks
+            if hasattr(mgr, 'is_running'):
+                if mgr.is_running:
+                    mgr.is_running = False
+                    stopped_something = True
+
+        if stopped_something:
+            self.append_log("[RED]🛑 ALL OPERATIONS STOPPED.")
+        else:
+            self.append_log("[GRAY]No active operations to stop.")
 
     def select_frame_by_name(self, name):
         # Reset button styles
@@ -659,7 +675,8 @@ class OGServiceToolApp(ctk.CTk):
             ("Remove FRP (2024)", self.samsung_manager.remove_frp_2024),
             ("Soft Brick Fix", self.samsung_manager.soft_brick_fix),
             ("Exit Download Mode", self.samsung_manager.exit_download_mode),
-            ("MDM BYPASS 2026", self.samsung_manager.kg_bypass_android_15_16)
+            ("MDM BYPASS 2025", self.samsung_manager.kg_bypass_android_15_16),
+            ("FIX KG", self.samsung_manager.fix_kg_relock)
          ]
          
          for i, (text, cmd) in enumerate(buttons_data):

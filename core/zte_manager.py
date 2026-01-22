@@ -15,59 +15,42 @@ class ZTEManager:
         def _task():
             self.is_running = True
             try:
-                # Standard Init Logs (as requested)
-                self.cmd.log("Phone Mode: ADB Debuging")
-                self.cmd.log("Operation: A35 QR Bypass")
-                self.cmd.log("Check Authority: OK")
+                # SWAG LOGS 2026
+                self.cmd.log("🔥 PHONE DETECTED: ADB MODE ACTIVE")
+                self.cmd.log("🚀 OPERATION: ZTE A35 CYBER-UNLOCK 2026")
+                self.cmd.log("🔐 CHECKING SECURITY CLEARANCE: GRANTED [OK]")
                 
                 # Restart ADB
-                self.cmd.log("Starting server... OK")
+                self.cmd.log("⚡ INITIALIZING ADB SERVER... [OK]")
                 self.cmd.run_command("adb kill-server")
                 self.cmd.run_command("adb start-server")
                 
-                self.cmd.log("[BLUE]Waiting ADB devices...")
+                self.cmd.log("[BLUE]📡 SCANNING FOR TARGET DEVICE...")
                 
-                # Use explicit Python loop to wait to ensure it strictly pauses
                 while True:
-                    # Check devices (Silent)
                     output = self.cmd.run_command("adb devices", log_output=False)
-                    # Output usually:
-                    # List of devices attached
-                    # SERIAL    device
-                    
                     lines = output.strip().split('\n')
                     device_found = False
-                    
                     for line in lines:
                         val = line.strip()
-                        # Skip header and empty lines
-                        if not val or "List of devices attached" in val:
-                            continue
-                            
-                        # Check for valid device line (endswith 'device')
-                        # Standard ADB output uses tab or spaces. 
+                        if not val or "List of devices attached" in val: continue
                         if val.endswith("device") and not val.endswith("no permissions"):
                              device_found = True
                              break
-                    
-                    if device_found:
-                        break
-                    
-                    # If not found, sleep and retry. unique log to show it's waiting (optional, but keep quiet to avoid spam)
+                    if device_found: break
                     time.sleep(1)
     
-                self.cmd.log("[BLUE]Check Conection... OK")
+                self.cmd.log("[BLUE]📶 CONNECTION ESTABLISHED: STABLE")
                 
-                # Check device state to be sure
                 state = self.cmd.run_command("adb get-state")
                 if "device" not in state:
-                     self.cmd.log("[ERROR] Device not in correct state (Unauthorized/Offline).")
+                     self.cmd.log("[ERROR] 🛑 DEVICE OFFLINE OR UNAUTHORIZED!")
                      return
     
-                self.cmd.log("[BLUE][INFO] Device Detected. Starting operations...")
+                self.cmd.log("[BLUE]🔥 TARGET LOCK ACQUIRED. INITIATING BREACH...")
                 
                 # ZTE Bloatware Removal
-                self.cmd.log("[STEP] Removing ZTE Bloatware...")
+                self.cmd.log("☠️ NUKING ZTE BLOATWARE (CLEANING TRASH)...")
                 zte_apps = [
                     "com.zte.zdmdaemon", "com.zte.zdm.omacp", "com.zte.nubrowser",
                     "com.zte.haertyservice.strategy", "com.zte.handservice", "com.zte.faceverify",
@@ -75,12 +58,16 @@ class ZTEManager:
                     "com.zte.burntest.camera", "com.ztebeautify", "com.zteappsimcardfilter",
                     "com.zte.zdmdaemon.install"
                 ]
+                
+                # Silent Kill Loop
+                count = 0
                 for app in zte_apps:
-                    self.cmd.log(f"Uninstalling {app}...")
-                    self.cmd.run_command(f"adb shell pm uninstall --user 0 {app}")
-    
+                    self.cmd.run_command(f"adb shell pm uninstall --user 0 {app}", log_output=False)
+                    count += 1
+                self.cmd.log(f"✅ CLEANED {count} JUNK APPS [OK]")
+
                 # Google / System Fixes
-                self.cmd.log("[STEP] Removing System/Google Apps...")
+                self.cmd.log("🧹 SWEEPING GOOGLE/FACEBOOK TRACKERS...")
                 sys_apps = [
                     "com.google.android.gms.suprvision", "com.google.android.configupdater",
                     "com.google.android.as.oss", "com.google.android.apps.wellbeing",
@@ -89,34 +76,48 @@ class ZTEManager:
                     "com.facebook.system", "com.facebook.services", "com.facebook.appmanager"
                 ]
                 for app in sys_apps:
-                    self.cmd.log(f"Uninstalling {app}...")
-                    self.cmd.run_command(f"adb shell pm uninstall --user 0 {app}")
-    
+                    self.cmd.run_command(f"adb shell pm uninstall --user 0 {app}", log_output=False)
+                self.cmd.log("✅ TRACKERS REMOVED [OK]")
+
                 # Disable ZDM Services
-                self.cmd.log("[STEP] Disabling ZDM Services...")
+                self.cmd.log("🛡️ CRUSHING SECURITY AGENTS (ZDM & DEMONS)...")
                 zdm_pkgs = [
                     "com.zte.zdm", "com.zte.zdm.omacp", "com.zte.zdmdaemon", "com.zte.zdmdaemon.install"
                 ]
                 for pkg in zdm_pkgs:
-                     self.cmd.run_command(f"adb shell pm disable-user --user 0 {pkg}")
-    
+                     self.cmd.run_command(f"adb shell pm disable-user --user 0 {pkg}", log_output=False)
+                self.cmd.log("✅ SECURITY AGENTS DISABLED [OK]")
+
                 # Clear Data & WiFi
-                self.cmd.log("[STEP] Clearing GMS & Disabling WiFi...")
-                self.cmd.run_command("adb shell pm clear com.google.android.gms")
-                self.cmd.run_command("adb shell cmd -w wifi set-wifi-enabled disabled")
+                self.cmd.log("✨ WIPING GMS TRACES & GHOSTING WIFI...")
+                self.cmd.run_command("adb shell pm clear com.google.android.gms", log_output=False)
+                self.cmd.run_command("adb shell cmd -w wifi set-wifi-enabled disabled", log_output=False)
+
+                # Disable Setup Wizard (THE FIX for White Screen)
+                self.cmd.log("⛔ DISABLING SETUP WIZARD (BYPASSING GATE)...")
+                
+                # FIX HOME BUTTON & NOTIFICATIONS (Critical)
+                self.cmd.run_command("adb shell settings put global device_provisioned 1", log_output=False)
+                self.cmd.run_command("adb shell settings put secure user_setup_complete 1", log_output=False)
+                
+                setup_pkgs = ["com.google.android.setupwizard"]
+                for p in setup_pkgs:
+                     self.cmd.run_command(f"adb shell pm disable-user --user 0 {p}", log_output=False)
+                     self.cmd.run_command(f"adb shell pm clear {p}", log_output=False)
+                self.cmd.log("✅ SETUP WIZARD BYPASSED [OK]")
     
                 # Back Keys Navigation
-                self.cmd.log("[STEP] Simulating Navigation (Back)...")
+                self.cmd.log("🤖 AUTO-PILOT ENGAGED: NAVIGATION HOME...")
                 for _ in range(4):
-                    self.cmd.run_command("adb shell input keyevent 4")
+                    self.cmd.run_command("adb shell input keyevent 4", log_output=False)
                     time.sleep(0.5)
                 
-                self.cmd.run_command("adb shell input keyevent 3") # Home
+                # Force Home Screen
+                self.cmd.run_command("adb shell input keyevent 3", log_output=False) # Key Event Home
+                self.cmd.run_command("adb shell am start -a android.intent.action.MAIN -c android.intent.category.HOME", log_output=False) # Intent Home
     
-                self.cmd.log("[SUCCESS] A35 Bypass Operation Complete!")
-                self.cmd.log("Rebooting device...")
-                self.cmd.run_command("adb reboot") # Usually nice to reboot after major changes
-                self.cmd.log("DONE.")
+                self.cmd.log("✅ MISSION ACCOMPLISHED: DEVICE UNLOCKED & SECURED!")
+                self.cmd.log("👑 DONE. MR OG TOOL 2026 (NO REBOOT).")
             
             except Exception as e:
                  self.cmd.log(f"[ERROR] Operation Failed: {e}")
