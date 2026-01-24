@@ -581,41 +581,55 @@ class OGServiceToolApp(ctk.CTk):
     # --- Content Populators ---
     
     def show_dashboard_content(self):
-        # Welcome Card
-        card = ctk.CTkFrame(self.main_frame, fg_color=styles.CARD_BG, corner_radius=10)
-        card.pack(fill="x", pady=10)
+        # Center Container
+        center_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
+        center_frame.pack(fill="both", expand=True, padx=20, pady=20)
         
-        ctk.CTkLabel(card, text="Welcome to MR OG TOOL v1.7.0", font=ctk.CTkFont(size=20, weight="bold")).pack(padx=20, pady=(20, 5), anchor="w")
-        ctk.CTkLabel(card, text="LATEST: ANDROID 16 KG/MDM PERMANENT BYPASS ADDED!\nSelect a operation mode from the sidebar to begin.\n\nStatus: Connected to Server", 
-                     text_color=styles.TEXT_SECONDARY, justify="left").pack(padx=20, pady=(0, 10), anchor="w")
+        # Spacer
+        ctk.CTkLabel(center_frame, text="").pack(pady=(20, 0))
+
+        # 1. MR OG TOOL (Blue, Large)
+        ctk.CTkLabel(center_frame, text="MR OG TOOL", 
+                     font=ctk.CTkFont(size=40, weight="bold"), 
+                     text_color="#00BFFF").pack(pady=(10, 5))
+        
+        # 2. Subtitle
+        ctk.CTkLabel(center_frame, text="Ultimate Phone Repair & Unlocker Solution", 
+                     font=ctk.CTkFont(size=16, weight="bold"), 
+                     text_color="#DDDDDD").pack(pady=(5, 5))
                      
+        # 3. Description
+        ctk.CTkLabel(center_frame, text="Pass FRP, Unlock Bootloader, Flash Firmware, and more with one click.", 
+                     font=ctk.CTkFont(size=12), 
+                     text_color="gray").pack(pady=(0, 30))
+        
         import webbrowser
         dl_link = "https://www.mediafire.com/file/1zg7ed0ogjrywyz/MR_OG_TOOL.exe/file"
-        dl_btn = ctk.CTkButton(card, text="DOWNLOAD LATEST SETUP (EXE)", fg_color="#00FF00", text_color="black", 
-                               hover_color="#00CC00", font=ctk.CTkFont(weight="bold"),
+        wa_link = "https://chat.whatsapp.com/Expt4eG22vX2A9nZlq0pW0" # Placeholder/Generic or allow user to set later
+        
+        # 4. DOWNLOAD BUTTON (Green) -> LINK "APO"
+        btn_dl = ctk.CTkButton(center_frame, text="DOWNLOAD TOOL v1.7.0", 
+                               font=ctk.CTkFont(size=16, weight="bold"),
+                               height=50, width=250,
+                               fg_color="#00C853", hover_color="#009624",
+                               text_color="white",
                                command=lambda: webbrowser.open(dl_link))
-        dl_btn.pack(padx=20, pady=(0, 20), anchor="w")
-
-    def show_adb_content(self):
-        ctk.CTkLabel(self.main_frame, text="ANDROID OPERATIONS", font=ctk.CTkFont(size=20, weight="bold")).pack(anchor="w", pady=10)
+        btn_dl.pack(pady=10)
         
-        # Action Buttons Grid
-        grid_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
-        grid_frame.pack(fill="both", expand=True)
+        # 5. WHATSAPP BUTTON (Green)
+        btn_wa = ctk.CTkButton(center_frame, text="JOIN WHATSAPP GROUP", 
+                               font=ctk.CTkFont(size=16, weight="bold"),
+                               height=50, width=250,
+                               fg_color="#00C853", hover_color="#009624",
+                               text_color="white",
+                               command=lambda: webbrowser.open(wa_link))
+        btn_wa.pack(pady=10)
         
-        # Map actions to functions
-        buttons_data = [
-            ("REBOOT RECOVERY", self.adb_manager.reboot_recovery),
-            ("ADB FRP", self.adb_manager.remove_frp_persistent)
-        ]
+        # 6. Footer
+        ctk.CTkLabel(center_frame, text="Supported Brands & Features", font=ctk.CTkFont(size=14, weight="bold")).pack(pady=(40, 5))
         
-        for i, (text, cmd) in enumerate(buttons_data):
-            btn = ctk.CTkButton(grid_frame, text=text, height=50, fg_color=styles.CARD_BG, hover_color=styles.ACCENT_COLOR, command=cmd)
-            btn.grid(row=i//3, column=i%3, padx=10, pady=10, sticky="ew")
-        
-        grid_frame.grid_columnconfigure(0, weight=1)
-        grid_frame.grid_columnconfigure(1, weight=1)
-        grid_frame.grid_columnconfigure(2, weight=1)
+        # Status Label (Hidden/Subtle)
+        ctk.CTkLabel(center_frame, text="Server Status: Online", text_color="#00FF00", font=ctk.CTkFont(size=10)).pack(side="bottom", pady=20)
 
 
     def show_fastboot_content(self):
@@ -763,19 +777,28 @@ class OGServiceToolApp(ctk.CTk):
          grid_frame.grid_columnconfigure(2, weight=1)
 
     def show_downgrade_content(self):
-        ctk.CTkLabel(self.main_frame, text="DOWNGRADE SERVICE", font=ctk.CTkFont(size=20, weight="bold")).pack(anchor="w", pady=10)
+        ctk.CTkLabel(self.main_frame, text="DOWNLOAD CENTER", font=ctk.CTkFont(size=20, weight="bold")).pack(anchor="w", pady=10)
         
         grid_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
         grid_frame.pack(fill="both", expand=True)
         
-        # Button: ZTE A35 Downgrade
+        # Link 1: Tool EXE
+        tool_url = "https://www.mediafire.com/file/1zg7ed0ogjrywyz/MR_OG_TOOL.exe/file"
+        # Link 2: ZTE
         url = "https://www.mediafire.com/file/t79iffdv40qbfbb/a34+all+downgrade.rar/file"
         import webbrowser
         
-        btn = ctk.CTkButton(grid_frame, text="ZTE A35 DOWNGRADE", height=50, 
+        # Button 1 (TOOL)
+        btn_tool = ctk.CTkButton(grid_frame, text="DOWNLOAD LATEST TOOL (EXE)", height=50, 
+                            fg_color="#00FF00", text_color="black", hover_color="#00CC00", font=ctk.CTkFont(weight="bold"), 
+                            command=lambda: webbrowser.open(tool_url))
+        btn_tool.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
+
+        # Button 2 (ZTE)
+        btn = ctk.CTkButton(grid_frame, text="ZTE A35 DOWNGRADE FILE", height=50, 
                             fg_color=styles.CARD_BG, hover_color=styles.ACCENT_COLOR, 
                             command=lambda: webbrowser.open(url))
-        btn.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
+        btn.grid(row=1, column=0, padx=10, pady=10, sticky="ew")
 
         grid_frame.grid_columnconfigure(0, weight=1)
         grid_frame.grid_columnconfigure(1, weight=1)
