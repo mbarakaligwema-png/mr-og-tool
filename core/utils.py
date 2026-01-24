@@ -14,17 +14,25 @@ class CommandRunner:
 
     def _resolve_adb_path(self):
         import os
-        # Search for bundled ADB to ensure portability
-        # We know it exists in assets/tools or scrcpy folder
-        cwd = os.getcwd()
+        import sys
+        
+        # Determine Base Path (Root of the App)
+        if getattr(sys, 'frozen', False):
+            # If running as compiled .exe, use its location
+            self.base_path = os.path.dirname(sys.executable)
+        else:
+            # If running as script, use CWD (run.bat sets this)
+            self.base_path = os.getcwd()
+
+        # Update paths to look in base_path/assets/...
         possible_paths = [
-            os.path.join(cwd, "assets", "platform-tools", "adb.exe"),
-            os.path.join(cwd, "assets", "tools", "adb.exe"),
-            os.path.join(cwd, "assets", "adb.exe")
+            os.path.join(self.base_path, "assets", "platform-tools", "adb.exe"),
+            os.path.join(self.base_path, "assets", "tools", "adb.exe"),
+            os.path.join(self.base_path, "assets", "adb.exe")
         ]
         
         # Also check inside scrcpy folder if exists
-        tools_dir = os.path.join(cwd, "assets", "tools")
+        tools_dir = os.path.join(self.base_path, "assets", "tools")
         if os.path.exists(tools_dir):
             for root, dirs, files in os.walk(tools_dir):
                 if "adb.exe" in files:

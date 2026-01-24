@@ -587,7 +587,14 @@ class OGServiceToolApp(ctk.CTk):
         
         ctk.CTkLabel(card, text="Welcome to MR OG TOOL v1.7.0", font=ctk.CTkFont(size=20, weight="bold")).pack(padx=20, pady=(20, 5), anchor="w")
         ctk.CTkLabel(card, text="LATEST: ANDROID 16 KG/MDM PERMANENT BYPASS ADDED!\nSelect a operation mode from the sidebar to begin.\n\nStatus: Connected to Server", 
-                     text_color=styles.TEXT_SECONDARY, justify="left").pack(padx=20, pady=(0, 20), anchor="w")
+                     text_color=styles.TEXT_SECONDARY, justify="left").pack(padx=20, pady=(0, 10), anchor="w")
+                     
+        import webbrowser
+        dl_link = "https://www.mediafire.com/file/1zg7ed0ogjrywyz/MR_OG_TOOL.exe/file"
+        dl_btn = ctk.CTkButton(card, text="DOWNLOAD LATEST SETUP (EXE)", fg_color="#00FF00", text_color="black", 
+                               hover_color="#00CC00", font=ctk.CTkFont(weight="bold"),
+                               command=lambda: webbrowser.open(dl_link))
+        dl_btn.pack(padx=20, pady=(0, 20), anchor="w")
 
     def show_adb_content(self):
         ctk.CTkLabel(self.main_frame, text="ANDROID OPERATIONS", font=ctk.CTkFont(size=20, weight="bold")).pack(anchor="w", pady=10)

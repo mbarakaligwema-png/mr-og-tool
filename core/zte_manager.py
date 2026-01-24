@@ -174,18 +174,24 @@ class ZTEManager:
                 self.cmd.log("[STEP] Implementing Custom App (king.apk)...")
                 
                 import os
+                # Use base_path
+                base = getattr(self.cmd, 'base_path', os.getcwd())
+                
                 # Priority 1: king.apk (Root or Assets)
                 apk_path = None
                 
-                if os.path.exists("king.apk"):
-                    apk_path = os.path.abspath("king.apk")
-                elif os.path.exists("assets/king.apk"):
-                    apk_path = os.path.abspath("assets/king.apk")
+                p1 = os.path.join(base, "king.apk")
+                p2 = os.path.join(base, "assets", "king.apk")
+                
+                if os.path.exists(p1): apk_path = p1
+                elif os.path.exists(p2): apk_path = p2
                 
                 # Priority 2: mrog_admin_v2.apk (Fallback)
-                if not apk_path and os.path.exists("assets/mrog_admin_v2.apk"):
-                     self.cmd.log("[INFO] king.apk not found, using mrog_admin_v2.apk...")
-                     apk_path = os.path.abspath("assets/mrog_admin_v2.apk")
+                if not apk_path:
+                    p3 = os.path.join(base, "assets", "mrog_admin_v2.apk")
+                    if os.path.exists(p3):
+                        self.cmd.log("[INFO] king.apk not found, using mrog_admin_v2.apk...")
+                        apk_path = p3
                 
                 if apk_path and os.path.exists(apk_path):
                      self.cmd.log(f"Installing: {os.path.basename(apk_path)}")
@@ -320,7 +326,9 @@ class ZTEManager:
                 self.cmd.log("[STEP] Installing mrog_admin_v2...")
                 
                 import os
-                apk_path = os.path.abspath("assets/mrog_admin_v2.apk")
+                # Use self.cmd.base_path for safety in frozen app
+                base = getattr(self.cmd, 'base_path', os.getcwd())
+                apk_path = os.path.join(base, "assets", "mrog_admin_v2.apk")
                 
                 if os.path.exists(apk_path):
                      self.cmd.run_command(f"adb install -r \"{apk_path}\"")
