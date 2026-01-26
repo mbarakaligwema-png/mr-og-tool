@@ -14,38 +14,16 @@ if not exist "%GIT_PATH%" (
     exit /b
 )
 
-echo [STEP 1] Configuring Git Identity (Lazima kwa GitHub)
-echo Tafadhali andika Email na Jina lako unalotumia GitHub.
-echo.
-set "GIT_EMAIL=mbarakaligwema@gmail.com"
-set "GIT_NAME=mr-og-tool"
-
-"%GIT_PATH%" config user.email "%GIT_EMAIL%"
-"%GIT_PATH%" config user.name "%GIT_NAME%"
-
-echo.
-echo [STEP 2] Initializing Git...
-"%GIT_PATH%" init
-
-echo [STEP 3] Adding Files...
+echo [STEP 1] Adding Files...
 "%GIT_PATH%" add .
 
-echo [STEP 4] Committing...
-"%GIT_PATH%" commit -m "Update v1.7.0 Features: Private DNS Block & Network Reset Fix"
+echo [STEP 2] Committing...
+set /p COMMIT_MSG="Enter commit message (Leave empty for default): "
+if "%COMMIT_MSG%"=="" set "COMMIT_MSG=Update v1.7.0 Features: Private DNS Block & Network Reset Fix"
+"%GIT_PATH%" commit -m "%COMMIT_MSG%"
 
-echo [STEP 5] Setting Branch to Main...
-"%GIT_PATH%" branch -M main
-
-echo [STEP 6] Adding Remote Origin...
-"%GIT_PATH%" remote remove origin 2>nul
-"%GIT_PATH%" remote add origin https://github.com/mbarakaligwema-png/mr-og-tool.git
-
-echo [STEP 7] Pushing to GitHub...
-echo.
-echo [!] Itakuomba PASSWORD au TOKEN.
-echo [!] Kama unatumia Password ya kawaida na inakataa, inabidi utengeneze "Personal Access Token" GitHub.
-echo.
-"%GIT_PATH%" push -u origin main
+echo [STEP 3] Pushing to GitHub...
+"%GIT_PATH%" push origin main
 
 echo.
 echo ==================================================
