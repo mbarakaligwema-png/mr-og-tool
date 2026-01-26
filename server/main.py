@@ -286,7 +286,7 @@ async def verify_user(username: str = Form(...), password: str = Form(...), hwid
 async def latest_version():
     return {
         "version": "1.7.0", 
-        "download_url": "https://www.mediafire.com/file/1t5hx1xii0hhign/MR_OG_TOOL.exe/file",
+        "download_url": "https://www.mediafire.com/file/k1pds1o9jt5mmuv/MR_OG_TOOL_Setup_v1.7.0.exe/file",
         "changelog": "🔥 CRITICAL UPDATE v1.7.0 🔥\n- NEW: Android 15/16 KG & MDM FIXED!\n- ADDED: Private DNS Block (Permanent)\n- ADDED: Network Reset Protection\n- FIXED: Knox Relock Issues\n- ADDED: Live Screen (Scrcpy)\n- UPDATED: Samsung Odin Flash"
     }
 
