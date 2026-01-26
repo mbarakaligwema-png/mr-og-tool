@@ -603,33 +603,36 @@ class OGServiceToolApp(ctk.CTk):
                      font=ctk.CTkFont(size=12), 
                      text_color="gray").pack(pady=(0, 30))
         
-        import webbrowser
-        dl_link = "https://www.mediafire.com/file/1zg7ed0ogjrywyz/MR_OG_TOOL.exe/file"
-        wa_link = "https://chat.whatsapp.com/Expt4eG22vX2A9nZlq0pW0" # Placeholder/Generic or allow user to set later
-        
-        # 4. DOWNLOAD BUTTON (Green) -> LINK "APO"
-        btn_dl = ctk.CTkButton(center_frame, text="DOWNLOAD TOOL v1.7.0", 
-                               font=ctk.CTkFont(size=16, weight="bold"),
-                               height=50, width=250,
-                               fg_color="#00C853", hover_color="#009624",
-                               text_color="white",
-                               command=lambda: webbrowser.open(dl_link))
-        btn_dl.pack(pady=10)
-        
-        # 5. WHATSAPP BUTTON (Green)
-        btn_wa = ctk.CTkButton(center_frame, text="JOIN WHATSAPP GROUP", 
-                               font=ctk.CTkFont(size=16, weight="bold"),
-                               height=50, width=250,
-                               fg_color="#00C853", hover_color="#009624",
-                               text_color="white",
-                               command=lambda: webbrowser.open(wa_link))
-        btn_wa.pack(pady=10)
+
         
         # 6. Footer
         ctk.CTkLabel(center_frame, text="Supported Brands & Features", font=ctk.CTkFont(size=14, weight="bold")).pack(pady=(40, 5))
         
         # Status Label (Hidden/Subtle)
         ctk.CTkLabel(center_frame, text="Server Status: Online", text_color="#00FF00", font=ctk.CTkFont(size=10)).pack(side="bottom", pady=20)
+
+
+    def show_adb_content(self):
+        ctk.CTkLabel(self.main_frame, text="ADB OPERATIONS", font=ctk.CTkFont(size=20, weight="bold")).pack(anchor="w", pady=10)
+        
+        grid_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
+        grid_frame.pack(fill="both", expand=True)
+
+        buttons_data = [
+            ("Read Info", self.adb_manager.read_info),
+            ("Reboot System", self.adb_manager.reboot_device),
+            ("Reboot Bootloader", self.adb_manager.reboot_bootloader),
+            ("Reboot Recovery", self.adb_manager.reboot_recovery),
+            ("Remove FRP (Generic)", self.adb_manager.remove_frp_persistent)
+        ]
+        
+        for i, (text, cmd) in enumerate(buttons_data):
+             btn = ctk.CTkButton(grid_frame, text=text, height=50, fg_color=styles.CARD_BG, hover_color=styles.ACCENT_COLOR, command=cmd)
+             btn.grid(row=i//3, column=i%3, padx=10, pady=10, sticky="ew")
+
+        grid_frame.grid_columnconfigure(0, weight=1)
+        grid_frame.grid_columnconfigure(1, weight=1)
+        grid_frame.grid_columnconfigure(2, weight=1)
 
 
     def show_fastboot_content(self):
