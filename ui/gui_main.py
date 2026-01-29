@@ -28,9 +28,88 @@ class OGServiceToolApp(ctk.CTk):
         self.geometry(f"{styles.WINDOW_WIDTH}x{styles.WINDOW_HEIGHT}")
         self.configure(fg_color=styles.BACKGROUND)
 
+        # --- Set Icon (Robust Method) ---
+        import sys
+        if getattr(sys, 'frozen', False):
+             if hasattr(sys, '_MEIPASS'):
+                 base_path = sys._MEIPASS
+             else:
+                 base_path = os.path.dirname(sys.executable)
+        else:
+             base_path = os.getcwd()
+
+        # 1. Taskbar Icon (.ico)
+        ico_path = os.path.join(base_path, "assets", "logo.ico")
+        if os.path.exists(ico_path):
+            try: self.iconbitmap(ico_path)
+            except: pass
+            
+        # 2. Title Bar Icon (.png via iconphoto) - Fixes "C" logo
+        png_path = os.path.join(base_path, "assets", "logo_round.png")
+        if os.path.exists(png_path):
+            try:
+                from PIL import ImageTk, Image
+                # Use standard Tkinter PhotoImage for iconphoto
+                icon_img = ImageTk.PhotoImage(file=png_path)
+                self.iconphoto(False, icon_img)
+            except Exception as e:
+                print(f"Icon Error: {e}")
+
+        # --- Set Icon for Main Window ---
+        import sys
+        if getattr(sys, 'frozen', False):
+             if hasattr(sys, '_MEIPASS'):
+                 base_path = sys._MEIPASS
+             else:
+                 base_path = os.path.dirname(sys.executable)
+        else:
+             base_path = os.getcwd()
+        
+        icon_path = os.path.join(base_path, "assets", "logo.ico")
+        if os.path.exists(icon_path):
+            try:
+                self.iconbitmap(icon_path)
+            except: pass
+
+        # Taskbar ID
+        try:
+            import ctypes
+            myappid = 'mrog.tool.repair.v1.7'
+            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+        except: pass
+
+        # Force Update Icon
+        self.after(200, self.force_icon_update)
+
         # Layout Configuration
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
+
+    def force_icon_update(self):
+        """Forces the icon application after window is mapped."""
+        import sys
+        if getattr(sys, 'frozen', False):
+             if hasattr(sys, '_MEIPASS'):
+                 base_path = sys._MEIPASS
+             else:
+                 base_path = os.path.dirname(sys.executable)
+        else:
+             base_path = os.getcwd()
+        
+        # 1. ICO (Taskbar)
+        ico_path = os.path.join(base_path, "assets", "logo.ico")
+        if os.path.exists(ico_path):
+            try: self.iconbitmap(ico_path)
+            except: pass
+            
+        # 2. PNG (Title Bar)
+        png_path = os.path.join(base_path, "assets", "logo_round.png")
+        if os.path.exists(png_path):
+            try:
+                from PIL import ImageTk, Image
+                icon_img = ImageTk.PhotoImage(file=png_path)
+                self.iconphoto(False, icon_img)
+            except Exception as e: print(f"Icon Error: {e}")
 
         # Create Sidebar
         self.sidebar_frame = ctk.CTkFrame(self, width=styles.SIDEBAR_WIDTH, corner_radius=0, fg_color=styles.SIDEBAR_BG)
@@ -218,7 +297,7 @@ class OGServiceToolApp(ctk.CTk):
 
                 except Exception:
                     pass
-                time.sleep(5) # Slow down polling to prevent conflicts
+                time.sleep(8) # Slow down polling to prevent conflicts
 
         threading.Thread(target=monitor, daemon=True).start()
         self.fastboot_manager = FastbootManager(self.append_log)
@@ -434,7 +513,7 @@ class OGServiceToolApp(ctk.CTk):
                 except: 
                     break # Exit thread if UI dead
                 
-                time.sleep(2)
+                time.sleep(5) # Reduced polling frequency to prevent ADB conflicts
         
         t = threading.Thread(target=scan, daemon=True)
         t.start()

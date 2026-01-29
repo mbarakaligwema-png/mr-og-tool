@@ -18,8 +18,13 @@ class CommandRunner:
         
         # Determine Base Path (Root of the App)
         if getattr(sys, 'frozen', False):
-            # If running as compiled .exe, use its location
-            self.base_path = os.path.dirname(sys.executable)
+            # If running as compiled .exe
+            if hasattr(sys, '_MEIPASS'):
+                 # One-file mode: Use the temp directory where assets are extracted
+                 self.base_path = sys._MEIPASS
+            else:
+                 # One-dir mode: Use the executable's directory
+                 self.base_path = os.path.dirname(sys.executable)
         else:
             # If running as script, use CWD (run.bat sets this)
             self.base_path = os.getcwd()
@@ -105,12 +110,13 @@ class CommandRunner:
                 # Clean up generic ADB success messages
                 if "daemon not running" not in stdout: 
                     self.log(stdout.strip())
-            if stderr and log_output:
-                # Ignore harmless ADB warnings
-                if "daemon" not in stderr and "server" not in stderr:
+            if stderr:
+                # Always capture stderr in the return value for logic checks, even if not logging
+                if log_output and "daemon" not in stderr and "server" not in stderr:
                     self.log(f"[ERROR] {stderr.strip()}")
             
-            return stdout.strip()
+            # Return combined output so calling functions can see errors
+            return (stdout + "\n" + stderr).strip()
         except Exception as e:
             self.log(f"[EXCEPTION] {str(e)}")
             return ""

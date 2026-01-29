@@ -35,6 +35,43 @@ class LoginWindow(ctk.CTk):
         # Center the window on screen
         self.eval('tk::PlaceWindow . center')
 
+        # --- Set Icon (Robust) ---
+        import sys
+        if getattr(sys, 'frozen', False):
+             if hasattr(sys, '_MEIPASS'):
+                 base_path = sys._MEIPASS
+             else:
+                 base_path = os.path.dirname(sys.executable)
+        else:
+             base_path = os.getcwd()
+        
+        # 1. ICO
+        ico_path = os.path.join(base_path, "assets", "logo.ico")
+        if os.path.exists(ico_path):
+            try: self.iconbitmap(ico_path)
+            except: pass
+            
+        # 2. PNG (Title Bar Fix)
+        png_path = os.path.join(base_path, "assets", "logo_round.png")
+        if os.path.exists(png_path):
+            try:
+                from PIL import ImageTk, Image
+                icon_img = ImageTk.PhotoImage(file=png_path)
+                self.iconphoto(False, icon_img)
+            except: pass
+            
+        # --- App User Model ID (Taskbar Icon Fix) ---
+            
+        # --- App User Model ID (Taskbar Icon Fix) ---
+        try:
+            import ctypes
+            myappid = 'mrog.tool.repair.v1.7' # arbitrary string
+            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+        except: pass
+
+        # Call force update delayed
+        self.after(200, self.force_icon_update)
+
         # --- UI Elements ---
         
         # Header Frame (Stylish Logo)
@@ -52,6 +89,32 @@ class LoginWindow(ctk.CTk):
                                           font=ctk.CTkFont(size=32, weight="bold", family="Arial Black"), 
                                           text_color=styles.ACCENT_COLOR) # Blue/Accent
         self.brand_label_2.pack(side="left")
+        
+    def force_icon_update(self):
+        """Forces the icon application after window is mapped."""
+        import sys
+        if getattr(sys, 'frozen', False):
+             if hasattr(sys, '_MEIPASS'):
+                 base_path = sys._MEIPASS
+             else:
+                 base_path = os.path.dirname(sys.executable)
+        else:
+             base_path = os.getcwd()
+        
+        # 1. ICO (Taskbar)
+        ico_path = os.path.join(base_path, "assets", "logo.ico")
+        if os.path.exists(ico_path):
+            try: self.iconbitmap(ico_path)
+            except: pass
+            
+        # 2. PNG (Title Bar)
+        png_path = os.path.join(base_path, "assets", "logo_round.png")
+        if os.path.exists(png_path):
+            try:
+                from PIL import ImageTk, Image
+                icon_img = ImageTk.PhotoImage(file=png_path)
+                self.iconphoto(False, icon_img)
+            except Exception as e: print(f"Icon Error: {e}")
         
         # Subtitle
         self.tagline_label = ctk.CTkLabel(self, text="ULTIMATE UNLOCKER", 
