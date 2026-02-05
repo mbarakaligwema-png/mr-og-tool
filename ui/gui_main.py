@@ -770,20 +770,41 @@ class OGServiceToolApp(ctk.CTk):
          grid_frame = ctk.CTkFrame(tab_main, fg_color="transparent")
          grid_frame.pack(fill="both", expand=True)
          
+         # Remove FIX LOG from general grid and add special row for it
          buttons_data = [
             ("Read Info (MTP)", self.samsung_manager.read_info_mtp),
             ("Reboot Download", self.samsung_manager.reboot_download),
             ("Factory Reset", self.samsung_manager.factory_reset),
             ("Enable ADB (QR)", self.samsung_manager.enable_adb_qr),
             ("Remove FRP (2024)", self.samsung_manager.remove_frp_2024),
-            ("Soft Brick Fix", self.samsung_manager.soft_brick_fix),
             ("Exit Download Mode", self.samsung_manager.exit_download_mode),
-            ("KG 2025", self.samsung_manager.kg_bypass_android_15_16)
+            ("KG 2025", self.samsung_manager.kg_bypass_android_15_16),
+            ("FIX KG", self.samsung_manager.fix_kg_relock)
          ]
          
+         row_idx = 0
          for i, (text, cmd) in enumerate(buttons_data):
              btn = ctk.CTkButton(grid_frame, text=text, height=50, fg_color=styles.CARD_BG, hover_color=styles.ACCENT_COLOR, command=cmd)
              btn.grid(row=i//3, column=i%3, padx=10, pady=10, sticky="ew")
+             row_idx = i//3
+
+         # --- SPECIAL FIX LOG SECTION (Kishimo) ---
+         fix_frame = ctk.CTkFrame(grid_frame, fg_color="transparent")
+         fix_frame.grid(row=row_idx+1, column=0, columnspan=3, sticky="ew", padx=10, pady=10)
+         
+         ctk.CTkLabel(fix_frame, text="FIX LOG:", font=ctk.CTkFont(weight="bold")).pack(side="left", padx=(0, 10))
+         
+         self.fix_log_model_var = ctk.StringVar(value="A05")
+         model_menu = ctk.CTkOptionMenu(fix_frame, variable=self.fix_log_model_var, 
+                                        values=["A05", "A06"],
+                                        fg_color=styles.CARD_BG, button_color=styles.ACCENT_COLOR, width=200)
+         model_menu.pack(side="left", padx=10)
+         
+         def run_fix_log():
+             model = self.fix_log_model_var.get()
+             self.samsung_manager.fix_stuck_logo(model)
+             
+         ctk.CTkButton(fix_frame, text="RUN FIX", width=100, fg_color=styles.ACCENT_COLOR, command=run_fix_log).pack(side="left")
         
          grid_frame.grid_columnconfigure(0, weight=1)
          grid_frame.grid_columnconfigure(1, weight=1)
@@ -802,6 +823,34 @@ class OGServiceToolApp(ctk.CTk):
                                    font=ctk.CTkFont(size=16, weight="bold"),
                                    command=self.perform_odin_flash)
          flash_btn.pack(fill="x", padx=50)
+
+    def show_fix_logo_dialog(self):
+        dialog = ctk.CTkToplevel(self)
+        dialog.title("Select Model - Fix Stuck Logo")
+        dialog.geometry("400x500")
+        dialog.attributes("-topmost", True)
+        dialog.configure(fg_color=styles.BACKGROUND)
+        
+        ctk.CTkLabel(dialog, text="SELECT MODEL TO FIX", font=ctk.CTkFont(size=18, weight="bold"), text_color="#00BFFF").pack(pady=(20, 10))
+        
+        scroll_frame = ctk.CTkScrollableFrame(dialog, width=350, height=350, fg_color="transparent")
+        scroll_frame.pack(padx=20, pady=10, fill="both", expand=True)
+
+        models = [
+            "Samsung A05 (Root/Exploit)",
+            "Samsung A06 (Root/Exploit)"
+        ]
+
+        def run_fix(model_name):
+            dialog.destroy()
+            self.samsung_manager.fix_stuck_logo(model_name)
+
+        for model in models:
+            ctk.CTkButton(scroll_frame, text=model, height=40, 
+                          fg_color=styles.CARD_BG, hover_color=styles.ACCENT_COLOR,
+                          command=lambda m=model: run_fix(m)).pack(pady=5, fill="x")
+
+        ctk.CTkButton(dialog, text="CANCEL", fg_color=styles.ERROR_COLOR, command=dialog.destroy).pack(pady=10)
 
     def browse_odin_file(self, file_type):
         pass # Deprecated

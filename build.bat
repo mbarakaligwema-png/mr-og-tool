@@ -3,7 +3,7 @@ echo ==========================================
 echo      MR OG TOOL - BUILD SCRIPT
 echo ==========================================
 echo.
-set PYTHON_EXE="%LOCALAPPDATA%\Programs\Python\Python312\python.exe"
+set PYTHON_EXE=python
 
 echo [*] Generating Icon...
 %PYTHON_EXE% convert_icon.py
@@ -17,6 +17,7 @@ echo [*] Installing PyInstaller (if missing)...
 %PYTHON_EXE% -m pip install pyinstaller
 %PYTHON_EXE% -m pip install pillow
 %PYTHON_EXE% -m pip install requests
+%PYTHON_EXE% -m pip install qrcode
 
 echo.
 echo [*] Building Executable...
@@ -34,6 +35,7 @@ echo [*] Building Executable...
     --hidden-import="PIL" ^
     --hidden-import="PIL._tkinter_finder" ^
     --hidden-import="customtkinter" ^
+    --hidden-import="qrcode" ^
     --icon "assets\logo.ico" ^
     main.py
 

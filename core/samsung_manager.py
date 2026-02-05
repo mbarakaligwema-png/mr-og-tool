@@ -62,9 +62,62 @@ class SamsungManager:
              
         threading.Thread(target=_frp_thread, daemon=True).start()
 
-    def soft_brick_fix(self):
-        self.cmd.log("Fixing Soft Brick / Bootloop...")
-        threading.Thread(target=lambda: self.cmd.run_command("adb reboot"), daemon=True).start()
+    def fix_stuck_logo(self, model_name):
+        self.cmd.log(f"[HEADER]FIXING STUCK LOGO: {model_name}")
+        
+        def _task():
+            self.cmd.log(f"Initializing ADB Fix (Root Required)...")
+            time.sleep(1)
+            
+            # 1. Select File
+            sub_folder = ""
+            filename = ""
+            
+            if "A05" in model_name:
+                sub_folder = "A055F"
+                filename = "up_param.bin"
+            elif "A06" in model_name:
+                sub_folder = "A065F"
+                filename = "up_param.img"
+            
+            base = getattr(self.cmd, 'base_path', os.getcwd())
+            file_path = os.path.join(base, "assets", sub_folder, filename)
+            
+            if not os.path.exists(file_path):
+                 self.cmd.log(f"[RED]File Missing: {filename}")
+                 self.cmd.log(f"[INFO] Searched in: assets\\{sub_folder}")
+                 return
+
+            self.cmd.log("[BLUE]Checking Device...")
+            self.cmd.run_command("adb wait-for-device", log_output=False)
+            
+            # 2. Push File
+            self.cmd.log(f"[BLUE]Pushing {filename} to device...")
+            res_push = self.cmd.run_command(f'adb push "{file_path}" /sdcard/up_param.bin', log_output=False)
+            
+            if "error" in res_push.lower() or "failed" in res_push.lower():
+                self.cmd.log(f"[RED]Push Failed: {res_push}")
+                return
+                
+            self.cmd.log("[GREEN]File Pushed Successfully.")
+
+            # 3. Write Partition (DD) - Requires Root
+            self.cmd.log("[BLUE]Writing to Partition (Requires Root)...")
+            cmd_dd = 'adb shell "su -c dd if=/sdcard/up_param.bin of=/dev/block/by-name/up_param"'
+            res_dd = self.cmd.run_command(cmd_dd, log_output=False)
+            
+            if "denied" in res_dd.lower() or "not found" in res_dd.lower():
+                 self.cmd.log("[RED]Root Access Failed or 'su' not granted.")
+                 self.cmd.log(f"[DEBUG] Output: {res_dd}")
+            else:
+                 self.cmd.log("[GREEN]Partition Written Successfully!")
+                 
+            # 4. Reboot
+            self.cmd.log("[BLUE]Rebooting Device...")
+            self.cmd.run_command("adb reboot", log_output=False)
+            self.cmd.log("[GREEN]✓ Operation Complete.")
+
+        threading.Thread(target=_task, daemon=True).start()
 
     def exit_download_mode(self):
         self.cmd.log("[INFO] To Exit Download Mode:")

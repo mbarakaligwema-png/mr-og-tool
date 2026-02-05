@@ -29,7 +29,7 @@ if os.path.exists(img_path):
         print(f"Created Circular PNG: {png_round_path}")
 
         # Save as ICO with multiple sizes for better scaling
-        img.save(ico_path, format='ICO', sizes=[(256, 256), (128, 128), (64, 64), (48, 48), (32, 32), (16, 16)])
+        output.save(ico_path, format='ICO', sizes=[(256, 256), (128, 128), (64, 64), (48, 48), (32, 32), (16, 16)])
         print(f"Created Circular Icon with multi-sizes: {ico_path}")
         
     except Exception as e:
