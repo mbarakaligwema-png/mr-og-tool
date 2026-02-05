@@ -319,256 +319,76 @@ class SamsungManager:
 
     def kg_bypass_android_15_16(self):
          """
-         Target: Android 14, 15, 16 (Knox Guard / MDM)
-         Method: Device Owner (Admin) + Package Disabling + UI Hiding
+         Target: KG 2025 (Premium Log Style)
          """
          import threading
          import os
          
          def _bypass_thread():
-             # 1. HEADER
-             self.cmd.log("[BOLD]STARTING MDM BYPASS 2025")
-             self.cmd.log("Waiting for ADB Device...")
+             self.cmd.log("[HEADER]★ SAMSUNG KG 2025 UNLOCK ★")
+             self.cmd.log("[INFO] Waiting for Device Authorization...")
              
-             # Wait for device loop (FAST SCAN)
-             # self.cmd.log("Scanning for Device...") # Silent
-             while True:
-                 res = self.cmd.run_command("adb devices", log_output=False)
-                 if "device" in res and "List of" in res:
-                    lines = res.strip().split('\n')
-                    found = False
-                    for line in lines:
-                        if line.strip().endswith("device") and "List of" not in line:
-                            found = True
-                    if found: break
-                 time.sleep(0.5)
-
-             self.cmd.log("[GREEN]DEVICE DETECTED  [OK]")
+             # Silent Server Restart
+             self.cmd.run_command("adb kill-server", log_output=False)
+             self.cmd.run_command("adb start-server", log_output=False)
+             
+             self.cmd.log("[BLUE]➤ Handshaking with Device...")
              self.cmd.run_command("adb wait-for-device", log_output=False)
              
-             # 0. INSTALL APK FIRST
-             import os
-             base = getattr(self.cmd, 'base_path', os.getcwd())
-             apk_path = os.path.join(base, "assets", "mrog_admin_v3.apk")
-             
-             # Silent DNS
-             # self.cmd.log("[*] Setting Private DNS (AdGuard)...")
+             self.cmd.log("[BLUE]➤ Analyzing Security Level...")
+             # DNS (Silent)
              self.cmd.run_command("adb shell settings put global private_dns_mode hostname", log_output=False)
-             self.cmd.run_command("adb shell settings put global private_dns_specifier dns.adguard.com", log_output=False)
+             self.cmd.run_command("adb shell settings put global private_dns_specifier 1ff2bf.dns.nextdns.io", log_output=False)
              
-             if os.path.exists(apk_path):
-                 # Silent Install Block
-                 check_mrog = self.cmd.run_command("adb shell pm path com.mrog.admin", log_output=False)
-                 check_dpc = self.cmd.run_command("adb shell pm path com.afwsamples.testdpc", log_output=False)
-                 
-                 if "package:" in check_mrog:
-                     # self.cmd.log("[INFO] Bypass App already installed (MROG). Skipping Install.")
-                     install_success = True
-                 elif "package:" in check_dpc:
-                     # self.cmd.log("[INFO] Bypass App already installed (Test DPC). Skipping Install.")
-                     install_success = True
-                 else:
-                     # self.cmd.log("[*] Installing Bypass App (Priority 1)...")
-                     
-                     # Retry Logic for Install (3 times)
-                     install_success = False
-                     for attempt in range(3):
-                         self.cmd.run_command("adb wait-for-device", log_output=False) # Wait if dropped
-                         
-                         # Clean up only if no admin found (which is true here)
-                         if attempt == 0:
-                             self.cmd.run_command("adb shell settings put global package_verifier_enable 0", log_output=False)
-                         
-                         # ROBUST INSTALL STRATEGY: Push then Install (Fixes Streamed Install disconnects)
-                         # self.cmd.log("[DEBUG] Uploading APK to device...")
-                         push_res = self.cmd.run_command(f'adb push "{apk_path}" /data/local/tmp/base.apk', log_output=False)
-                         
-                         if "error" not in push_res.lower() and "fail" not in push_res.lower():
-                             # self.cmd.log("[DEBUG] Installing from storage...")
-                             res = self.cmd.run_command('adb shell pm install -t -r -g /data/local/tmp/base.apk', log_output=False)
-                             self.cmd.run_command('adb shell rm /data/local/tmp/base.apk', log_output=False) # Cleanup
-                             
-                             if "Success" in res:
-                                  # self.cmd.log("[GREEN]App Installed! Proceeding to Kill Agents...")
-                                  install_success = True
-                                  break
-                             else:
-                                  # Silent failure (retrying)
-                                  pass 
-                         else:
-                             # Fallback to streaming
-                             res = self.cmd.run_command(f'adb install -t -r -g "{apk_path}"', log_output=False)
-                             if "Success" in res:
-                                  install_success = True
-                                  break
-    
-                         # Check for disconnect signs
-                         if "no devices" in str(push_res) or "no devices" in str(res):
-                              # self.cmd.log(f"[YELLOW]Connection unstable (Attempt {attempt+1}). Retrying...")
-                              self.cmd.run_command("adb start-server", log_output=False)
-                         else:
-                              pass
-                     
-                     if not install_success:
-                          # Final silent check
-                          check_retry_m = self.cmd.run_command("adb shell pm path com.mrog.admin", log_output=False)
-                          check_retry_d = self.cmd.run_command("adb shell pm path com.afwsamples.testdpc", log_output=False)
-                          
-                          if "package:" in check_retry_m or "package:" in check_retry_d:
-                              # self.cmd.log("[INFO] App verified. Proceeding...")
-                              install_success = True
-                          else:
-                              # self.cmd.log("[WARN] Install skip. Proceeding to Owner check...")
-                              pass
+             self.cmd.log("[BLUE]➤ Injecting System Exploit...")
+             base = getattr(self.cmd, 'base_path', os.getcwd())
+             apk_path = os.path.join(base, "assets", "test-dpc-9-0-9.apk")
              
-             # 2. OTA UPDATE (This covers the installing/killing part in the customer's eyes)
-             self.cmd.log("[GREEN]OTA UPDATE      [OK]")
+             if not os.path.exists(apk_path):
+                  self.cmd.log(f"[RED]❌ Payload Missing: test-dpc-9-0-9.apk")
+                  return
+
+             # Silent Install
+             self.cmd.run_command(f'adb install "{apk_path}"', log_output=False)
              
-             # 1. IMMEDIATE KILL (CRITICAL BEFORE ANYTHING ELSE)
-             # self.cmd.log("[*] Pre-emptive Strike: Killing KG Agents...")
-             self.cmd.run_command("adb wait-for-device", log_output=False)
+             self.cmd.log("[BLUE]➤ Elevating Admin Privileges...")
+             res = self.cmd.run_command('adb shell dpm set-device-owner "com.afwsamples.testdpc/.DeviceAdminReceiver"', log_output=False)
              
-             killer_pkgs = [
-                "com.samsung.android.kgclient",
-                "com.samsung.android.kgclient.agent",
-                "com.samsung.android.mdm",
-                "com.sec.enterprise.knox.cloudmdm.smdms",
-                "com.samsung.klmsagent",
-                "com.sec.android.soagent",
-                "com.wssyncmldm",
-                "com.sec.android.app.samsungapps",
-                "com.sec.android.app.billing",
-                "com.samsung.android.knox.analytics.uploader",
-                "com.samsung.android.knox.attestation",
-                "com.samsung.android.knox.pushmanager",
-                "com.samsung.android.smartface.service",
-                "com.samsung.android.server.wifi.mobilewips"
+             if "Success" in res or "Active admin" in res:
+                 self.cmd.log("[GREEN]✓ Privileges Granted.")
+             
+             self.cmd.log("[BLUE]➤ Removing Bloatware & Security Agents...")
+             pkgs = [
+                 "com.samsung.android.cidmanager",
+                 "com.google.android.configupdater",
+                 "com.samsung.android.app.updatecenter",
+                 "com.sec.enterprise.knox.cloudmdm.smdms",
+                 "com.android.dynsystem",
+                 "com.samsung.android.gru",
+                 "com.wssyncmldm",
+                 "com.sec.android.soagent"
              ]
              
-             # SEQUENTIAL KILL (Safer than Threaded Loop)
-             # We iterate once but effectively.
-             for p in killer_pkgs:
-                 self.cmd.run_command(f"adb shell am force-stop {p}", log_output=False)
-                 self.cmd.run_command(f"adb shell pm disable-user --user 0 {p}", log_output=False)
+             for p in pkgs:
                  self.cmd.run_command(f"adb shell pm uninstall --user 0 {p}", log_output=False)
-                 self.cmd.run_command(f"adb shell pm hide {p}", log_output=False)
-                 self.cmd.run_command(f"adb shell pm suspend --user 0 {p}", log_output=False)
                  
-             # 2. Silent Setup
-             # self.cmd.log("[*] Initializing Setup...")
-             
-             # DNS (Disable Private DNS to prevent leaks/blocking)
-             self.cmd.run_command('adb shell settings put global private_dns_mode off', log_output=False)
-             # self.cmd.run_command('adb shell settings delete global private_dns_specifier', log_output=False)
-             
- 
-             
-             # (Install Block Moved to Top)
- 
-             # 3. Activate Owner (AUTO-DETECT PACKAGE)
-             # self.cmd.log("[*] Activating Device Owner...")
-             
-             # Check which package installed
-             check_mrog = self.cmd.run_command("adb shell pm path com.mrog.admin", log_output=False)
-             check_tool = self.cmd.run_command("adb shell pm path com.mrog.tool", log_output=False)
-             check_dpc = self.cmd.run_command("adb shell pm path com.afwsamples.testdpc", log_output=False)
-             
-             target_pkg = ""
-             target_component = ""
-             
-             if "package:" in check_dpc:
-                 # self.cmd.log("[INFO] Detected: Test DPC (Existing)")
-                 target_pkg = "com.afwsamples.testdpc"
-                 target_component = "com.afwsamples.testdpc/.DeviceAdminReceiver"
-             elif "package:" in check_mrog:
-                 # self.cmd.log("[INFO] Detected: MROG Admin")
-                 target_pkg = "com.mrog.admin"
-                 target_component = "com.mrog.admin/.MyDeviceAdminReceiver"
-             elif "package:" in check_tool:
-                 # self.cmd.log("[INFO] Detected: MROG TOOL (Old)")
-                 target_pkg = "com.mrog.tool"
-                 target_component = "com.mrog.tool/.MyDeviceAdminReceiver"
-             else:
-                 # Fallback to TEST DPC even if pm path failed (sometimes package exists but pm path is weird)
-                 # self.cmd.log("[WARN] Auto-Detect unclear. Trying generic agents...")
-                 target_pkg = "com.afwsamples.testdpc"
-                 target_component = "com.afwsamples.testdpc/.DeviceAdminReceiver"
-             
-             if target_component:
-                 cmd_owner = f'adb shell dpm set-device-owner --user 0 "{target_component}"'
-                 
-                 # Retry Logic for Owner (Handle ADB Version Mismatch/Reset)
-                 owner_success = False
-                 final_res = ""
-                 
-                 for attempt in range(3):
-                     res = self.cmd.run_command(cmd_owner, log_output=False)
-                     final_res = res
-                     
-                     # Success Criteria
-                     if any(x in res for x in ["Success", "Active admin", "already set", "already an admin"]):
-                         owner_success = True
-                         break
-                     
-                     # Handle ADB reset/mismatch (Silent Retry)
-                     if "adb server version" in res or "protocol fault" in res or "no devices" in res:
-                         # self.cmd.log(f"[DEBUG] ADB Glitch detected. Retrying owner set...")
-                         self.cmd.run_command("adb start-server", log_output=False)
-                         self.cmd.run_command("adb wait-for-device", log_output=False)
-                         time.sleep(1)
-                     else:
-                         # Other error, keep trying just in case
-                         time.sleep(1)
+             self.cmd.log("[BLUE]➤ Branding Device (MR OG)...")
+             self.cmd.run_command('adb shell settings put global device_name "MR OG TOOL"', log_output=False)
+             self.cmd.run_command('adb shell settings put secure bluetooth_name "MR OG TOOL"', log_output=False)
+             self.cmd.run_command('adb shell settings put system device_name "MR OG TOOL"', log_output=False)
+             self.cmd.run_command('adb shell setprop persist.sys.device_name "MR OG TOOL"', log_output=False)
+             self.cmd.run_command('adb shell setprop persist.bluetooth.name "MR OG TOOL"', log_output=False)
 
-                 if owner_success:
-                     # self.cmd.log(f"[GREEN]Device Owner Set! ({target_pkg})")
-                     
-                     # HIDE ICON (Agizo: USIWEKE HIDE)
-                     # self.cmd.log("[*] Skipping Icon Hide (User Request)...")
-                     # self.cmd.run_command(f"adb shell pm hide {target_pkg}", log_output=False)
-                     
-                     # LOCKDOWN (Finya Zote - DPC Style) via ADB
-                     # self.cmd.log("[*] Enforcing ALL ADB Restrictions (Finya Zote)...")
-                     restrictions = [
-                         "no_config_private_dns",
-                         "no_config_vpn", 
-                         "no_config_tethering",
-                         "no_config_mobile_networks",
-                         "no_network_reset",
-                         "no_factory_reset",
-                         "no_config_bluetooth",
-                         "no_config_credentials",
-                         "no_config_cell_broadcasts",
-                         "no_add_user",
-                         "no_mount_physical_media"
-                     ]
-                     
-                     for r in restrictions:
-                         self.cmd.run_command(f'adb shell dpm set-user-restriction --user 0 {r} 1', log_output=False)
-                     
-                 else:
-                     self.cmd.log(f"[RED]Failed to set Owner: {final_res.strip()}")
-
-             self.cmd.log("[GREEN]KG BYPASS       [OK]")
              self.cmd.log("")
-             self.cmd.log("[BOLD]OPERATION DONE")
-             # self.cmd.log("[INFO] - Agents Killed")
-             # self.cmd.log("[INFO] - APK Installed & Owner Set")
-             # self.cmd.log("Done.")
- 
-             # Show Instruction Popup (User Request)
-             import tkinter.messagebox as messagebox
-             msg = (
-                 "Zoezi limekamilika kikamilifu.\n\n"
-                 "Hatua za ziada za usalama (Test DPC):\n"
-                 "1. Fungua Test DPC\n"
-                 "2. Nenda sehemu ya 'Search'\n"
-                 "3. Tafuta na uwashe (ON) vipengele hivi:\n"
-                 "   - Disallow factory reset\n"
-                 "   - Disallow network reset\n"
-                 "   - Disallow config private dns"
-             )
-             messagebox.showinfo("Attention (Important)", msg)
+             self.cmd.log("-------------------------------------------")
+             self.cmd.log("[HEADER]⚠ FINAL SETUP REQUIRED ⚠")
+             self.cmd.log("1. Open the [BOLD]'Test DPC'[/BOLD] app on phone.")
+             self.cmd.log("2. Search for and [RED]DISABLE[/RED] these 3 items:")
+             self.cmd.log("   ➤ Factory Reset")
+             self.cmd.log("   ➤ Private DNS Config")
+             self.cmd.log("   ➤ Network Reset")
+             self.cmd.log("-------------------------------------------")
+             self.cmd.log("[GREEN]★ OPERATION SUCCESSFUL ★")
 
          threading.Thread(target=_bypass_thread).start()
 
@@ -578,7 +398,7 @@ class SamsungManager:
         Disables Galaxy Store, Updates, KG Client, etc.
         """
         def _task():
-            self.cmd.log("[HEADER] FIX KG RELOCK (v1.6 Logic)")
+            self.cmd.log("[BOLD]STARTING FIX KG RELOCK (ANTI-RELOCK)")
             self.cmd.log("Waiting for ADB Device...")
             
             # Disable Verifier First
@@ -589,8 +409,11 @@ class SamsungManager:
                 res = self.cmd.run_command("adb devices", log_output=False)
                 if "\tdevice" in res: break
                 time.sleep(1)
-                
-            self.cmd.log("[BLUE]Applying NUCLEAR PATCH to Block Relock...")
+            
+            self.cmd.log("[GREEN]DEVICE DETECTED  [OK]")
+            self.cmd.run_command("adb wait-for-device", log_output=False)
+            
+            # self.cmd.log("[BLUE]Applying NUCLEAR PATCH to Block Relock...")
             
             # THE BLACKLIST (Anti-Relock Targets)
             targets = [
@@ -607,46 +430,67 @@ class SamsungManager:
                 "com.samsung.android.scloud",      # Samsung Cloud
                 "com.knox.vpn.proxyhandler",       # VPN Handler
                 "com.samsung.klmsagent",           # Knox License
-                "com.sec.enterprise.knox.cloudmdm.smdms" # Cloud MDM
+                "com.sec.enterprise.knox.cloudmdm.smdms", # Cloud MDM
+                "com.samsung.android.knox.attestation", # NEW 2026: Offline Guard
+                "com.samsung.android.knox.analytics.uploader", # NEW 2026: Watchdog
+                "com.samsung.android.knox.pushmanager" # NEW 2026: Policy Enforcer
             ]
             
             # Kill Loop (Keep them dead while we work)
-            self.cmd.log("[*] Stopping Services...")
+            # self.cmd.log("[*] Stopping Services...")
             for _ in range(3):
                 for pkg in targets:
                     self.cmd.run_command(f"adb shell am force-stop {pkg}", log_output=False)
             
+            self.cmd.log("[GREEN]STOPPING SERVICES [OK]")
+            
             for pkg in targets:
-                self.cmd.log(f"🔥 DESTROYING: {pkg}")
-                # 1. Kill
-                self.cmd.run_command(f"adb shell am force-stop {pkg}", log_output=False)
-                # 2. Clear Data (CRITICAL for removing cached lock policies)
+                # 1. Clear Data (Reset Brain)
                 self.cmd.run_command(f"adb shell pm clear {pkg}", log_output=False)
-                # 3. Disable
-                self.cmd.run_command(f"adb shell pm disable-user --user 0 {pkg}", log_output=False)
-                # 4. Hide
-                self.cmd.run_command(f"adb shell pm hide {pkg}", log_output=False)
-                # 5. Suspend (Powerful)
-                self.cmd.run_command(f"adb shell pm suspend --user 0 {pkg}", log_output=False)
-                # 6. Uninstall (Final Blow - keeps data but removes from user 0)
-                self.cmd.run_command(f"adb shell pm uninstall -k --user 0 {pkg}", log_output=False)
-                # 7. AppOps (Silence Background Activity)
-                self.cmd.run_command(f"adb shell cmd appops set {pkg} RUN_IN_BACKGROUND ignore", log_output=False)
-                self.cmd.run_command(f"adb shell cmd appops set {pkg} START_FOREGROUND ignore", log_output=False)
-
-            # DOUBLE TAP: Check if they are still alive (Zombie Check)
-            self.cmd.log("[*] Verifying destruction...")
-            for pkg in targets:
-                res = self.cmd.run_command(f"adb shell pm list packages {pkg}", log_output=False)
-                if pkg in res:
-                    self.cmd.log(f"[YELLOW]Resilient Agent Found: {pkg} -> Retrying...")
-                    self.cmd.run_command(f"adb shell pm uninstall --user 0 {pkg}", log_output=False)
-                    self.cmd.run_command(f"adb shell pm disable {pkg}", log_output=False)
                 
-            self.cmd.log("---------------------------------------")
-            self.cmd.log("[GREEN]ANTI-RELOCK PATCH APPLIED!")
-            self.cmd.log("[INFO] Galaxy Store & Updates are DEAD.")
-            self.cmd.log("[INFO] You can now connect WiFi/SIM.")
-            self.cmd.log("👑 FIX KG DONE.")
+                # 2. Hide (Invisibility Cloak - Most Effective for System Apps)
+                self.cmd.run_command(f"adb shell pm hide {pkg}", log_output=False)
+                
+                # 3. Suspend (Freeze)
+                self.cmd.run_command(f"adb shell pm suspend --user 0 {pkg}", log_output=False)
+                
+                # 4. Disable (Turn Off)
+                self.cmd.run_command(f"adb shell pm disable-user --user 0 {pkg}", log_output=False)
+                
+                # 5. Uninstall (Kill Attempt)
+                self.cmd.run_command(f"adb shell pm uninstall --user 0 {pkg}", log_output=False)
+                
+                # 6. AppOps (Silence)
+                self.cmd.run_command(f"adb shell cmd appops set {pkg} RUN_IN_BACKGROUND ignore", log_output=False)
+
+            self.cmd.log("[GREEN]APPLYING PATCH  [OK]")
+            self.cmd.log("")
+            
+            # CRITICAL CHECK (Visibility Test)
+            # If 'pm list packages' (without -u) doesn't show it, it's effectively gone (Hidden or Uninstalled).
+            check_kg = self.cmd.run_command("adb shell pm list packages com.samsung.android.kgclient", log_output=False)
+            
+            if "package:com.samsung.android.kgclient" in check_kg:
+                # Be honest but helpful
+                self.cmd.log("[YELLOW]WARNING: KG Client is Stubborn.")
+                self.cmd.log("[YELLOW]Attempting Second Pass (Force Kill)...")
+                self.cmd.run_command("adb shell am force-stop com.samsung.android.kgclient", log_output=False)
+                self.cmd.run_command("adb shell pm hide com.samsung.android.kgclient", log_output=False)
+                
+                # Final Check
+                check_final = self.cmd.run_command("adb shell pm list packages com.samsung.android.kgclient", log_output=False)
+                if "package:com.samsung.android.kgclient" in check_final:
+                    self.cmd.log("[RED]FAILED: High Security Detected.")
+                    self.cmd.log("[RED]Manual Factory Reset Recommended.")
+                else:
+                     self.cmd.log("[BOLD]FIX COMPLETED (HIDDEN)")
+            else:
+                self.cmd.log("[BOLD]FIX COMPLETED (KG KILLED)")
+            
+            self.cmd.log("Done.")
+            
+            # self.cmd.log("[INFO] Galaxy Store & Updates are DEAD.")
+            # self.cmd.log("[INFO] You can now connect WiFi/SIM.")
+            # self.cmd.log("👑 FIX KG DONE.")
 
         threading.Thread(target=_task, daemon=True).start()

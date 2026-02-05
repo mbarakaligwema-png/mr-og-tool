@@ -285,9 +285,9 @@ async def verify_user(username: str = Form(...), password: str = Form(...), hwid
 @app.get("/api/v1/latest_version")
 async def latest_version():
     return {
-        "version": "1.7.0", 
-        "download_url": "https://www.mediafire.com/file/q5sr7hvfzcjcnng/MR_OG_TOOL.exe/file",
-        "changelog": "🔥 CRITICAL UPDATE v1.7.0 🔥\n- NEW: Android 15/16 KG & MDM FIXED!\n- ADDED: Private DNS Block (Permanent)\n- ADDED: Network Reset Protection\n- FIXED: Knox Relock Issues\n- ADDED: Live Screen (Scrcpy)\n- UPDATED: Samsung Odin Flash"
+        "version": "1.7.1", 
+        "download_url": "https://www.mediafire.com/file/vqeqz7tl3j4tj47/MR_OG_TOOL.exe/file",
+        "changelog": "🚀 CRITICAL UPDATE v1.7.1 🚀\n- FIXED: ZTE A35 QR Code Generator (Inside Tool)\n- UPDATED: Samsung KG 2025 (Renames Device to MR OG TOOL)\n- FIXED: Missing DLL/Script Errors\n- ADDED: Anti-Relock Logic Improved"
     }
 
 

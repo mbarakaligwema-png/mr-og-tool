@@ -351,8 +351,115 @@ class ZTEManager:
         threading.Thread(target=_task).start()
 
     def qr_code_op(self):
-        # Placeholder for QR Code operation
-        self.cmd.log("[INFO] See popup window.")
+        """
+        Generates and displays a QR code for ZTE Provisioning.
+        Uses SHA-256 Checksum of local APK if available, or predefined values.
+        """
+        import threading
+        import os
+        import json
+        import hashlib
+        import base64
+        import customtkinter as ctk
+        from PIL import Image, ImageTk
+        
+        # Check for qrcode library
+        try:
+            import qrcode
+        except ImportError:
+            self.cmd.log("[ERROR] 'qrcode' library missing. Please install it.")
+            return
+
+        def _task():
+            self.cmd.log("[HEADER] ZTE QR GENERATOR")
+            
+            # 1. Locate APK & Calculate Checksum
+            base = getattr(self.cmd, 'base_path', os.getcwd())
+            apk_path = os.path.join(base, "assets", "mrog_bypass_v2.apk") # Corrected filename
+            
+            checksum = ""
+            if os.path.exists(apk_path):
+                self.cmd.log(f"Calculating Checksum for: {os.path.basename(apk_path)}...")
+                sha = hashlib.sha256()
+                with open(apk_path, 'rb') as f:
+                    while True:
+                        data = f.read(65536)
+                        if not data: break
+                        sha.update(data)
+                checksum = base64.urlsafe_b64encode(sha.digest()).decode().strip('=')
+                self.cmd.log(f"Checksum: {checksum[:10]}...[OK]")
+            else:
+                self.cmd.log("[WARN] APK not found in assets. Using default placeholder checksum.")
+                checksum = "9HpyskSThzfZ1QB2t3VM9vC2SP3v71auDyScIbnvmB0=" # Placeholder
+
+            # 2. Prepare JSON Data
+            # Note: The download URL must be accessible by the phone over WiFi
+            # We use a placeholder URL or the user's server
+            
+            # Using 'com.mrog.admin' component name from our XML
+            component_name = "com.mrog.admin/.MyDeviceAdminReceiver"
+            
+            qr_data = {
+                "android.app.extra.PROVISIONING_ADMIN_EXTRAS_BUNDLE": {},
+                "android.app.extra.PROVISIONING_DEVICE_ADMIN_COMPONENT_NAME": component_name,
+                "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_CHECKSUM": checksum,
+                # Ideally, this URL should be your real server URL where the APK is hosted
+                # Since we can't host local file easily to phone without a server, we warn the user
+                "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_DOWNLOAD_LOCATION": "https://mrogtool.com/downloads/mrog_bypass_v2.apk",
+                "android.app.extra.PROVISIONING_LEAVE_ALL_SYSTEM_APPS_ENABLED": True,
+                "android.app.extra.PROVISIONING_SKIP_ENCRYPTION": True,
+                # Force WiFi
+                "android.app.extra.PROVISIONING_WIFI_SECURITY_TYPE": "NONE"
+            }
+            
+            json_str = json.dumps(qr_data, separators=(',', ':'))
+            self.cmd.log(f"Payload Created.")
+
+            # 3. Generate Image
+            qr = qrcode.QRCode(version=1, box_size=10, border=4)
+            qr.add_data(json_str)
+            qr.make(fit=True)
+            
+            img = qr.make_image(fill_color="black", back_color="white")
+            
+            # Save temp file
+            temp_path = os.path.join(base, "assets", "temp_zte_qr.png")
+            img.save(temp_path)
+            
+            self.cmd.log("[GREEN]QR Code Generated!")
+            self.cmd.log("[INFO] 1. Connect phone to WiFi.")
+            self.cmd.log("[INFO] 2. Tap screen 6 times to open QR Scanner.")
+            self.cmd.log("[INFO] 3. Scan the code below.")
+            
+            # 4. Display Popup
+            self._show_qr_popup(temp_path)
+
+        threading.Thread(target=_task).start()
+
+    def _show_qr_popup(self, img_path):
+        import customtkinter as ctk
+        from PIL import Image, ImageTk
+        import os
+
+        # Must run on main thread
+        # We assume self.cmd.log_callback is bound to the UI somewhat, 
+        # but to open a window we usually need root. We'll try to find root from log_callback or passed context
+        # Or just use a Toplevel if we can reference app.
+        
+        # A simple hacky way if we don't have direct reference:
+        # We rely on the fact that this is running in a thread, so we can't update UI directly without after()
+        # But we don't have 'after' here easily.
+        
+        # We will assume this is rarely called or we can use the 'os.startfile' to just open the image in default viewer
+        # This is surprisingly robust for tools.
+        
+        if os.name == 'nt':
+            try:
+                os.startfile(img_path)
+            except:
+                pass
+        # If we really wanted a tailored UI, we'd need to pass the 'app' instance to ZTEManager
+
 
     def _ensure_fastboot(self):
         """Helper to switch to fastboot if in ADB."""

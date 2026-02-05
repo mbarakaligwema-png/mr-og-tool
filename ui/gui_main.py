@@ -778,8 +778,7 @@ class OGServiceToolApp(ctk.CTk):
             ("Remove FRP (2024)", self.samsung_manager.remove_frp_2024),
             ("Soft Brick Fix", self.samsung_manager.soft_brick_fix),
             ("Exit Download Mode", self.samsung_manager.exit_download_mode),
-            ("MDM BYPASS 2025", self.samsung_manager.kg_bypass_android_15_16),
-            ("FIX KG", self.samsung_manager.fix_kg_relock)
+            ("KG 2025", self.samsung_manager.kg_bypass_android_15_16)
          ]
          
          for i, (text, cmd) in enumerate(buttons_data):
