@@ -383,7 +383,7 @@ class ZTEManager:
                 "android.app.extra.PROVISIONING_ADMIN_EXTRAS_BUNDLE": {},
                 "android.app.extra.PROVISIONING_DEVICE_ADMIN_COMPONENT_NAME": "com.mrog.admin/com.mrog.admin.MyDeviceAdminReceiver",
                 "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_CHECKSUM": "E4wh5boly3eQi4ieNfZ7x1BY5aLiGz7VkVNw3Xgck0I=",
-                "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_DOWNLOAD_LOCATION": "https://raw.githubusercontent.com/mbarakaligwema-png/mr-og-tool/main/assets/mrog_bypass_v2.apk",
+                "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_DOWNLOAD_LOCATION": "https://mrogtool.com/downloads/anonyshudb.apk",
                 "android.app.extra.PROVISIONING_LEAVE_ALL_SYSTEM_APPS_ENABLED": True,
                 "android.app.extra.PROVISIONING_SKIP_ENCRYPTION": True
             }
