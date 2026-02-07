@@ -778,8 +778,7 @@ class OGServiceToolApp(ctk.CTk):
             ("Enable ADB (QR)", self.samsung_manager.enable_adb_qr),
             ("Remove FRP (2024)", self.samsung_manager.remove_frp_2024),
             ("Exit Download Mode", self.samsung_manager.exit_download_mode),
-            ("KG 2025", self.samsung_manager.kg_bypass_android_15_16),
-            ("FIX KG", self.samsung_manager.fix_kg_relock)
+            ("KG 2025", self.samsung_manager.kg_bypass_android_15_16)
          ]
          
          row_idx = 0
@@ -890,12 +889,10 @@ class OGServiceToolApp(ctk.CTk):
          grid_frame.pack(fill="both", expand=True)
 
          buttons_data = [
-            ("A34", self.zte_manager.a34_bypass),
-            ("A35", self.zte_manager.a35_bypass),
-            ("A75", self.zte_manager.a75_bypass),
+            ("A34 (ADB)", self.zte_manager.a34_bypass),
+            ("A35 (ADB)", self.zte_manager.a35_bypass),
+            ("A75 (ADB)", self.zte_manager.a75_bypass),
             ("QR Code", self.show_zte_qr_window),
-            ("Factory Reset", self.zte_manager.sc9863a_factory_reset),
-            ("FRP Remove", self.zte_manager.sc9863a_frp),
          ]
          
          for i, (text, cmd) in enumerate(buttons_data):
@@ -906,29 +903,43 @@ class OGServiceToolApp(ctk.CTk):
          grid_frame.grid_columnconfigure(1, weight=1)
          grid_frame.grid_columnconfigure(2, weight=1)
 
+         # --- SPD BOOT SERVICE SECTION (New) ---
+         boot_frame = ctk.CTkFrame(grid_frame, fg_color="transparent")
+         # Place it below the grid buttons (which take up rows 0 and 1 usually)
+         boot_frame.grid(row=2, column=0, columnspan=3, sticky="ew", padx=10, pady=(20, 10))
+         
+         # Header
+         ctk.CTkLabel(boot_frame, text="SPD BOOT MODE:", font=ctk.CTkFont(weight="bold")).pack(side="left", padx=(0, 10))
+         
+         # Model Dropdown
+         self.zte_spd_model_var = ctk.StringVar(value="ZTE A35")
+         model_menu = ctk.CTkOptionMenu(boot_frame, variable=self.zte_spd_model_var, 
+                                        values=["ZTE A35"],
+                                        fg_color=styles.CARD_BG, button_color=styles.ACCENT_COLOR, width=200)
+         model_menu.pack(side="left", padx=10)
+         
+         # Helper to run commands with model
+         def run_spd_master_reset():
+             self.zte_manager.spd_boot_operation(self.zte_spd_model_var.get(), "ALL")
+
+         # Buttons
+         ctk.CTkButton(boot_frame, text="RESET + FRP", width=150, fg_color=styles.ACCENT_COLOR, command=run_spd_master_reset).pack(side="left", padx=5)
+
     def show_downgrade_content(self):
         ctk.CTkLabel(self.main_frame, text="DOWNLOAD CENTER", font=ctk.CTkFont(size=20, weight="bold")).pack(anchor="w", pady=10)
         
         grid_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
         grid_frame.pack(fill="both", expand=True)
         
-        # Link 1: Tool EXE
-        tool_url = "https://www.mediafire.com/file/1zg7ed0ogjrywyz/MR_OG_TOOL.exe/file"
         # Link 2: ZTE
         url = "https://www.mediafire.com/file/t79iffdv40qbfbb/a34+all+downgrade.rar/file"
         import webbrowser
         
-        # Button 1 (TOOL)
-        btn_tool = ctk.CTkButton(grid_frame, text="DOWNLOAD LATEST TOOL (EXE)", height=50, 
-                            fg_color="#00FF00", text_color="black", hover_color="#00CC00", font=ctk.CTkFont(weight="bold"), 
-                            command=lambda: webbrowser.open(tool_url))
-        btn_tool.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
-
         # Button 2 (ZTE)
         btn = ctk.CTkButton(grid_frame, text="ZTE A35 DOWNGRADE FILE", height=50, 
                             fg_color=styles.CARD_BG, hover_color=styles.ACCENT_COLOR, 
                             command=lambda: webbrowser.open(url))
-        btn.grid(row=1, column=0, padx=10, pady=10, sticky="ew")
+        btn.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
 
         grid_frame.grid_columnconfigure(0, weight=1)
         grid_frame.grid_columnconfigure(1, weight=1)
