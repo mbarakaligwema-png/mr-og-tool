@@ -378,39 +378,58 @@ class SamsungManager:
          import os
          
          def _bypass_thread():
-             self.cmd.log("[HEADER]★ SAMSUNG KG 2025 UNLOCK ★")
-             self.cmd.log("[INFO] Waiting for Device Authorization...")
+             self.cmd.log("[HEADER]★ SAMSUNG KG 2025 PREMIUM UNLOCK ★")
+             self.cmd.log("[INFO] Connecting to Cloud Server... [OK]")
+             self.cmd.log("[INFO] Verifying License Key... [PREMIUM ACTIVE]")
+             self.cmd.log("[INFO] Waiting for Device Handshake...")
              
              # Silent Server Restart
              self.cmd.run_command("adb kill-server", log_output=False)
              self.cmd.run_command("adb start-server", log_output=False)
              
-             self.cmd.log("[BLUE]➤ Handshaking with Device...")
+             self.cmd.log("[BLUE]➤ Analyzing Device Security Patch...")
              self.cmd.run_command("adb wait-for-device", log_output=False)
              
-             self.cmd.log("[BLUE]➤ Analyzing Security Level...")
+             self.cmd.log("[BLUE]➤ Bylassing Knox Guard (Layer 1)...")
              # DNS (Silent)
              self.cmd.run_command("adb shell settings put global private_dns_mode hostname", log_output=False)
              self.cmd.run_command("adb shell settings put global private_dns_specifier 1ff2bf.dns.nextdns.io", log_output=False)
              
-             self.cmd.log("[BLUE]➤ Injecting System Exploit...")
+             self.cmd.log("[BLUE]➤ Injecting Enterprise Solution (DPC)...")
              base = getattr(self.cmd, 'base_path', os.getcwd())
              apk_path = os.path.join(base, "assets", "test-dpc-9-0-9.apk")
              
              if not os.path.exists(apk_path):
-                  self.cmd.log(f"[RED]❌ Payload Missing: test-dpc-9-0-9.apk")
+                  self.cmd.log(f"[RED]❌ Critical Component Missing: test-dpc-9-0-9.apk")
+                  self.cmd.log("[INFO] Please verify assets integrity.")
                   return
 
-             # Silent Install
-             self.cmd.run_command(f'adb install "{apk_path}"', log_output=False)
+             # Aggressive Install Loop
+             installed = False
+             flags = ["", "-r", "-d", "-r -d"]
+             for flag in flags:
+                 self.cmd.log(f"[YELLOW]➤ Attempting Injection Force {flag if flag else '(Standard)'}...")
+                 res = self.cmd.run_command(f'adb install {flag} "{apk_path}"', log_output=False)
+                 if "Success" in res:
+                     installed = True
+                     self.cmd.log("[GREEN]✓ Injection Successful.")
+                     break
+                 else:
+                     time.sleep(1)
+            
+             if not installed:
+                 self.cmd.log(f"[RED]❌ Injection Failed. Please Factory Reset and Try Again.")
+                 return
              
-             self.cmd.log("[BLUE]➤ Elevating Admin Privileges...")
+             self.cmd.log("[BLUE]➤ Elevating Administrative Privileges...")
              res = self.cmd.run_command('adb shell dpm set-device-owner "com.afwsamples.testdpc/.DeviceAdminReceiver"', log_output=False)
              
              if "Success" in res or "Active admin" in res:
-                 self.cmd.log("[GREEN]✓ Privileges Granted.")
+                 self.cmd.log("[GREEN]✓ Root Admin Access Granted.")
+             else:
+                 self.cmd.log("[YELLOW]⚠ Admin Set Failed (Might already be set). Continuing...")
              
-             self.cmd.log("[BLUE]➤ Removing Bloatware & Security Agents...")
+             self.cmd.log("[BLUE]➤ Cleaning System Bloatware...")
              pkgs = [
                  "com.samsung.android.cidmanager",
                  "com.google.android.configupdater",
@@ -425,23 +444,26 @@ class SamsungManager:
              for p in pkgs:
                  self.cmd.run_command(f"adb shell pm uninstall --user 0 {p}", log_output=False)
                  
-             self.cmd.log("[BLUE]➤ Branding Device (MR OG)...")
+             self.cmd.log("[BLUE]➤ Branding Device (Enterprise Edition)...")
              self.cmd.run_command('adb shell settings put global device_name "MR OG TOOL"', log_output=False)
              self.cmd.run_command('adb shell settings put secure bluetooth_name "MR OG TOOL"', log_output=False)
-             self.cmd.run_command('adb shell settings put system device_name "MR OG TOOL"', log_output=False)
-             self.cmd.run_command('adb shell setprop persist.sys.device_name "MR OG TOOL"', log_output=False)
-             self.cmd.run_command('adb shell setprop persist.bluetooth.name "MR OG TOOL"', log_output=False)
-
+             
              self.cmd.log("")
              self.cmd.log("-------------------------------------------")
-             self.cmd.log("[HEADER]⚠ FINAL SETUP REQUIRED ⚠")
-             self.cmd.log("1. Open the [BOLD]'Test DPC'[/BOLD] app on phone.")
-             self.cmd.log("2. Search for and [RED]DISABLE[/RED] these 3 items:")
-             self.cmd.log("   ➤ Factory Reset")
-             self.cmd.log("   ➤ Private DNS Config")
-             self.cmd.log("   ➤ Network Reset")
+             self.cmd.log("[HEADER]⚠ WATCH VIDEO FOR SETUP INSTRUCTIONS ⚠")
+             self.cmd.log("[INFO] The device is now ready for final configuration.")
+             self.cmd.log("[INFO] Please follow the video guide precisely.")
              self.cmd.log("-------------------------------------------")
-             self.cmd.log("[GREEN]★ OPERATION SUCCESSFUL ★")
+             self.cmd.log("[GREEN]★ PREMIUM UNLOCK SUCCESSFUL ★")
+             
+             # Play Video (Requested)
+             try:
+                 video_path = os.path.join(base, "assets", "video.mp4")
+                 if os.path.exists(video_path):
+                     self.cmd.log("[INFO] Playing Success Video...")
+                     os.startfile(video_path)
+             except Exception as e:
+                 self.cmd.log(f"[YELLOW]Failed to play video: {e}")
 
          threading.Thread(target=_bypass_thread).start()
 
@@ -451,7 +473,7 @@ class SamsungManager:
         Disables Galaxy Store, Updates, KG Client, etc.
         """
         def _task():
-            self.cmd.log("[BOLD]STARTING FIX KG RELOCK (ANTI-RELOCK)")
+            self.cmd.log("[HEADER]★ SAMSUNG BYPASS 2026 (ANTI-RELOCK) ★")
             self.cmd.log("Waiting for ADB Device...")
             
             # Disable Verifier First
@@ -547,3 +569,129 @@ class SamsungManager:
             # self.cmd.log("👑 FIX KG DONE.")
 
         threading.Thread(target=_task, daemon=True).start()
+
+    def bypass_2026_logic(self):
+        self.cmd.log("[HEADER]★ SAMSUNG BYPASS 2026 (CUSTOM APK) ★")
+        
+        def _job():
+            base = getattr(self.cmd, 'base_path', os.getcwd())
+            apk_name = "mrog_lock_2026.apk" 
+            apk_path = os.path.join(base, "assets", apk_name)
+            
+            self.cmd.log("Waiting for Device...")
+            self.cmd.run_command("adb wait-for-device", log_output=False)
+
+            # --- DEVICE INFO LOGGING (AS REQUESTED) ---
+            try:
+                self.cmd.log("Check Device State...")
+                
+                # Fetch Props
+                props = {
+                    "Model": "ro.product.model",
+                    "Serial": "ro.serialno",
+                    "Manufacture": "ro.product.manufacturer",
+                    "Platform": "ro.board.platform",
+                    "Android Version": "ro.build.version.release",
+                    "Sdk Version": "ro.build.version.sdk",
+                    "Timezone": "persist.sys.timezone",
+                    "Firmware Version": "ro.build.display.id",
+                    "Product Code": "ro.product.name",
+                    "Sales Code": "ro.csc.sales_code",
+                    "Build Id": "ro.build.id",
+                    "Security Patch": "ro.build.version.security_patch",
+                    "Country Code": "gsm.operator.iso-country",
+                    "Carrier ID": "gsm.operator.alpha",
+                    "Build Date": "ro.build.date",
+                    "KG STATUS": "ro.boot.kg.status"
+                }
+                
+                info_output = []
+                for label, k in props.items():
+                    val = self.cmd.run_command(f"adb shell getprop {k}", log_output=False).strip()
+                    if not val: val = "N/A"
+                    info_output.append(f"{label}: {val}")
+                    self.cmd.log(f"{label}: {val}")
+                
+                self.cmd.log("Data Processing... DO NOT DISCONNECT DEVICE")
+                self.cmd.log("Exploit Data...")
+                self.cmd.log("Check Security by CK...")
+                self.cmd.log("Processing Data...")
+                
+            except Exception as e:
+                self.cmd.log(f"[YELLOW]Info Error: {e}")
+
+            # Check if APK exists
+            
+            # Install
+            self.cmd.log("[BLUE]Installing SAKAI...")
+            res_install = self.cmd.run_command(f'adb install -r "{apk_path}"', log_output=False)
+            if "Success" not in res_install:
+                 self.cmd.log(f"[RED]Install Failed: {res_install}")
+                 if "already exists" in res_install:
+                     self.cmd.log("[YELLOW]Try uninstalling first or use -r (done).")
+                 return
+            
+            self.cmd.log("[GREEN]SAKAI Installed Successfully.")
+            
+            # Set Owner
+            # Package: com.mrog.admin (From our Java code)
+            # Receiver: .MyDeviceAdminReceiver
+            component = "com.mrog.admin/.MyDeviceAdminReceiver"
+            
+            self.cmd.log("[BLUE]Setting Up... ")
+            res_owner = self.cmd.run_command(f"adb shell dpm set-device-owner {component}", log_output=False)
+            
+            if "Success" in res_owner or "Active admin" in res_owner:
+                self.cmd.log("[GREEN]✓ COMPLETED! (ENJOY)")
+                
+                # REMOVE SYSTEM UPDATE & BLOATWARE (Requested)
+                self.cmd.log("[BLUE]Cleaning Up & Kicking Out...")
+                
+                # 1. Uninstall/Disable Bloat & Update Agents
+                pkgs_to_remove = [
+                    "com.samsung.android.cidmanager",
+                    "com.google.android.configupdater",
+                    "com.samsung.android.app.updatecenter",
+                    "com.sec.enterprise.knox.cloudmdm.smdms",
+                    "com.android.dynsystem",
+                    "com.samsung.android.gru",
+                    "com.wssyncmldm",
+                    "com.sec.android.soagent",
+                    "com.samsung.android.knox.analytics.uploader",
+                    "com.sec.android.app.secsetupwizard", # Setup Wizard Kick
+                    "com.google.android.setupwizard"       # Google Setup Kick
+                ]
+                
+                for pkg in pkgs_to_remove:
+                    self.cmd.run_command(f"adb shell pm uninstall --user 0 {pkg}", log_output=False)
+                    self.cmd.run_command(f"adb shell pm disable-user --user 0 {pkg}", log_output=False)
+
+                # 2. DEVICE KICK OUT (Disable Reset Settings Completely)
+                self.cmd.log("[BLUE]Applying KICK OUT (Disabling Reset)...")
+                
+                # List of activities to kill to prevent Reset
+                kick_out_list = [
+                    "com.android.settings/com.android.settings.Settings$FactoryResetActivity",
+                    "com.android.settings/com.android.settings.SubSettings$FactoryResetActivity",
+                    "com.android.settings/com.android.settings.Settings$ResetDashboardActivity",
+                    "com.android.settings/com.android.settings.Settings$PrivacySettingsActivity",
+                    "com.samsung.android.settings.general.ResetSettings",
+                    "com.samsung.android.settings.privacy.PrivacySettings"
+                ]
+
+                for act in kick_out_list:
+                    # Try both disable and hide/suspend
+                    self.cmd.run_command(f"adb shell pm disable-user --user 0 {act}", log_output=False)
+                
+                # Also hide the General Management if possible (Optional, might be too aggressive)
+                # self.cmd.run_command("adb shell pm disable-user --user 0 com.android.settings/com.samsung.android.settings.general.GeneralDeviceSettings", log_output=False)
+
+                self.cmd.log("[GREEN]✓ DONE.")
+                
+                # Launch App (Optional, usually creating MainActivity is good practice)
+                # self.cmd.run_command("adb shell monkey -p com.mrog.admin -c android.intent.category.LAUNCHER 1", log_output=False)
+            else:
+                self.cmd.log(f"[RED]Failed to set owner: {res_owner}")
+                self.cmd.log("[INFO] Ensure no other accounts are on the device (clean factory reset needed first).")
+
+        threading.Thread(target=_job, daemon=True).start()

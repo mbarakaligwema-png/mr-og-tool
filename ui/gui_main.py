@@ -932,7 +932,7 @@ class OGServiceToolApp(ctk.CTk):
         grid_frame.pack(fill="both", expand=True)
         
         # Link 2: ZTE
-        url = "https://www.mediafire.com/file/t79iffdv40qbfbb/a34+all+downgrade.rar/file"
+        url = "https://www.mediafire.com/file/baymgqjav6vyfxk/A35+SULUTION+SOLVED+QR+CODE+BROCKED.rar/file"
         import webbrowser
         
         # Button 2 (ZTE)

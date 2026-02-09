@@ -1,0 +1,17 @@
+MAELEKEZO MAPYA (NJIA RAHISI)
+
+Nimekuandalia PROJECT NZIMA tayari. Huna haja ya kukopy na kupaste code.
+
+Fanya hivi tu:
+
+1.  Fungua **Android Studio**.
+2.  Chagua **File > Open**.
+3.  Nenda kwenye folda hili:
+    `C:\Users\mbara\Documents\MR_OG_TOOL\assets\android_project`
+4.  Bonyeza **OK** kufungua project hiyo.
+5.  Subiri Android Studio imalize kusoma (Sync).
+6.  Nenda menu: **Build > Build Bundle(s) / APK(s) > Build APK(s)**.
+7.  Ikimaliza, chukua hiyo APK, ibadilishe jina iwe `mrog_lock_2026.apk`.
+8.  Weka hiyo APK kwenye folda la `assets` la tool (`MR_OG_TOOL\assets\`).
+
+Hapo utakuwa umemaliza! Kazi kwako Boss.
