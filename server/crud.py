@@ -6,7 +6,7 @@ def get_user(db: Session, username: str):
     return db.query(models.User).filter(models.User.username == username).first()
 
 def get_users(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.User).offset(skip).limit(limit).all()
+    return db.query(models.User).order_by(models.User.id.desc()).offset(skip).limit(limit).all()
 
 def create_user(db: Session, username: str, password: str, email: str = None, is_admin: bool = False):
     hashed_password = auth.get_password_hash(password)

@@ -52,10 +52,10 @@
             <table style="width: 100%; border-collapse: collapse; min-width: 800px;">
                 <thead>
                     <tr style="border-bottom: 2px solid #333;">
-                        <th style="text-align: left; padding: 12px; width: 50px;">ID</th>
-                        <th style="text-align: left; padding: 12px;">Username</th>
+                        <th style="text-align: left; padding: 12px; width: 50px;">No.</th>
+                        <th style="text-align: left; padding: 12px;">Username (ID)</th>
                         <th style="text-align: left; padding: 12px;">Email</th>
-                        <th style="text-align: left; padding: 12px;">Expiry</th>
+                        <th style="text-align: left; padding: 12px;">Expiry (UTC)</th>
                         <th style="text-align: left; padding: 12px;">HWID</th>
                         <th style="text-align: left; padding: 12px;">Actions</th>
                     </tr>
@@ -63,11 +63,12 @@
                 <tbody>
                     {% for u in users if u.is_active and not u.is_expired() %}
                     <tr style="border-bottom: 1px solid #333;">
-                        <td style="padding: 12px;">{{ u.id }}</td>
-                        <td style="padding: 12px; font-weight: bold;">{{ u.username }}</td>
+                        <td style="padding: 12px;">{{ loop.index }}</td>
+                        <td style="padding: 12px; font-weight: bold;">{{ u.username }} <span
+                                style="font-weight:normal; font-size:0.8em; color:#666;">(#{{ u.id }})</span></td>
                         <td style="padding: 12px;">{{ u.email if u.email else "No Email" }}</td>
                         <td style="padding: 12px; color: #4CAF50;">
-                            {{ u.expiry_date.strftime('%Y-%m-%d') if u.expiry_date else "LIFETIME" }}
+                            {{ u.expiry_date.strftime('%Y-%m-%d %H:%M') if u.expiry_date else "LIFETIME" }}
                         </td>
                         <td style="padding: 12px; font-family: monospace; font-size: 0.85em; color: #888;">{{ u.hwid if
                             u.hwid else "-" }}</td>
@@ -123,19 +124,20 @@
             <table style="width: 100%; border-collapse: collapse; min-width: 800px;">
                 <thead>
                     <tr style="border-bottom: 2px solid #333;">
-                        <th style="padding: 12px;">ID</th>
-                        <th style="padding: 12px;">Username</th>
+                        <th style="padding: 12px;">No.</th>
+                        <th style="padding: 12px;">Username (ID)</th>
                         <th style="padding: 12px;">Email</th>
                         <th style="padding: 12px;">Status</th>
-                        <th style="padding: 12px;">Expiry</th>
+                        <th style="padding: 12px;">Expiry (UTC)</th>
                         <th style="padding: 12px;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for u in users if not u.is_active or u.is_expired() %}
                     <tr style="border-bottom: 1px solid #333; background: rgba(244, 67, 54, 0.05);">
-                        <td style="padding: 12px;">{{ u.id }}</td>
-                        <td style="padding: 12px; font-weight: bold;">{{ u.username }}</td>
+                        <td style="padding: 12px;">{{ loop.index }}</td>
+                        <td style="padding: 12px; font-weight: bold;">{{ u.username }} <span
+                                style="font-weight:normal; font-size:0.8em; color:#666;">(#{{ u.id }})</span></td>
                         <td style="padding: 12px;">{{ u.email if u.email else "No Email" }}</td>
                         <td style="padding: 12px;">
                             {% if not u.is_active %} <span
@@ -145,7 +147,7 @@
                             {% endif %}
                         </td>
                         <td style="padding: 12px;">
-                            {{ u.expiry_date.strftime('%Y-%m-%d') if u.expiry_date else "LIFETIME" }}
+                            {{ u.expiry_date.strftime('%Y-%m-%d %H:%M') if u.expiry_date else "LIFETIME" }}
                         </td>
                         <td style="padding: 12px;">
                             <div style="display: flex; gap: 8px; flex-wrap: wrap;">

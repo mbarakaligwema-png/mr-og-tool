@@ -53,7 +53,8 @@ def verify_user_license(server_url, username, password, hwid):
     data = urllib.parse.urlencode({
         "username": username,
         "password": password,
-        "hwid": hwid
+        "hwid": hwid,
+        "version": "1.7.0"
     }).encode()
     
     try:
@@ -62,6 +63,8 @@ def verify_user_license(server_url, username, password, hwid):
             if response.getcode() == 200:
                 body = json.loads(response.read().decode())
                 if body.get("status") == "OK":
+                    if body.get("update_required", False):
+                         return False, "UPDATE REQUIRED: Download new version from website."
                     expiry = body.get("expiry", "Unknown")
                     return True, f"Expires: {expiry}"
                 else:

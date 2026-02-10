@@ -220,6 +220,7 @@ class LoginWindow(ctk.CTk):
         self.version_label.pack(side="bottom", pady=5)
         
         self.cleanup_legacy_admin()
+        self.load_config() # Reload to get any new default users added by cleanup
         self.populate_fields()
         
         # TRIGGER STARTUP CHECK (SWAG)
@@ -301,7 +302,9 @@ class LoginWindow(ctk.CTk):
         try:
             if os.path.exists(self.users_db_path):
                 with open(self.users_db_path, "r") as f: self.users_db = json.load(f)
-            else: self.users_db = {"mrogtool": {"password": "dell", "expiry": "Unlimited"}}
+            else: self.users_db = {
+                "mrogtool": {"password": "dell", "expiry": "Unlimited"}
+            }
         except Exception as e: print(f"Error loading users db: {e}")
 
     def populate_fields(self):
@@ -446,7 +449,7 @@ class LoginWindow(ctk.CTk):
                      is_allowed = True
                      msg = "Offline Mode (Server Unreachable)"
                  else:
-                     msg = "Login Failed: Offline & Not Cached"
+                     msg = "Offline & Not Cached"
 
         if is_allowed:
              self.save_config(username, password)

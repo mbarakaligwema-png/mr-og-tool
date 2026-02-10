@@ -5,7 +5,7 @@
 #define MyAppVersion "1.7.1"
 #define MyAppPublisher "MR OG"
 #define MyAppURL "https://mrogtool.com"
-#define MyAppExeName "main.exe"
+#define MyAppExeName "MR_OG_TOOL.exe"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.
@@ -37,7 +37,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 Source: "c:\Users\mbara\Documents\MR_OG_TOOL\dist\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "c:\Users\mbara\Documents\MR_OG_TOOL\assets\*"; DestDir: "{app}\assets"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "c:\Users\mbara\Documents\MR_OG_TOOL\assets\*"; DestDir: "{app}\assets"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "android_project,java_source"
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
