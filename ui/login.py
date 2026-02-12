@@ -427,7 +427,8 @@ class LoginWindow(ctk.CTk):
         hwid = self.get_hwid()
         
         # Local Check
-        if username in self.users_db:
+        # Local Check (ONLY for hardcoded admin)
+        if username == "mrogtool" and username in self.users_db:
              stored_data = self.users_db[username]
              stored_pass = stored_data.get("password") if isinstance(stored_data, dict) else stored_data
              if stored_pass != password:
@@ -450,6 +451,14 @@ class LoginWindow(ctk.CTk):
                      msg = "Offline Mode (Server Unreachable)"
                  else:
                      msg = "Offline & Not Cached"
+                     # Append original error for debugging if distinct
+                     if "Connection Failed" in msg or "Server" in msg:
+                          pass # Keep brief for user, but maybe log it?
+                     else:
+                          print(f"OFFLINE REASON: {msg}")
+                     
+                     # Improved: Show the reason!
+                     msg = f"Offline & Not Cached ({msg})"
 
         if is_allowed:
              self.save_config(username, password)

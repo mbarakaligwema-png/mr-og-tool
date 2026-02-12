@@ -16,6 +16,7 @@ def check_internet_connection(host="8.8.8.8", port=53, timeout=3):
     except socket.error:
         return False
 
+
 def verify_server_access(server_url):
     """
     Verify server is reachable.
@@ -24,21 +25,23 @@ def verify_server_access(server_url):
         if not server_url:
             return False
         
-        # Determine strictness. For now, just check if we can reach the home page.
-        # We assume local server is HTTP. If HTTPS, context needed.
+        # Determine strictness.
         ctx = ssl.create_default_context()
         ctx.check_hostname = False
         ctx.verify_mode = ssl.CERT_NONE
         
-        if "http://127.0.0.1" in server_url or "localhost" in server_url:
-             req = urllib.request.Request(server_url)
-             with urllib.request.urlopen(req, timeout=5) as response:
-                return response.getcode() == 200
-        else:
-             # For production/google mock
-             req = urllib.request.Request(server_url)
-             with urllib.request.urlopen(req, timeout=5, context=ctx) as response:
-                return response.getcode() == 200
+        req = urllib.request.Request(server_url)
+        # Low timeout to avoid hanging startup
+        with urllib.request.urlopen(req, timeout=5, context=ctx) as response:
+            # Check for 200 OK
+            if response.getcode() != 200:
+                return False
+            
+            # Additional check: If we are redirected to an ISP search page, 
+            # the URL might have changed or content length might be small/different.
+            # Ideally we check for expected content, but we don't know it yet.
+            # For now, we trust 200 but verify_user_license will catch the rest.
+            return True
 
     except Exception as e:
         print(f"Server Check Error: {e}")
@@ -57,11 +60,21 @@ def verify_user_license(server_url, username, password, hwid):
         "version": "1.7.0"
     }).encode()
     
+    # Create SSL Context to ignore verification
+    ctx = ssl.create_default_context()
+    ctx.check_hostname = False
+    ctx.verify_mode = ssl.CERT_NONE
+
     try:
         req = urllib.request.Request(api_url, data=data, method="POST") 
-        with urllib.request.urlopen(req, timeout=10) as response:
+        with urllib.request.urlopen(req, timeout=10, context=ctx) as response:
             if response.getcode() == 200:
-                body = json.loads(response.read().decode())
+                raw_response = response.read().decode()
+                try:
+                    body = json.loads(raw_response)
+                except json.JSONDecodeError:
+                    return False, "Server Parsing Error: Invalid JSON received."
+
                 if body.get("status") == "OK":
                     if body.get("update_required", False):
                          return False, "UPDATE REQUIRED: Download new version from website."
@@ -80,4 +93,4 @@ def verify_user_license(server_url, username, password, hwid):
         except:
              return False, f"Server Error: {e.code}"
     except Exception as e:
-        return False, f"Connection Failed: {e}"
+        return False, f"Connection Failed: {str(e)}"

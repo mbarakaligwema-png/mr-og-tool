@@ -7,10 +7,9 @@ from datetime import timedelta
 
 import models, database, crud, auth
 
+
 import models, database, crud, auth
 import os
-
-
 
 # Init DB
 models.Base.metadata.create_all(bind=database.engine)
@@ -19,7 +18,7 @@ app = FastAPI()
 
 @app.get("/health")
 def health_check():
-    return {"status": "ok", "version": "v1.6-DEBUG"}
+    return {"status": "ok", "version": "v1.7.1-STABLE"}
 
 @app.get("/debug")
 def debug_info():
@@ -230,7 +229,7 @@ async def reset_hwid(user_id: int, request: Request, db: Session = Depends(get_d
 
 # --- API ENDPOINTS (For Desktop Tool) ---
 
-@app.post("/api/v1/verify")
+
 @app.post("/api/v1/verify")
 async def verify_user(username: str = Form(...), password: str = Form(...), hwid: str = Form(...), db: Session = Depends(get_db)):
     user = crud.get_user(db, username)
@@ -247,8 +246,10 @@ async def verify_user(username: str = Form(...), password: str = Form(...), hwid
     if user.is_expired():
         return JSONResponse(content={"status": "BLOCK", "message": "License Expired."}, status_code=403)
     
+
     # HWID Logic
-    from datetime import datetime, timedelta
+    # Note: datetime/timedelta should be at top level, but for now we import locally if needed or use stdlib
+    from datetime import datetime
     
     if user.hwid:
         if user.hwid != hwid:
@@ -259,12 +260,14 @@ async def verify_user(username: str = Form(...), password: str = Form(...), hwid
             
             if user.last_hwid_reset:
                  time_diff = now - user.last_hwid_reset
-                 if time_diff.total_seconds() > (12 * 3600): # 12 Hours
+                 # Check if time_diff is valid (it should be a timedelta)
+                 total_seconds = time_diff.total_seconds()
+                 if total_seconds > (12 * 3600): # 12 Hours
                      allow_reset = True
                  else:
-                     remaining_hours = 12 - (time_diff.total_seconds() / 3600)
+                     remaining_hours = 12 - (total_seconds / 3600)
             else:
-                 # First time reset is free (or treat creation as reset? Let's give one free reset)
+                 # First time reset is free
                  allow_reset = True
             
             if allow_reset:
@@ -274,7 +277,7 @@ async def verify_user(username: str = Form(...), password: str = Form(...), hwid
             else:
                 return JSONResponse(content={"status": "BLOCK", "message": f"HWID Mismatch. Try again in {int(remaining_hours)} hours."}, status_code=403)
     else:
-    # First time login = Bind HWID
+        # First time login = Bind HWID
         user.hwid = hwid
         user.last_hwid_reset = datetime.utcnow()
         db.commit()
