@@ -5,122 +5,121 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}MR OG TOOL{% endblock %}</title>
+    <!-- Modern Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Boxicons for Icons -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
-    <style>
-        :root {
-            --bg-color: #121212;
-            --card-bg: #1e1e1e;
-            --text-primary: #e0e0e0;
-            --text-secondary: #a0a0a0;
-            --accent-color: #3f51b5;
-            --accent-hover: #303f9f;
-            --error-color: #cf6679;
-            --success-color: #4caf50;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-primary);
-            margin: 0;
-            padding: 0;
-            line-height: 1.6;
-        }
-
-        .navbar {
-            background-color: var(--card-bg);
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
-        }
-
-        .brand {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: var(--accent-color);
-            text-decoration: none;
-        }
-
-        .nav-links a {
-            color: var(--text-primary);
-            text-decoration: none;
-            margin-left: 20px;
-            font-weight: 500;
-            transition: color 0.3s;
-        }
-
-        .nav-links a:hover {
-            color: white;
-            text-decoration: underline;
-        }
-
-        /* Mobile Responsive Navbar */
-        @media (max-width: 768px) {
-            .navbar {
-                flex-direction: column;
-                align-items: center;
-                padding: 10px;
-            }
-
-            .brand {
-                margin-bottom: 10px;
-                background-color: transparent !important;
-                /* Ensure brand bg doesn't conflict */
-            }
-
-            .nav-links {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                gap: 10px;
-                width: 100%;
-            }
-
-            .nav-links a {
-                margin-left: 0;
-                margin-bottom: 5px;
-                padding: 10px;
-                width: 100%;
-                text-align: center;
-                background: rgba(255, 255, 255, 0.05);
-                /* Slight highlight for touch targets */
-                border-radius: 5px;
-            }
-        }
-    </style>
 </head>
 
 <body>
-    <nav class="navbar">
-        <a href="/" class="brand">MR OG TOOL</a>
-        <div class="nav-links">
-
-            <a href="/resellers" style="color: #FFD700; font-weight: bold;">Resellers</a>
-            <a href="/active-license">Active License</a>
-            {% if user %}
-            <a href="/dashboard">Dashboard</a>
-            {% if user.is_admin %}
-            <a href="/admin">Admin Panel</a>
-            {% endif %}
-            <a href="/logout">Logout ({{ user.username }})</a>
-            {% else %}
-            <a href="/login">Login</a>
-            <a href="/register">Register</a>
-            {% endif %}
+    {% if user %}
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div
+                style="background: white; border-radius: 8px; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;">
+                <i class='bx bxs-component' style="color: var(--sidebar-bg); font-size: 1.5rem;"></i>
+            </div>
+            <h2>MR OG Tool</h2>
         </div>
-    </nav>
 
-    <div class="container">
-        {% block content %}{% endblock %}
+        <div class="user-profile-sidebar">
+            <div class="user-avatar">
+                <i class='bx bxs-user-circle' style="font-size: 80px;"></i>
+            </div>
+            <div class="user-email">{{ user.username }}</div>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-section-title">Navigation</div>
+            <nav class="sidebar-nav">
+                <a href="/dashboard" class="{% if request.url.path == '/dashboard' %}active{% endif %}">
+                    <i class='bx bxs-dashboard'></i>
+                    <span>Dashboard</span>
+                </a>
+                <!-- NCK Link as requested: Impeleke kwenye link moja kwa moja -->
+                <a href="https://wa.me/255683397833?text=Hello+Admin+I+want+NCK+Service" target="_blank">
+                    <i class='bx bxs-key'></i>
+                    <span>NCK</span>
+                </a>
+                <a href="/resellers" class="{% if request.url.path == '/resellers' %}active{% endif %}">
+                    <i class='bx bxs-cloud-download'></i>
+                    <span>Download</span>
+                </a>
+                {% if user.is_admin %}
+                <a href="/admin" class="{% if request.url.path == '/admin' %}active{% endif %}">
+                    <i class='bx bxs-wrench'></i>
+                    <span>Admin Panel</span>
+                </a>
+                {% endif %}
+                <a href="/logout" style="margin-top: 20px; color: #ffbcbc;">
+                    <i class='bx bx-log-out'></i>
+                    <span>Logout</span>
+                </a>
+            </nav>
+        </div>
+    </aside>
+    {% endif %}
+
+    <!-- Main Wrapper -->
+    <div class="main-wrapper"
+        style="{% if not user %}flex: 1; width: 100vw; height: 100vh; overflow-y: auto;{% endif %}">
+        {% if user %}
+        <!-- Topbar -->
+        <header class="topbar">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <button id="sidebar-toggle"
+                    style="background: transparent; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-secondary);">
+                    <i class='bx bx-menu'></i>
+                </button>
+                <div class="search-box">
+                    <i class='bx bx-search' style="color: var(--text-secondary);"></i>
+                    <input type="text" placeholder="Search...">
+                </div>
+            </div>
+
+            <div class="topbar-right">
+                <div class="status-badge">
+                    EXPIRE DATE:
+                    <span style="color: #ff9800; border-bottom: 1px dotted #ff9800;">
+                        {{ user.expiry_date.strftime('%Y-%m-%d') if user.expiry_date else "LIFETIME" }}
+                    </span>
+                </div>
+
+                <div class="icon-button">
+                    <i class='bx bx-bell'></i>
+                    <div class="notification-dot"></div>
+                </div>
+
+                <div class="icon-button">
+                    <i class='bx bx-envelope'></i>
+                    <div class="notification-dot"></div>
+                </div>
+
+                <div class="icon-button" style="background: #e0e5ff;">
+                    <i class='bx bxs-user'></i>
+                </div>
+            </div>
+        </header>
+        {% endif %}
+
+        <main class="content-area">
+            {% block content %}{% endblock %}
+        </main>
     </div>
 
-    <!-- Footer -->
-    <div
-        style="margin-top: 50px; padding: 20px; text-align: center; color: #555; font-size: 0.9em; border-top: 1px solid #333;">
-        <p style="cursor: default;">Power by mrog</p>
-    </div>
+    <!-- Toggle Sidebar Script -->
+    <script>
+        const toggleBtn = document.getElementById('sidebar-toggle');
+        const sidebar = document.querySelector('.sidebar');
+        if (toggleBtn && sidebar) {
+            toggleBtn.onclick = () => {
+                // Simplified toggle for mobile if needed
+                console.log('Toggle Sidebar');
+            }
+        }
+    </script>
 </body>
 
 </html>

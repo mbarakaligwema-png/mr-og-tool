@@ -3,50 +3,97 @@
 {% block title %}Dashboard - MR OG TOOL{% endblock %}
 
 {% block content %}
-<div style="margin-top: 40px;">
-    <h1>Welcome, {{ user.username }}</h1>
+<div class="dashboard-container">
+    <!-- Header Page -->
+    <div class="dashboard-header">
+        <h1>Dashboard</h1>
+        <p>Welcome back! Here's your work overview</p>
+    </div>
 
-    <div class="card">
-        <h3>Account Status</h3>
-        <div style="display: flex; gap: 40px; margin-top: 20px;">
-            <div>
-                <label>Status</label>
-                <div style="font-size: 1.2rem; font-weight: bold;"
-                    class="{% if user.is_active %}status-active{% else %}status-blocked{% endif %}">
-                    {{ "ACTIVE" if user.is_active else "BLOCKED" }}
-                </div>
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+        <!-- Card 1: Total Work -->
+        <div class="stat-card">
+            <div class="stat-icon bg-purple">
+                <i class='bx bxs-briefcase'></i>
             </div>
-            <div>
-                <label>License Expiry</label>
-                <div style="font-size: 1.2rem; font-weight: bold;">
-                    {{ user.expiry_date.strftime('%Y-%m-%d') if user.expiry_date else "LIFETIME" }}
-                </div>
+            <h3>1</h3>
+            <p>Total Work</p>
+            <a href="#">View Details</a>
+        </div>
+
+        <!-- Card 2: Transaction History -->
+        <div class="stat-card">
+            <div class="stat-icon bg-pink">
+                <i class='bx bxs-layer'></i>
             </div>
-            <div>
-                <label>HWID Binding</label>
-                <div style="font-size: 1.2rem; font-weight: bold;">
-                    {{ "LOCKED" if user.hwid else "UNBOUND" }}
-                </div>
+            <h3>0</h3>
+            <p>Transaction History</p>
+            <a href="#">View History</a>
+        </div>
+
+        <!-- Card 3: License/Duration -->
+        <div class="stat-card">
+            <div class="stat-icon bg-blue">
+                <i class='bx bxs-time-five'></i>
             </div>
+            <h3>
+                {% if user.expiry_date %}
+                {{ user.expiry_date.strftime('%Y-%m-%d') }}
+                {% else %}
+                No License
+                {% endif %}
+            </h3>
+            <p>Available Duration</p>
+            <a href="/resellers" style="color: var(--error-color);">Purchase Required</a>
         </div>
     </div>
 
-    <!-- Admin Actions (Only for Admin) -->
-    {% if user.is_admin %}
-    <div class="card" style="border-left: 5px solid #ff4757; background-color: #2f3640;">
-        <h3 style="color: #ff4757;">Admin Control</h3>
-        <p>You have administrative privileges.</p>
-        <div style="margin-top: 15px;">
-            <a href="/admin" class="btn"
-                style="background-color: #ff4757; text-decoration: none; display: inline-block;">Go to Admin Panel</a>
+    <!-- License Status Section -->
+    <div class="stat-card" style="width: 100%; box-sizing: border-box;">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+            <div class="stat-icon bg-blue" style="margin-bottom: 0;">
+                <i class='bx bxs-id-card'></i>
+            </div>
+            <h3 style="font-size: 1.2rem;">License Status</h3>
         </div>
-        <p style="font-size: 0.8em; margin-top: 10px; color: #ccc;">Manage Users, Reset HWIDs, block users.</p>
+
+        <div class="license-info">
+            {% set is_expired = user.is_expired() if hasattr(user, 'is_expired') else False %}
+            <div class="license-badge {% if not is_expired %}active{% endif %}" style="margin-bottom: 15px;">
+                {% if is_expired %}
+                EXPIRED / NO LICENSE
+                {% else %}
+                ACTIVE LICENSE
+                {% endif %}
+            </div>
+
+            <p style="margin-bottom: 25px;">
+                {% if is_expired %}
+                No active license found. Please purchase a license to unlock full features.
+                {% else %}
+                Your license is active and ready to use. Thank you for your support!
+                {% endif %}
+            </p>
+
+            <a href="https://wa.me/255683397833?text=Hello+Admin+I+want+to+buy+Activation" class="btn-purchase"
+                target="_blank">
+                <i class='bx bxs-cart' style="margin-right: 8px;"></i> Purchase Now
+            </a>
+        </div>
     </div>
-    {% endif %}
 
-    <!-- Instructions / Download -->
-
-
-
+    <!-- Work Table Placeholder (Optional, for visual completion) -->
+    <div class="stat-card" style="margin-top: 30px; width: 100%; box-sizing: border-box;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="font-size: 1.2rem;">Today's Work</h3>
+            <div style="font-size: 2rem; color: var(--accent-color); font-weight: bold;">0</div>
+        </div>
+        <hr style="border: 0; border-top: 1px solid #f0f0f0;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+            <h3 style="font-size: 1.2rem;">Yesterday's Work</h3>
+            <div style="font-size: 2rem; color: var(--text-secondary); font-weight: bold;">0</div>
+        </div>
+    </div>
 </div>
 {% endblock %}
