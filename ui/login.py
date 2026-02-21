@@ -216,7 +216,7 @@ class LoginWindow(ctk.CTk):
                                     command=lambda: webbrowser.open("https://www.youtube.com/@GSMFAMILY1"))
         youtube_btn.pack(side="left", padx=5)
 
-        self.version_label = ctk.CTkLabel(self, text="v1.5", text_color="#666666", font=ctk.CTkFont(size=10))
+        self.version_label = ctk.CTkLabel(self, text="v1.7.1", text_color="#666666", font=ctk.CTkFont(size=10))
         self.version_label.pack(side="bottom", pady=5)
         
         self.cleanup_legacy_admin()
@@ -402,19 +402,19 @@ class LoginWindow(ctk.CTk):
         
         # 1. Logging in...
         self.after(0, lambda: set_status("Logging in..."))
-        time.sleep(1.2)
+        time.sleep(0.5)
         
         # 2. Retrieving info
         self.after(0, lambda: set_status("Retrieving user info..."))
-        time.sleep(1.5)
+        time.sleep(0.5)
         
         # 3. Validating
         self.after(0, lambda: set_status("Validating user license..."))
-        time.sleep(1.5)
+        time.sleep(0.5)
         
         # 4. Signing in...
         self.after(0, lambda: set_status("Signing in..."))
-        time.sleep(0.8)
+        time.sleep(0.3)
         
         # Now call real logic (must run on main thread? No, verify is network. But auth check is better there)
         # Actually verify involves networking.
@@ -439,26 +439,14 @@ class LoginWindow(ctk.CTk):
         from core.network import verify_user_license
         is_allowed, msg = verify_user_license(server_url, username, password, hwid)
         
+        # Server rejected keywords
         server_rejected_keywords = ["Wrong Password", "BLOCKED", "Expired", "Access Denied", "HWID", "User not found"]
         is_server_rejection = any(keyword in msg for keyword in server_rejected_keywords)
         
+        # STRICT MODE: No Offline Fallback
+        # If server check failed (False), we stay Failed.
         if not is_allowed:
-            if is_server_rejection:
-                pass 
-            elif "Connection Failed" in msg or "Server HTTP" in msg or "Server Error" in msg:
-                 if username in self.users_db and self.users_db[username].get("password") == password:
-                     is_allowed = True
-                     msg = "Offline Mode (Server Unreachable)"
-                 else:
-                     msg = "Offline & Not Cached"
-                     # Append original error for debugging if distinct
-                     if "Connection Failed" in msg or "Server" in msg:
-                          pass # Keep brief for user, but maybe log it?
-                     else:
-                          print(f"OFFLINE REASON: {msg}")
-                     
-                     # Improved: Show the reason!
-                     msg = f"Offline & Not Cached ({msg})"
+             pass # Logic flows to else block below
 
         if is_allowed:
              self.save_config(username, password)

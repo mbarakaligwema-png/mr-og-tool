@@ -72,11 +72,13 @@ def main():
             server_url = ""
     
     if not verify_server_access(server_url):
-         # Create a hidden root just to show messagebox/dialog
+        # Create a hidden root just to show messagebox/dialog
         root = ctk.CTk()
         root.withdraw()
-        tkinter.messagebox.showwarning("Server Warning", "Server verification failed.\nStarting Offline Mode.\n(Unable to connect to server - Continuing...)")
+        # STRICT ENFORCEMENT: No Offline Mode allowed.
+        tkinter.messagebox.showerror("Offline Access Error", "Connection to server failed.\nInternet access is required to use this tool.\n\nPlease check your connection and try again.")
         root.destroy()
+        return
 
     # Set global theme before creating any window
     ctk.set_appearance_mode("Dark")

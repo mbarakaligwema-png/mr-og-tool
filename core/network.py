@@ -57,7 +57,7 @@ def verify_user_license(server_url, username, password, hwid):
         "username": username,
         "password": password,
         "hwid": hwid,
-        "version": "1.7.0"
+        "version": "1.7.1"
     }).encode()
     
     # Create SSL Context to ignore verification

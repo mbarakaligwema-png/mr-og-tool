@@ -275,11 +275,13 @@ async def verify_user(username: str = Form(...), password: str = Form(...), hwid
                 user.last_hwid_reset = now
                 db.commit()
             else:
-                return JSONResponse(content={"status": "BLOCK", "message": f"HWID Mismatch. Try again in {int(remaining_hours)} hours."}, status_code=403)
+                return JSONResponse(content={"status": "BLOCK", "message": f"HWID Mismatch. Reset cooldown: {int(remaining_hours)}h remaining."}, status_code=403)
     else:
         # First time login = Bind HWID
         user.hwid = hwid
-        user.last_hwid_reset = datetime.utcnow()
+        # IMPORTANT: Do NOT set last_hwid_reset here, 
+        # so their first REAL reset (to a 2nd PC) is always allowed.
+        user.last_hwid_reset = None 
         db.commit()
     
     expiry_str = user.expiry_date.strftime('%Y-%m-%d %H:%M') if user.expiry_date else "LIFETIME"

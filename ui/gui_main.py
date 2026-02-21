@@ -14,7 +14,7 @@ ctk.set_appearance_mode("Dark")  # Modes: "System" (standard), "Dark", "Light"
 ctk.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
 
 class OGServiceToolApp(ctk.CTk):
-    VERSION = "1.7.0"
+    VERSION = "1.7.1"
 
     def __init__(self, username="User", expiry_msg="LIFETIME"):
         super().__init__()

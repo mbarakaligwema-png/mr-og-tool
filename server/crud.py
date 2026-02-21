@@ -10,10 +10,8 @@ def get_users(db: Session, skip: int = 0, limit: int = 100):
 
 def create_user(db: Session, username: str, password: str, email: str = None, is_admin: bool = False):
     hashed_password = auth.get_password_hash(password)
-    # Default to NOW (Immediately Expired) so they need a package. 
-    # If is_admin, maybe give lifetime? Let's keep it consistent, admin can give themselves time.
-    # actually admin usually needs access.
-    default_expiry = None if is_admin else datetime.datetime.utcnow()
+    # Default to 1 hour from now so they can at least login and check the tool.
+    default_expiry = None if is_admin else datetime.datetime.utcnow() + datetime.timedelta(hours=1)
     
     db_user = models.User(username=username, email=email, hashed_password=hashed_password, is_admin=is_admin, expiry_date=default_expiry)
     db.add(db_user)
