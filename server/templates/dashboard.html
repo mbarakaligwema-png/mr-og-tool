@@ -59,7 +59,7 @@
         </div>
 
         <div class="license-info">
-            {% set is_expired = user.is_expired() if hasattr(user, 'is_expired') else False %}
+            {% set is_expired = user.is_expired() %}
             <div class="license-badge {% if not is_expired %}active{% endif %}" style="margin-bottom: 15px;">
                 {% if is_expired %}
                 EXPIRED / NO LICENSE
