@@ -14,7 +14,7 @@
 
 <body>
     {% if user %}
-    <!-- Sidebar -->
+    <!-- Sidebar for Logged-In Users -->
     <aside class="sidebar">
         <div class="sidebar-header">
             <div
@@ -55,13 +55,30 @@
             </nav>
         </div>
     </aside>
+    {% else %}
+    <!-- Public Navbar for Guest Users -->
+    <nav class="public-nav">
+        <a href="/" class="public-logo">
+            <div
+                style="background: var(--accent-color); border-radius: 8px; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;">
+                <i class='bx bxs-component' style="color: white; font-size: 1.5rem;"></i>
+            </div>
+            <span>MR OG TOOL</span>
+        </a>
+        <div class="public-nav-links">
+            <a href="/">Home</a>
+            <a href="/#features">Features</a>
+            <a href="/resellers">Resellers</a>
+            <a href="/login" class="btn-login">Client Login</a>
+        </div>
+    </nav>
     {% endif %}
 
     <!-- Main Wrapper -->
     <div class="main-wrapper"
-        style="{% if not user %}flex: 1; width: 100vw; height: 100vh; overflow-y: auto;{% endif %}">
+        style="{% if not user %}flex: 1; width: 100vw; overflow-y: auto; overflow-x: hidden;{% endif %}">
         {% if user %}
-        <!-- Topbar -->
+        <!-- Topbar for Logged-In Users -->
         <header class="topbar">
             <div style="display: flex; align-items: center; gap: 15px;">
                 <button id="sidebar-toggle"
@@ -87,11 +104,6 @@
                     <div class="notification-dot"></div>
                 </div>
 
-                <div class="icon-button">
-                    <i class='bx bx-envelope'></i>
-                    <div class="notification-dot"></div>
-                </div>
-
                 <div class="icon-button" style="background: #e0e5ff;">
                     <i class='bx bxs-user'></i>
                 </div>
@@ -99,22 +111,22 @@
         </header>
         {% endif %}
 
-        <main class="content-area">
+        <main class="content-area" style="{% if not user %}padding: 0;{% endif %}">
             {% block content %}{% endblock %}
         </main>
-    </div>
 
-    <!-- Toggle Sidebar Script -->
-    <script>
-        const toggleBtn = document.getElementById('sidebar-toggle');
-        const sidebar = document.querySelector('.sidebar');
-        if (toggleBtn && sidebar) {
-            toggleBtn.onclick = () => {
-                // Simplified toggle for mobile if needed
-                console.log('Toggle Sidebar');
-            }
-        }
-    </script>
+        {% if not user %}
+        <!-- Public Footer -->
+        <footer
+            style="background: #0b0e11; padding: 50px 20px; text-align: center; border-top: 1px solid rgba(255,255,255,0.05);">
+            <div class="public-logo" style="justify-content: center; margin-bottom: 20px;">
+                <i class='bx bxs-component' style="color: var(--accent-color);"></i>
+                <span>MR OG TOOL</span>
+            </div>
+            <p style="color: var(--text-secondary); font-size: 0.9rem;">© 2026 MR OG TOOL. All rights reserved.</p>
+        </footer>
+        {% endif %}
+    </div>
 </body>
 
 </html>
