@@ -129,7 +129,9 @@ async def register(request: Request, username: str = Form(...), email: str = For
         return templates.TemplateResponse("register.html", {"request": request, "error": "Username already taken"})
     
     try:
-        crud.create_user(db, username, password, email=email)
+        new_user = crud.create_user(db, username, password, email=email)
+        # Create Notification for Admin
+        crud.create_notification(db, f"Mteja mpya amejiunga: {username}")
         return RedirectResponse(url="/login?msg=registered", status_code=status.HTTP_303_SEE_OTHER)
     except Exception as e:
         print(f"--- REGISTRATION ERROR: {e} ---")
@@ -226,6 +228,36 @@ async def reset_hwid(user_id: int, request: Request, db: Session = Depends(get_d
     
     crud.reset_user_hwid(db, user_id)
     return RedirectResponse(url="/admin", status_code=status.HTTP_303_SEE_OTHER)
+
+@app.get("/api/v1/notifications")
+async def get_notifications(request: Request, db: Session = Depends(get_db)):
+    user = get_current_user_from_cookie(request, db)
+    if not user or not user.is_admin:
+        return JSONResponse({"count": 0, "notifications": []})
+    
+    notifs = crud.get_latest_notifications(db)
+    unread_count = len([n for n in notifs if not n.is_read])
+    
+    return {
+        "count": unread_count,
+        "notifications": [
+            {
+                "id": n.id,
+                "message": n.message,
+                "is_read": n.is_read,
+                "time": n.created_at.strftime("%H:%M")
+            } for n in notifs
+        ]
+    }
+
+@app.post("/api/v1/notifications/read")
+async def read_notifications(request: Request, db: Session = Depends(get_db)):
+    user = get_current_user_from_cookie(request, db)
+    if not user or not user.is_admin:
+        return {"status": "error"}
+    
+    crud.mark_notifications_read(db)
+    return {"status": "ok"}
 
 # --- API ENDPOINTS (For Desktop Tool) ---
 

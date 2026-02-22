@@ -20,3 +20,11 @@ class User(Base):
         if self.expiry_date and datetime.datetime.utcnow() > self.expiry_date:
             return True
         return False
+
+class Notification(Base):
+    __tablename__ = "notifications"
+
+    id = Column(Integer, primary_key=True, index=True)
+    message = Column(String)
+    is_read = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)

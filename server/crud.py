@@ -86,3 +86,18 @@ def set_user_admin_status(db: Session, user_id: int, is_admin: bool):
         db.commit()
         return user
     return None
+
+# --- NOTIFICATIONS ---
+def create_notification(db: Session, message: str):
+    db_notif = models.Notification(message=message)
+    db.add(db_notif)
+    db.commit()
+    db.refresh(db_notif)
+    return db_notif
+
+def get_latest_notifications(db: Session, limit: int = 20):
+    return db.query(models.Notification).order_by(models.Notification.created_at.desc()).limit(limit).all()
+
+def mark_notifications_read(db: Session):
+    db.query(models.Notification).update({models.Notification.is_read: True})
+    db.commit()

@@ -297,16 +297,17 @@ body {
 
 /* Public Page Styles */
 .public-nav {
-    padding: 20px 50px;
+    padding: 15px 40px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: rgba(15, 17, 26, 0.9);
-    backdrop-filter: blur(15px);
+    background: #0f111a;
     position: sticky;
     top: 0;
     z-index: 1000;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 2px solid var(--accent-color);
+    /* Added color line for visibility */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
 }
 
 .public-logo {
@@ -435,11 +436,20 @@ body {
     }
 
     .public-nav {
-        padding: 15px;
+        padding: 10px 15px;
+        flex-direction: column;
+        gap: 10px;
     }
 
     .public-nav-links {
-        display: none;
+        display: flex;
+        gap: 15px;
+        margin: 0;
+    }
+
+    .public-nav-links a {
+        font-size: 0.75rem;
+        margin: 0;
     }
 
     .hero-gradient {
