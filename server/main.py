@@ -323,7 +323,7 @@ async def verify_user(username: str = Form(...), password: str = Form(...), hwid
 async def latest_version():
     return {
         "version": "1.7.1", 
-        "download_url": "https://www.mediafire.com/file/7vjuuhdx18nkix8/MR_OG_TOOL_Setup_v1.7.1.exe/file",
+        "download_url": "https://www.mediafire.com/file/yl428z37lwyvrt9/MR_OG_TOOL_Setup_v1.7.1.exe/file",
         "changelog": "★ MR OG TOOL v1.7.1 ★\n\n- NEW: Samsung A06 KG BYPASS (Supported U8 / U9)\n- NEW: ZTE A35 QR CODE FIX (100% Working)\n- IMPROVED: KG 2025 Premium Logic\n- FIXED: Setup Installation Issues\n- ADDED: Video Guide Integration"
     }
 
