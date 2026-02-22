@@ -4,26 +4,131 @@
 
 {% block content %}
 <!-- Hero Section -->
-<section class="hero-gradient">
-    <div class="container" style="max-width: 900px;">
-        <div class="feature-badge">UPDATED v1.7.1 AVAILABLE</div>
-        <h1 style="font-size: 4rem; margin: 10px 0; letter-spacing: -2px;">MR OG TOOL</h1>
-        <p style="font-size: 1.3rem; color: var(--text-secondary); max-width: 600px; margin: 20px auto 40px;">
-            The ultimate all-in-one solution for <b>FRP Bypass</b>, <b>KG Unlock</b>, and <b>MDM Repair</b>.
-            Fast, secure, and reliable.
-        </p>
+<section class="hero-gradient" style="padding: 100px 20px; overflow: hidden;">
+    <div class="container"
+        style="max-width: 1200px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 40px;">
 
-        <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
-            <a href="https://www.mediafire.com/file/0gzwdkkc5eujlg9/MR_OG_TOOL_Setup_v1.7.1.exe/file" target="_blank"
-                class="btn-purchase"
-                style="background: var(--accent-color); padding: 18px 40px; font-size: 1.1rem; box-shadow: 0px 8px 15px rgba(61, 90, 254, 0.3);">
-                <i class='bx bxs-download'></i> Download Tool v1.7.1
-            </a>
-            <a href="https://chat.whatsapp.com/LXHVYoAOlTc2HfBrd2VeOa" target="_blank" class="btn-purchase"
-                style="background: var(--success-color); padding: 18px 40px; font-size: 1.1rem; box-shadow: 0px 8px 15px rgba(0, 230, 118, 0.2);">
-                <i class='bx bxl-whatsapp'></i> Join Support Group
-            </a>
+        <!-- Left Side: Core Message -->
+        <div style="flex: 1; min-width: 300px; text-align: left;">
+            <div class="feature-badge" style="animation: pulse 2s infinite;">UPDATED v1.7.1 AVAILABLE</div>
+            <h1 style="font-size: 4rem; margin: 10px 0; letter-spacing: -2px;">MR OG TOOL <i class='bx bxs-check-shield'
+                    style="color: var(--accent-color); font-size: 2.5rem;"></i></h1>
+            <p
+                style="font-size: 1.3rem; color: var(--text-secondary); max-width: 550px; margin: 20px 0 40px; line-height: 1.6;">
+                The ultimate all-in-one solution for <b>FRP Bypass</b>, <b>KG Unlock</b>, and <b>MDM Repair</b>.
+                Fast, secure, and reliable.
+            </p>
+
+            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                <a href="https://www.mediafire.com/file/0gzwdkkc5eujlg9/MR_OG_TOOL_Setup_v1.7.1.exe/file"
+                    target="_blank" class="btn-purchase"
+                    style="background: var(--accent-color); padding: 18px 40px; font-size: 1.1rem; box-shadow: 0px 8px 15px rgba(61, 90, 254, 0.3);">
+                    <i class='bx bxs-download'></i> Download Tool v1.7.1
+                </a>
+                <a href="https://chat.whatsapp.com/LXHVYoAOlTc2HfBrd2VeOa" target="_blank" class="btn-purchase"
+                    style="background: var(--success-color); padding: 18px 40px; font-size: 1.1rem; box-shadow: 0px 8px 15px rgba(0, 230, 118, 0.2);">
+                    <i class='bx bxl-whatsapp'></i> Support Group
+                </a>
+            </div>
         </div>
+
+        <!-- Right Side: Ramadan Decoration (As requested by USER) -->
+        <div class="ramadan-decor"
+            style="flex: 1; min-width: 300px; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; background: rgba(255, 215, 0, 0.03); border-radius: 40px; border: 1px solid rgba(255, 215, 0, 0.1); backdrop-filter: blur(5px);">
+            <!-- Golden Crescent -->
+            <div style="position: relative; animation: float 4s ease-in-out infinite;">
+                <i class='bx bxs-moon'
+                    style="font-size: 120px; color: gold; filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.5));"></i>
+                <i class='bx bxs-star'
+                    style="position: absolute; top: 20px; right: -10px; font-size: 30px; color: gold; animation: blink 1.5s infinite;"></i>
+            </div>
+
+            <h2
+                style="color: gold; margin: 25px 0 10px; font-size: 2.2rem; font-weight: 800; letter-spacing: 1px; text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);">
+                RAMADAN KAREEM</h2>
+            <p
+                style="color: rgba(255, 215, 0, 0.7); font-size: 1rem; text-align: center; font-weight: 600; text-transform: uppercase; letter-spacing: 2px;">
+                Kheri ya mwezi mtukufu</p>
+
+            <!-- Hanging Lanterns -->
+            <div style="display: flex; gap: 40px; margin-top: 20px;">
+                <i class='bx bxs-objects-vertical-bottom'
+                    style="font-size: 40px; color: gold; animation: swing 3s ease-in-out infinite;"></i>
+                <i class='bx bxs-objects-vertical-bottom'
+                    style="font-size: 40px; color: gold; animation: swing 4s ease-in-out infinite; animation-delay: 0.5s;"></i>
+            </div>
+
+            <style>
+                @keyframes float {
+
+                    0%,
+                    100% {
+                        transform: translateY(0);
+                    }
+
+                    50% {
+                        transform: translateY(-20px);
+                    }
+                }
+
+                @keyframes blink {
+
+                    0%,
+                    100% {
+                        opacity: 1;
+                        transform: scale(1);
+                    }
+
+                    50% {
+                        opacity: 0.5;
+                        transform: scale(0.8);
+                    }
+                }
+
+                @keyframes swing {
+
+                    0%,
+                    100% {
+                        transform: rotate(-10deg);
+                        transform-origin: top;
+                    }
+
+                    50% {
+                        transform: rotate(10deg);
+                        transform-origin: top;
+                    }
+                }
+
+                @keyframes pulse {
+                    0% {
+                        transform: scale(1);
+                        opacity: 1;
+                    }
+
+                    50% {
+                        transform: scale(1.05);
+                        opacity: 0.8;
+                    }
+
+                    100% {
+                        transform: scale(1);
+                        opacity: 1;
+                    }
+                }
+
+                @media (max-width: 768px) {
+                    .container {
+                        text-align: center !important;
+                    }
+
+                    .ramadan-decor {
+                        margin-top: 40px;
+                        width: 100%;
+                    }
+                }
+            </style>
+        </div>
+
     </div>
 </section>
 
