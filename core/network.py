@@ -30,18 +30,18 @@ def verify_server_access(server_url):
         ctx.check_hostname = False
         ctx.verify_mode = ssl.CERT_NONE
         
-        req = urllib.request.Request(server_url)
+        # Add User-Agent to avoid being blocked by WAF/Firewalls
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        }
+        
+        req = urllib.request.Request(server_url, headers=headers)
         # Low timeout to avoid hanging startup
-        with urllib.request.urlopen(req, timeout=5, context=ctx) as response:
+        with urllib.request.urlopen(req, timeout=8, context=ctx) as response:
             # Check for 200 OK
-            if response.getcode() != 200:
-                return False
-            
-            # Additional check: If we are redirected to an ISP search page, 
-            # the URL might have changed or content length might be small/different.
-            # Ideally we check for expected content, but we don't know it yet.
-            # For now, we trust 200 but verify_user_license will catch the rest.
-            return True
+            if response.getcode() == 200:
+                return True
+            return False
 
     except Exception as e:
         print(f"Server Check Error: {e}")
@@ -65,9 +65,13 @@ def verify_user_license(server_url, username, password, hwid):
     ctx.check_hostname = False
     ctx.verify_mode = ssl.CERT_NONE
 
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    }
+
     try:
-        req = urllib.request.Request(api_url, data=data, method="POST") 
-        with urllib.request.urlopen(req, timeout=10, context=ctx) as response:
+        req = urllib.request.Request(api_url, data=data, headers=headers, method="POST") 
+        with urllib.request.urlopen(req, timeout=15, context=ctx) as response:
             if response.getcode() == 200:
                 raw_response = response.read().decode()
                 try:

@@ -71,14 +71,27 @@ def main():
         except:
             server_url = ""
     
-    if not verify_server_access(server_url):
-        # Create a hidden root just to show messagebox/dialog
+    # STRICT ENFORCEMENT: Verify server access with Retry mechanism
+    max_retries = 2
+    retry_count = 0
+    while not verify_server_access(server_url):
         root = ctk.CTk()
         root.withdraw()
-        # STRICT ENFORCEMENT: No Offline Mode allowed.
-        tkinter.messagebox.showerror("Offline Access Error", "Connection to server failed.\nInternet access is required to use this tool.\n\nPlease check your connection and try again.")
+        
+        msg = "Connection to server failed.\nInternet access is required to use this tool.\n\n"
+        msg += f"Server: {server_url}\n\n"
+        msg += "Please check your internet, disable any VPN/Firewall, or try again in a few seconds."
+        
+        retry = tkinter.messagebox.askretrycancel("Server Connection Error", msg)
         root.destroy()
-        return
+        
+        if not retry:
+            return
+            
+        retry_count += 1
+        if retry_count > max_retries:
+             # If too many retries, try a fallback check or force stop
+             break
 
     # Set global theme before creating any window
     ctk.set_appearance_mode("Dark")
