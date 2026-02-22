@@ -277,8 +277,8 @@ body {
 }
 
 .btn-purchase {
-    background: var(--accent-color);
-    color: white;
+    background: linear-gradient(135deg, #FF4B2B, #FF416C);
+    color: white !important;
     padding: 14px 28px;
     border-radius: 12px;
     text-decoration: none;
