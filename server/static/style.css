@@ -27,9 +27,16 @@ body {
     margin: 0;
     padding: 0;
     display: flex;
+    flex-direction: column;
+    /* Default to column for public pages */
     min-height: 100vh;
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
+}
+
+/* Row layout only when sidebar is present (logged in) */
+body:has(.sidebar) {
+    flex-direction: row;
 }
 
 /* Sidebar */
@@ -297,17 +304,32 @@ body {
 
 /* Public Page Styles */
 .public-nav {
-    padding: 15px 40px;
+    padding: 20px 60px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: #0f111a;
+    background: #161922;
+    /* Solid dark background */
     position: sticky;
     top: 0;
-    z-index: 1000;
-    border-bottom: 2px solid var(--accent-color);
-    /* Added color line for visibility */
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    z-index: 2000;
+    border-bottom: 3px solid var(--accent-color);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+}
+
+.public-nav-links a {
+    color: var(--text-primary);
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-left: 40px;
+    transition: color 0.3s;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.public-nav-links a:hover {
+    color: var(--accent-color);
 }
 
 .public-logo {
