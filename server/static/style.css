@@ -436,20 +436,35 @@ body {
     }
 
     .public-nav {
-        padding: 10px 15px;
+        padding: 15px 10px;
         flex-direction: column;
-        gap: 10px;
+        gap: 12px;
+        background: #161922;
+        /* More contrast */
+        border-bottom: 3px solid var(--accent-color);
     }
 
     .public-nav-links {
         display: flex;
         gap: 15px;
         margin: 0;
+        flex-wrap: wrap;
+        justify-content: center;
     }
 
     .public-nav-links a {
-        font-size: 0.75rem;
-        margin: 0;
+        font-size: 0.95rem;
+        /* Larger font */
+        font-weight: 700;
+        color: var(--text-primary) !important;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .btn-login {
+        background: var(--accent-color);
+        padding: 5px 15px !important;
+        border-radius: 5px !important;
     }
 
     .hero-gradient {
