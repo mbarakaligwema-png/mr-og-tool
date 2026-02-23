@@ -390,7 +390,7 @@ class SamsungManager:
              self.cmd.log("[BLUE]➤ Analyzing Device Security Patch...")
              self.cmd.run_command("adb wait-for-device", log_output=False)
              
-             self.cmd.log("[BLUE]➤ Bylassing Knox Guard (Layer 1)...")
+             self.cmd.log("[BLUE]➤ Bypassing Knox Guard (Layer 1)...")
              # DNS (Silent)
              self.cmd.run_command("adb shell settings put global private_dns_mode hostname", log_output=False)
              self.cmd.run_command("adb shell settings put global private_dns_specifier 1ff2bf.dns.nextdns.io", log_output=False)
@@ -406,7 +406,9 @@ class SamsungManager:
 
              # Aggressive Install Loop
              installed = False
-             flags = ["", "-r", "-d", "-r -d"]
+             last_error = ""
+             # Added -g to grant all permissions automatically
+             flags = ["-g", "-r -g", "-d -g", "-r -d -g"]
              for flag in flags:
                  self.cmd.log(f"[YELLOW]➤ Attempting Injection Force {flag if flag else '(Standard)'}...")
                  res = self.cmd.run_command(f'adb install {flag} "{apk_path}"', log_output=False)
@@ -415,10 +417,12 @@ class SamsungManager:
                      self.cmd.log("[GREEN]✓ Injection Successful.")
                      break
                  else:
+                     last_error = res.strip().replace("\n", " ")
                      time.sleep(1)
             
              if not installed:
-                 self.cmd.log(f"[RED]❌ Injection Failed. Please Factory Reset and Try Again.")
+                 self.cmd.log(f"[RED]❌ Injection Failed: {last_error}")
+                 self.cmd.log("[INFO] Solution: Factory Reset the device & Disable Play Protect/Google Account.")
                  return
              
              self.cmd.log("[BLUE]➤ Elevating Administrative Privileges...")
@@ -427,7 +431,8 @@ class SamsungManager:
              if "Success" in res or "Active admin" in res:
                  self.cmd.log("[GREEN]✓ Root Admin Access Granted.")
              else:
-                 self.cmd.log("[YELLOW]⚠ Admin Set Failed (Might already be set). Continuing...")
+                 self.cmd.log(f"[YELLOW]⚠ Admin Set Failed: {res.strip()}")
+                 self.cmd.log("[INFO] If previously set, ignore this. Otherwise, Factory Reset is required.")
              
              self.cmd.log("[BLUE]➤ Cleaning System Bloatware...")
              pkgs = [
