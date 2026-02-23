@@ -49,50 +49,61 @@ class ZTEManager:
     
                 self.cmd.log("[BLUE]🔥 TARGET LOCK ACQUIRED. INITIATING BREACH...")
                 
-                # ZTE Bloatware Removal
-                self.cmd.log("☠️ NUKING ZTE BLOATWARE (CLEANING TRASH)...")
+                # ZTE Bloatware Removal (Refined to avoid breaking System UI/Calls)
+                self.cmd.log("☠️ NUKING ZTE ZDM AGENTS (CLEANING TRASH)...")
                 zte_apps = [
-                    "com.zte.zdmdaemon", "com.zte.zdm.omacp", "com.zte.nubrowser",
-                    "com.zte.haertyservice.strategy", "com.zte.handservice", "com.zte.faceverify",
+                    "com.zte.zdm", "com.zte.zdmdaemon", "com.zte.zdm.omacp", 
+                    "com.zte.zdmdaemon.install", "com.zte.nubrowser",
+                    "com.zte.haertyservice.strategy", "com.zte.faceverify",
                     "com.zte.emodeservice", "com.zte.emode", "com.zte.devicemanager.client",
-                    "com.zte.burntest.camera", "com.ztebeautify", "com.zteappsimcardfilter",
-                    "com.zte.zdmdaemon.install"
+                    "com.zte.burntest.camera", "com.ztebeautify", "com.zteappsimcardfilter"
                 ]
                 
                 # Silent Kill Loop
                 count = 0
                 for app in zte_apps:
                     self.cmd.run_command(f"adb shell pm uninstall --user 0 {app}", log_output=False)
+                    self.cmd.run_command(f"adb shell pm disable-user --user 0 {app}", log_output=False)
                     count += 1
-                self.cmd.log(f"✅ CLEANED {count} JUNK APPS [OK]")
-
-                # Google / System Fixes
-                self.cmd.log("🧹 SWEEPING GOOGLE/FACEBOOK TRACKERS...")
+                self.cmd.log(f"✅ CLEANED {count} ZDM APPS [OK]")
+ 
+                # Google / System Fixes (Safe List)
+                self.cmd.log("🧹 SWEEPING TRACKERS & MDM RESIDUE...")
                 sys_apps = [
                     "com.google.android.gms.suprvision", "com.google.android.configupdater",
-                    "com.google.android.as.oss", "com.google.android.apps.wellbeing",
-                    "com.google.android.apps.turbo", "com.google.android.apps.safetyhub",
-                    "com.android.managedprovisioning", "com.android.dynsystem",
+                    "com.google.android.as.oss", "com.android.dynsystem",
                     "com.facebook.system", "com.facebook.services", "com.facebook.appmanager"
                 ]
+                # CRITICAL: com.android.managedprovisioning REMOVED from list.
+                # Removing it breaks Settings and Incoming Call UI on A35.
+                
                 for app in sys_apps:
                     self.cmd.run_command(f"adb shell pm uninstall --user 0 {app}", log_output=False)
                 self.cmd.log("✅ TRACKERS REMOVED [OK]")
-
-                # Disable ZDM Services
-                self.cmd.log("🛡️ CRUSHING SECURITY AGENTS (ZDM & DEMONS)...")
+ 
+                # Disable ZDM Services (Explicit backup)
+                self.cmd.log("🛡️ CRUSHING REMAINING SECURITY AGENTS...")
                 zdm_pkgs = [
-                    "com.zte.zdm", "com.zte.zdm.omacp", "com.zte.zdmdaemon", "com.zte.zdmdaemon.install"
+                    "com.zte.zdm", "com.zte.zdm.omacp", "com.zte.zdmdaemon", 
+                    "com.zte.zdmdaemon.install", "com.zte.devicemanager.client"
                 ]
                 for pkg in zdm_pkgs:
                      self.cmd.run_command(f"adb shell pm disable-user --user 0 {pkg}", log_output=False)
-                self.cmd.log("✅ SECURITY AGENTS DISABLED [OK]")
-
+                
+                # RE-ENABLE SYSTEM CORE (In case another tool disabled them)
+                self.cmd.run_command("adb shell pm enable com.android.settings", log_output=False)
+                self.cmd.run_command("adb shell pm enable com.android.phone", log_output=False)
+                self.cmd.run_command("adb shell pm enable com.android.server.telecom", log_output=False)
+                self.cmd.run_command("adb shell pm enable com.google.android.dialer", log_output=False)
+                self.cmd.run_command("adb shell pm enable com.android.dialer", log_output=False)
+                
+                self.cmd.log("✅ SYSTEM CORE STABILIZED [OK]")
+ 
                 # Clear Data & WiFi
                 self.cmd.log("✨ WIPING GMS TRACES & GHOSTING WIFI...")
                 self.cmd.run_command("adb shell pm clear com.google.android.gms", log_output=False)
                 self.cmd.run_command("adb shell cmd -w wifi set-wifi-enabled disabled", log_output=False)
-
+ 
                 # Disable Setup Wizard (THE FIX for White Screen)
                 self.cmd.log("⛔ DISABLING SETUP WIZARD (BYPASSING GATE)...")
                 
@@ -100,7 +111,7 @@ class ZTEManager:
                 self.cmd.run_command("adb shell settings put global device_provisioned 1", log_output=False)
                 self.cmd.run_command("adb shell settings put secure user_setup_complete 1", log_output=False)
                 
-                setup_pkgs = ["com.google.android.setupwizard"]
+                setup_pkgs = ["com.google.android.setupwizard", "com.zte.setupwizard"]
                 for p in setup_pkgs:
                      self.cmd.run_command(f"adb shell pm disable-user --user 0 {p}", log_output=False)
                      self.cmd.run_command(f"adb shell pm clear {p}", log_output=False)
