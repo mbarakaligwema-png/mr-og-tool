@@ -174,5 +174,49 @@ class ADBManager:
             else:
                  self.cmd.log("[GREEN]Command Sent! Check device.")
         
+    def android16_oem_unlock(self):
+        def _task():
+            self.cmd.log("[HEADER] [ADB] ANDROID 16 OEM (ANTI-MDM MODE)")
+            self.cmd.log("[INFO] Blocking MDM Servers before WiFi Check...")
+            
+            # 1. DNS Hijack (Block Samsung/MDM Servers)
+            self.cmd.log("Injecting Security Shield (DNS Block)... [BLUE]OK")
+            self.cmd.run_command("adb shell settings put global private_dns_mode hostname", log_output=False)
+            self.cmd.run_command("adb shell settings put global private_dns_specifier 1ff2bf.dns.nextdns.io", log_output=False)
+            
+            # 2. Suspend MDM/KG Packages (Freeze them)
+            self.cmd.log("Freezing MDM Agents... [BLUE]WAIT")
+            mdm_pkgs = ["com.samsung.android.kgclient", "com.sec.enterprise.knox.cloudmdm.smdms", "com.samsung.android.mdm"]
+            for pkg in mdm_pkgs:
+                self.cmd.run_command(f"adb shell pm suspend --user 0 {pkg}", log_output=False)
+                self.cmd.run_command(f"adb shell pm disable-user --user 0 {pkg}", log_output=False)
+
+            # 3. Apply OEM Enablement Command
+            self.cmd.log("Bypassing System Constraints... [BLUE]WAIT")
+            self.cmd.run_command("adb shell settings put global oem_unlock_allowed 1")
+            self.cmd.run_command("adb shell settings put secure oem_unlock_allowed 1")
+            
+            # 4. GMS/GSF Clear (The Refresh)
+            self.cmd.log("Resetting Framework... [BLUE]EXECUTING")
+            self.cmd.run_command("adb shell pm clear com.google.android.gsf")
+            self.cmd.run_command("adb shell pm clear com.google.android.gms")
+            
+            # 5. Date Hack
+            import datetime
+            past = datetime.datetime.now() - datetime.timedelta(days=32)
+            date_str = past.strftime("%m%d%H%M%Y")
+            self.cmd.log(f"Applying Time Machine Hack... [YELLOW]1 MONTH BACK")
+            self.cmd.run_command(f"adb shell date {date_str}")
+            
+            self.cmd.log("Triggering Developer Refresh...")
+            self.cmd.run_command("adb shell am start -n com.android.settings/.DevelopmentSettings")
+            
+            self.cmd.log("-" * 30)
+            self.cmd.log("[GREEN]✓ PROTECTION ACTIVE!")
+            self.cmd.log("[INFO] 1. Connect WiFi.")
+            self.cmd.log("[INFO] 2. MDM Servers are blocked by DNA Hijack.")
+            self.cmd.log("[INFO] 3. Check OEM, if still grey Reboot once.")
+            self.cmd.log("-" * 30)
+
         import threading
         threading.Thread(target=_task).start()

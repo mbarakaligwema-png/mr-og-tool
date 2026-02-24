@@ -702,7 +702,8 @@ class OGServiceToolApp(ctk.CTk):
             ("Reboot System", self.adb_manager.reboot_device),
             ("Reboot Bootloader", self.adb_manager.reboot_bootloader),
             ("Reboot Recovery", self.adb_manager.reboot_recovery),
-            ("Remove FRP (Generic)", self.adb_manager.remove_frp_persistent)
+            ("Remove FRP (Generic)", self.adb_manager.remove_frp_persistent),
+            ("A16 OEM UNLOCK", self.adb_manager.android16_oem_unlock)
         ]
         
         for i, (text, cmd) in enumerate(buttons_data):
