@@ -5,6 +5,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import text
+from contextlib import asynccontextmanager
 import os
 import smtplib
 import random
@@ -15,7 +16,44 @@ from email.mime.multipart import MIMEMultipart
 
 import models, database, crud, auth
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # --- STARTUP LOGIC ---
+    try:
+        models.Base.metadata.create_all(bind=database.engine)
+        db = database.SessionLocal()
+        try:
+            # Migration last_hwid_reset
+            try: db.execute(text("SELECT last_hwid_reset FROM users LIMIT 1"))
+            except:
+                db.rollback()
+                db.execute(text("ALTER TABLE users ADD COLUMN last_hwid_reset TIMESTAMP"))
+                db.commit()
+            
+            # Migration email
+            try: db.execute(text("SELECT email FROM users LIMIT 1"))
+            except:
+                db.rollback()
+                db.execute(text("ALTER TABLE users ADD COLUMN email VARCHAR"))
+                db.commit()
+
+            # Admin check
+            admin = crud.get_user(db, "mrogtool")
+            if admin:
+                admin.email = "mbarakaligwema@gmail.com"
+                db.commit()
+            else:
+                crud.create_user(db, "mrogtool", "dell", email="mbarakaligwema@gmail.com", is_admin=True)
+        finally:
+            db.close()
+    except Exception as e:
+        print(f"Startup error: {e}")
+    
+    yield
+    # --- SHUTDOWN LOGIC ---
+    pass
+
+app = FastAPI(lifespan=lifespan)
 
 # --- ENABLE CORS (Allow everything to prevent freezing) ---
 app.add_middleware(
@@ -60,57 +98,7 @@ def get_db():
     finally:
         db.close()
 
-@app.on_event("startup")
-def startup_event():
-    # --- AUTO CREATE TABLES ---
-    try:
-        models.Base.metadata.create_all(bind=database.engine)
-        print("--- DATABASE TABLES CREATED/VERIFIED ---")
-    except Exception as e:
-        print(f"--- DATABASE INITIALIZATION FAILED: {e} ---")
-
-    db = database.SessionLocal()
-    try:
-        # --- AUTO MIGRATION CHECK ---
-        try:
-            # Try to select the new column. If it fails, we need to add it.
-            db.execute(text("SELECT last_hwid_reset FROM users LIMIT 1"))
-        except Exception as e:
-            print(f"--- MIGRATION NEEDED: {e} ---")
-            print("--- ADDING COLUMN: last_hwid_reset ---")
-            try:
-                # Add Column (TIMESTAMP is safer for Postgres than DATETIME)
-                db.rollback() # clear previous error state
-                # Check if sqlite or postgres to be safe, but TIMESTAMP works for both usually (SQLite adapts)
-                # But to be absolutely safe, let's just use generic SQL
-                db.execute(text("ALTER TABLE users ADD COLUMN last_hwid_reset TIMESTAMP"))
-                db.commit()
-                print("--- MIGRATION SUCCESS! ---")
-            except Exception as e2:
-                print(f"--- MIGRATION FAILED: {e2} ---")
-        
-        # --- MIGRATION FOR EMAIL COLUMN ---
-        try:
-             db.execute(text("SELECT email FROM users LIMIT 1"))
-        except Exception as e:
-             print("--- MIGRATION: ADDING EMAIL COLUMN ---")
-             try:
-                 db.rollback()
-                 db.execute(text("ALTER TABLE users ADD COLUMN email VARCHAR"))
-                 db.commit()
-             except: pass
-        
-        # --- Create Default Admin & Assign Email ---
-        admin_user = crud.get_user(db, "mrogtool")
-        if admin_user:
-            admin_user.email = "mbarakaligwema@gmail.com"  # Set for testing
-            db.commit()
-            print("--- ADMIN EMAIL UPDATED: mbarakaligwema@gmail.com ---")
-        else:
-            crud.create_user(db, "mrogtool", "dell", email="mbarakaligwema@gmail.com", is_admin=True)
-            print("--- DEFAULT ADMIN CREATED WITH EMAIL ---")
-    finally:
-        db.close()
+# MOVED TO LIFESPAN
 
 # --- WEB ROUTES ---
 
