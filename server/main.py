@@ -142,9 +142,12 @@ async def send_otp(request: Request, db: Session = Depends(get_db)):
         db.add(models.PasswordReset(email=email, otp=otp))
         db.commit()
         
-        # BREVO API SETTINGS
-        BREVO_API_KEY = "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"
+        # BREVO API SETTINGS (Reading from Railway Variables for security)
+        BREVO_API_KEY = os.getenv("BREVO_API_KEY")
         
+        if not BREVO_API_KEY:
+             return JSONResponse({"status": "error", "message": "Server Config Error: Missing API Key."}, status_code=500)
+
         payload = {
             "sender": {"name": "MR OG TOOL", "email": "mbarakaligwema@gmail.com"},
             "to": [{"email": email}],
