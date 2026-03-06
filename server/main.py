@@ -148,8 +148,9 @@ async def send_otp(request: Request, db: Session = Depends(get_db)):
         msg["To"] = email
         html = f"<h2>Code: {otp}</h2>" # Simplified for safety
         msg.attach(MIMEText(html, "html"))
-        
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=10) as server:
+        # SMTP Send with STARTTLS (Port 587 is more compatible with Railway/Cloud)
+        with smtplib.SMTP("smtp.gmail.com", 587, timeout=10) as server:
+            server.starttls() # Secure the connection
             server.login("mbarakaligwema@gmail.com", "coff qchr kcrk nkwo")
             server.sendmail("mbarakaligwema@gmail.com", email, msg.as_string())
         return {"status": "success", "message": "OTP Sent!"}
