@@ -77,7 +77,17 @@ def startup_event():
                 print("--- MIGRATION SUCCESS! ---")
             except Exception as e2:
                 print(f"--- MIGRATION FAILED: {e2} ---")
-                # Don't raise, let app start even if migration failed (Model usage might crash later, but app will come up)
+        
+        # --- MIGRATION FOR EMAIL COLUMN ---
+        try:
+             db.execute(text("SELECT email FROM users LIMIT 1"))
+        except Exception as e:
+             print("--- MIGRATION: ADDING EMAIL COLUMN ---")
+             try:
+                 db.rollback()
+                 db.execute(text("ALTER TABLE users ADD COLUMN email VARCHAR"))
+                 db.commit()
+             except: pass
         
         # --- Create Default Admin ---
         if not crud.get_user(db, "mrogtool"):
@@ -165,11 +175,15 @@ async def send_otp(request: Request, db: Session = Depends(get_db)):
     # Generate OTP
     otp = str(random.randint(100000, 999999))
     
-    # Clear old resets for this email and save new one
-    db.query(models.PasswordReset).filter(models.PasswordReset.email == email).delete()
-    new_reset = models.PasswordReset(email=email, otp=otp)
-    db.add(new_reset)
-    db.commit()
+    try:
+        # Clear old resets for this email and save new one
+        db.query(models.PasswordReset).filter(models.PasswordReset.email == email).delete()
+        new_reset = models.PasswordReset(email=email, otp=otp)
+        db.add(new_reset)
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        return JSONResponse({"status": "error", "message": f"Database error: {str(e)}"}, status_code=500)
     
     # Send Email
     sender_email = "mbarakaligwema@gmail.com"
