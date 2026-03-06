@@ -1,16 +1,18 @@
+from fastapi import FastAPI, Depends, HTTPException, status, Request, Form
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
+from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
-from datetime import timedelta
-
-import models, database, crud, auth
-
-
-import models, database, crud, auth
+from sqlalchemy.orm import Session
 import os
 import smtplib
 import random
+import datetime
+from datetime import timedelta, datetime
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from datetime import datetime
+
+import models, database, crud, auth
 
 # Init DB
 models.Base.metadata.create_all(bind=database.engine)
