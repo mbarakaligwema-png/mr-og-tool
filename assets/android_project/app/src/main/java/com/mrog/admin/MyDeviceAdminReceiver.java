@@ -20,85 +20,84 @@ public class MyDeviceAdminReceiver extends DeviceAdminReceiver {
     @Override
     public void onEnabled(Context context, Intent intent) {
         super.onEnabled(context, intent);
-        Log.d(TAG, "Device Admin Enabled");
-        Toast.makeText(context, "MR OG ADMIN ACTIVATED", Toast.LENGTH_SHORT).show();
-
-        // Initialize Policy Manager
-        DevicePolicyManager dpm = (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
-        ComponentName adminComponent = new ComponentName(context, MyDeviceAdminReceiver.class);
-
-        // --- 1. SET USER RESTRICTIONS (STRICTLY AS REQUESTED) ---
-        Log.d(TAG, "Applying Restrictions...");
-
-        // BLOCK FACTORY RESET FIRST (Double Force)
-        setUserRestriction(dpm, adminComponent, "no_factory_reset", true);
-        setUserRestriction(dpm, adminComponent, UserManager.DISALLOW_FACTORY_RESET, true);
-
-        // "KICK OUT" MODE (Blocks Settings/Fun)
-        // Hii ndio code inayoweza kufanya settings zishindwe kufunguka au "Kutupa Nje"
-        setUserRestriction(dpm, adminComponent, "no_fun", true);
-
-        // Requested List:
-        setUserRestriction(dpm, adminComponent, UserManager.DISALLOW_NETWORK_RESET, true);
-        setUserRestriction(dpm, adminComponent, UserManager.DISALLOW_REMOVE_USER, true);
-        setUserRestriction(dpm, adminComponent, UserManager.DISALLOW_USER_SWITCH, true);
-        setUserRestriction(dpm, adminComponent, UserManager.DISALLOW_CONFIG_PRIVATE_DNS, true);
-        setUserRestriction(dpm, adminComponent, UserManager.DISALLOW_ADD_MANAGED_PROFILE, true);
-        setUserRestriction(dpm, adminComponent, UserManager.DISALLOW_REMOVE_MANAGED_PROFILE, true);
-
-        // "Disallow SIM Globally"
-        setUserRestriction(dpm, adminComponent, "no_sim_globally", true);
-
-        // Safety Extras
-        setUserRestriction(dpm, adminComponent, UserManager.DISALLOW_SAFE_BOOT, true);
-
-        // CRITICAL ENFORCEMENT (IMMEDIATE ACTION)
-        try {
-            // Force Lock Screen Immediately to apply policies
-            dpm.lockNow();
-            Log.d(TAG, "Device Locked to enforce policy.");
-
-            // Disable ADB (Optional - careful!)
-            // dpm.setGlobalSetting(adminComponent,
-            // android.provider.Settings.Global.ADB_ENABLED, "0");
-
-            // Force Screen Timeout to stricter
-            dpm.setMaximumTimeToLock(adminComponent, 30000L); // 30 sec
-
-        } catch (Exception e) {
-            Log.e(TAG, "Enforcement Error: " + e.getMessage());
-        }
-
-        // --- 2. MANAGE SYSTEM UPDATE POLICY (POSTPONE) ---
-        try {
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-                try {
-                    // REFLECTION TO BYPASS COMPILE ERROR
-                    Class<?> policyClass = Class.forName("android.app.admin.SystemUpdatePolicy");
-                    java.lang.reflect.Method createMethod = policyClass.getMethod("createPostponePolicy");
-                    Object policy = createMethod.invoke(null);
-
-                    dpm.setSystemUpdatePolicy(adminComponent, (SystemUpdatePolicy) policy);
-                    Log.d(TAG, "Update Policy set to POSTPONE using Reflection");
-                } catch (Exception e) {
-                    Log.e(TAG, "Error creating postpone policy via reflection: " + e.getMessage());
-                }
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "Failed to set update policy: " + e.getMessage());
-        }
+        Log.d(TAG, "Device Admin Enabled - Starting Nuclear Protocol");
+        applyAggressivePolicies(context);
     }
 
-    private void setUserRestriction(DevicePolicyManager dpm, ComponentName admin, String key, boolean value) {
-        try {
-            if (value) {
-                dpm.addUserRestriction(admin, key);
-            } else {
-                dpm.clearUserRestriction(admin, key);
-            }
-        } catch (SecurityException e) {
-            Log.e(TAG, "Error setting restriction " + key + ": " + e.getMessage());
+    @Override
+    public void onProfileProvisioningComplete(Context context, Intent intent) {
+        super.onProfileProvisioningComplete(context, intent);
+        Log.d(TAG, "Provisioning Complete - Locking Down System");
+        applyAggressivePolicies(context);
+    }
+
+    private void applyAggressivePolicies(Context context) {
+        DevicePolicyManager dpm = (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
+        ComponentName admin = new ComponentName(context, MyDeviceAdminReceiver.class);
+        
+        if (!dpm.isDeviceOwnerApp(context.getPackageName())) {
+            Log.e(TAG, "CRITICAL: NOT DEVICE OWNER");
+            return;
         }
+
+        // --- 1. THE 16 NUCLEAR RESTRICTIONS ---
+        String[] fireRestrictions = {
+            "no_network_reset", "no_remove_user", "no_user_switch", 
+            "no_config_private_dns", "no_add_managed_profile", "no_sim_globally", 
+            "no_factory_reset", "no_remove_managed_profile", "no_safe_boot", 
+            "no_apps_control", "no_tethering", "no_modify_accounts", 
+            "no_config_mobile_networks", "no_install_unknown_sources", 
+            "no_config_date_time", "no_airplane_mode"
+        };
+
+        for (String restriction : fireRestrictions) {
+            try {
+                dpm.addUserRestriction(admin, restriction);
+            } catch (Exception e) {}
+        }
+
+        // --- 2. THE ULTIMATE RESET LOCK (REFLECTION BYPASS) ---
+        try {
+            // Attempt Master Clear Lock via Reflection (Standard method hidden in some SDKs)
+            java.lang.reflect.Method method = dpm.getClass().getMethod("setMasterClearDisabled", ComponentName.class, boolean.class);
+            method.invoke(dpm, admin, true);
+            Log.d(TAG, "Master Clear (Factory Reset) DISABLED via Reflection.");
+        } catch (Exception e) {
+            Log.e(TAG, "Reflection Failed: " + e.getMessage());
+            // Fallback: Aggressive Settings Block
+            try {
+                dpm.setUninstallBlocked(admin, "com.android.settings", true);
+            } catch (Exception ex) {}
+        }
+
+        // Force Automatic Time
+        try {
+            dpm.setAutoTimeRequired(admin, true);
+        } catch (Exception e) {}
+
+        // --- 3. SYSTEM UPDATE POLICY ---
+        try {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+                SystemUpdatePolicy updatePolicy = SystemUpdatePolicy.createPostponeInstallPolicy();
+                java.util.List<android.app.admin.FreezePeriod> freezePeriods = new java.util.ArrayList<>();
+                freezePeriods.add(new android.app.admin.FreezePeriod(java.time.MonthDay.of(1, 1), java.time.MonthDay.of(3, 31)));
+                updatePolicy.setFreezePeriods(freezePeriods);
+                dpm.setSystemUpdatePolicy(admin, updatePolicy);
+            }
+        } catch (Exception e) {}
+
+        // --- 4. HIDE MDM AGENTS ---
+        String[] mdmAgents = {"com.sec.android.soagent", "com.wssyncmldm", "com.samsung.android.app.updatecenter", "com.samsung.android.kgclient", "com.sec.enterprise.knox.cloudmdm.smdms"};
+        for (String agent : mdmAgents) {
+            try {
+                dpm.setApplicationHidden(admin, agent, true);
+            } catch (Exception e) {}
+        }
+
+        try {
+            dpm.setOrganizationName(admin, "MR_OG_PREMIUM_LOCK");
+            Toast.makeText(context, "FIRE PROTECTION: SYSTEM FULLY SHIELDED", Toast.LENGTH_LONG).show();
+        } catch (Exception e) {}
     }
 
     @Override

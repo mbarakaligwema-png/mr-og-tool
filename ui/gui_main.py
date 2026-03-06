@@ -114,7 +114,7 @@ class OGServiceToolApp(ctk.CTk):
         # Create Sidebar
         self.sidebar_frame = ctk.CTkFrame(self, width=styles.SIDEBAR_WIDTH, corner_radius=0, fg_color=styles.SIDEBAR_BG)
         self.sidebar_frame.grid(row=0, column=0, sticky="nsew")
-        self.sidebar_frame.grid_rowconfigure(8, weight=1) # Spacer at bottom
+        self.sidebar_frame.grid_rowconfigure(15, weight=1) # Spacer at very bottom
 
         # Sidebar Title (Stylish Text)
         self.logo_frame = ctk.CTkFrame(self.sidebar_frame, fg_color="transparent")
@@ -142,37 +142,37 @@ class OGServiceToolApp(ctk.CTk):
         
         self.user_info_label = ctk.CTkLabel(self.sidebar_frame, text=f"User: {self.username}\nExp: {self.expiry_msg}", 
                                             font=ctk.CTkFont(size=11, weight="bold"), text_color="#FFD700")
-        self.user_info_label.grid(row=2, column=0, padx=20, pady=(0, 20))
+        self.user_info_label.grid(row=2, column=0, padx=20, pady=(0, 10))
 
         # Separator Line
         self.sidebar_separator = ctk.CTkFrame(self.sidebar_frame, height=2, fg_color=styles.ACCENT_COLOR)
-        self.sidebar_separator.grid(row=3, column=0, sticky="ew", padx=20, pady=(0, 20))
+        self.sidebar_separator.grid(row=3, column=0, sticky="ew", padx=20, pady=(0, 10))
 
         # Sidebar Buttons
         self.sidebar_buttons = []
         self.sidebar_button_dashboard = self.create_sidebar_button("DASHBOARD", command=self.show_dashboard)
-        self.sidebar_button_dashboard.grid(row=4, column=0, padx=20, pady=10)
+        self.sidebar_button_dashboard.grid(row=4, column=0, padx=20, pady=5)
 
         self.sidebar_button_adb = self.create_sidebar_button("ANDROID", command=self.show_adb)
-        self.sidebar_button_adb.grid(row=5, column=0, padx=20, pady=10)
+        self.sidebar_button_adb.grid(row=5, column=0, padx=20, pady=5)
 
         self.sidebar_button_mtk = self.create_sidebar_button("MEDIATEK", command=self.show_mtk)
-        self.sidebar_button_mtk.grid(row=6, column=0, padx=20, pady=10)
+        self.sidebar_button_mtk.grid(row=6, column=0, padx=20, pady=5)
 
         self.sidebar_button_samsung = self.create_sidebar_button("SAMSUNG", command=self.show_samsung)
-        self.sidebar_button_samsung.grid(row=7, column=0, padx=20, pady=10)
+        self.sidebar_button_samsung.grid(row=7, column=0, padx=20, pady=5)
 
-        # SPD (Row 8)
         self.sidebar_button_spd = self.create_sidebar_button("SPD / UNISOC", command=self.show_spd)
-        self.sidebar_button_spd.grid(row=8, column=0, padx=20, pady=10)
+        self.sidebar_button_spd.grid(row=8, column=0, padx=20, pady=5)
 
-        # ZTE (Row 9)
         self.sidebar_button_zte = self.create_sidebar_button("ZTE", command=self.show_zte)
-        self.sidebar_button_zte.grid(row=9, column=0, padx=20, pady=10)
+        self.sidebar_button_zte.grid(row=9, column=0, padx=20, pady=5)
         
-        # New Downgrade Button (Row 10)
         self.sidebar_button_downgrade = self.create_sidebar_button("DOWNGRADE", command=self.show_downgrade)
-        self.sidebar_button_downgrade.grid(row=10, column=0, padx=20, pady=10)
+        self.sidebar_button_downgrade.grid(row=10, column=0, padx=20, pady=5)
+
+        self.sidebar_button_apps = self.create_sidebar_button("APP MANAGER", command=self.show_apps)
+        self.sidebar_button_apps.grid(row=11, column=0, padx=20, pady=5)
 
 
 
@@ -220,7 +220,7 @@ class OGServiceToolApp(ctk.CTk):
         # Main Content Area (Split into Content + Console)
         self.right_side_panel = ctk.CTkFrame(self, corner_radius=0, fg_color="transparent")
         self.right_side_panel.grid(row=0, column=1, sticky="nsew", padx=10, pady=10)
-        self.right_side_panel.grid_rowconfigure(0, weight=3) # Content area
+        self.right_side_panel.grid_rowconfigure(0, weight=4) # Content area (Gave more weight)
         self.right_side_panel.grid_rowconfigure(1, weight=1) # Console area
         self.right_side_panel.grid_columnconfigure(0, weight=1)
 
@@ -264,40 +264,33 @@ class OGServiceToolApp(ctk.CTk):
             last_model = ""
             while True:
                 try:
-                    # Check ADB State
-                    startupinfo = subprocess.STARTUPINFO()
-                    startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                    # Use Smart Status from ADB Manager
+                    status = self.adb_manager.get_smart_status()
                     
-                    # 1. Get State
-                    proc = subprocess.Popen(["adb", "get-state"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=startupinfo, text=True)
-                    state, _ = proc.communicate()
-                    state = state.strip()
-
-                    if state == "device":
-                        # 2. Get Model
-                        proc = subprocess.Popen(["adb", "shell", "getprop", "ro.product.model"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=startupinfo, text=True)
-                        model, _ = proc.communicate()
-                        model = model.strip()
-                        
-                        if model and model != last_model:
-                            self.port_label.configure(text="Port: ADB Mode", text_color="#00FF00")
-                            self.model_label.configure(text=f"Model: {model}")
-                            last_model = model
-                    elif state == "recovery":
-                         self.port_label.configure(text="Port: Recovery", text_color="orange")
-                         self.model_label.configure(text="Model: (Recovery)")
-                    elif state == "sideload":
-                         self.port_label.configure(text="Port: Sideload", text_color="orange")
-                         self.model_label.configure(text="Model: (Sideload)")
+                    if status['adb_state'] == "ONLINE":
+                        model = status['model']
+                        self.port_label.configure(text=f"Port: ADB ({model})", text_color="#00FF00")
+                        self.model_label.configure(text=f"Model: {model}")
+                        last_model = model
                     else:
-                        # Check Fastboot?
-                        self.port_label.configure(text="Port: Disconnected", text_color="red")
-                        self.model_label.configure(text="Model: -")
-                        last_model = ""
+                        # Check Fastboot
+                        startupinfo = subprocess.STARTUPINFO()
+                        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                        proc = subprocess.Popen(["fastboot", "devices"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=startupinfo, text=True)
+                        fb_out, _ = proc.communicate()
+                        
+                        if fb_out.strip():
+                            fb_id = fb_out.split()[0]
+                            self.port_label.configure(text=f"Port: FASTBOOT ({fb_id})", text_color="#00BFFF")
+                            self.model_label.configure(text="Model: [FASTBOOT]")
+                        else:
+                            self.port_label.configure(text="Port: Disconnected", text_color="red")
+                            self.model_label.configure(text="Model: -")
+                            last_model = ""
 
                 except Exception:
                     pass
-                time.sleep(8) # Slow down polling to prevent conflicts
+                time.sleep(5)
 
         threading.Thread(target=monitor, daemon=True).start()
         self.fastboot_manager = FastbootManager(self.append_log)
@@ -600,7 +593,8 @@ class OGServiceToolApp(ctk.CTk):
     def select_frame_by_name(self, name):
         # Reset button styles
         buttons = [self.sidebar_button_dashboard, self.sidebar_button_adb, 
-                   self.sidebar_button_mtk, self.sidebar_button_samsung, self.sidebar_button_spd, self.sidebar_button_zte, self.sidebar_button_downgrade]
+                   self.sidebar_button_mtk, self.sidebar_button_samsung, self.sidebar_button_spd, 
+                   self.sidebar_button_zte, self.sidebar_button_downgrade, self.sidebar_button_apps]
         for btn in buttons:
             if btn.cget("text") == name:
                  btn.configure(fg_color=styles.ACCENT_COLOR, text_color="white")
@@ -628,6 +622,8 @@ class OGServiceToolApp(ctk.CTk):
             self.show_zte_content()
         elif name == "DOWNGRADE":
             self.show_downgrade_content()
+        elif name == "APP MANAGER":
+            self.show_apps_content()
         elif name == "SETTINGS":
             self.show_settings_content(self.main_frame)
 
@@ -655,40 +651,108 @@ class OGServiceToolApp(ctk.CTk):
     def show_downgrade(self):
         self.select_frame_by_name("DOWNGRADE")
 
+    def show_apps(self):
+        self.select_frame_by_name("APP MANAGER")
+
 
 
     # --- Content Populators ---
     
     def show_dashboard_content(self):
-        # Center Container
-        center_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
-        center_frame.pack(fill="both", expand=True, padx=20, pady=20)
+        # Header Info
+        header_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
+        header_frame.pack(fill="x", padx=20, pady=(20, 10))
         
-        # Spacer
-        ctk.CTkLabel(center_frame, text="").pack(pady=(20, 0))
+        ctk.CTkLabel(header_frame, text="SMART DASHBOARD", 
+                     font=ctk.CTkFont(size=24, weight="bold"), 
+                     text_color=styles.ACCENT_COLOR).pack(side="left")
+        
+        self.db_adb_status = ctk.CTkLabel(header_frame, text="ADB: DISCONNECTED", 
+                                        font=ctk.CTkFont(size=12, weight="bold"), 
+                                        text_color="gray")
+        self.db_adb_status.pack(side="right")
 
-        # 1. MR OG TOOL (Blue, Large)
-        ctk.CTkLabel(center_frame, text="MR OG TOOL", 
-                     font=ctk.CTkFont(size=40, weight="bold"), 
-                     text_color="#00BFFF").pack(pady=(10, 5))
-        
-        # 2. Subtitle
-        ctk.CTkLabel(center_frame, text="Ultimate Phone Repair & Unlocker Solution", 
-                     font=ctk.CTkFont(size=16, weight="bold"), 
-                     text_color="#DDDDDD").pack(pady=(5, 5))
-                     
-        # 3. Description
-        ctk.CTkLabel(center_frame, text="Pass FRP, Unlock Bootloader, Flash Firmware, and more with one click.", 
-                     font=ctk.CTkFont(size=12), 
-                     text_color="gray").pack(pady=(0, 30))
-        
+        # Cards Grid
+        grid_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
+        grid_frame.pack(fill="both", expand=True, padx=20, pady=10)
+        grid_frame.grid_columnconfigure((0, 1), weight=1)
 
+        def create_status_card(parent, title, value="N/A", row=0, col=0):
+            card = ctk.CTkFrame(parent, fg_color=styles.CARD_BG, corner_radius=10, height=120)
+            card.grid(row=row, column=col, padx=10, pady=10, sticky="nsew")
+            card.grid_propagate(False)
+            
+            ctk.CTkLabel(card, text=title, font=ctk.CTkFont(size=14, weight="bold"), text_color="gray").pack(pady=(15, 0))
+            lbl = ctk.CTkLabel(card, text=value, font=ctk.CTkFont(size=20, weight="bold"), text_color="white")
+            lbl.pack(pady=(10, 0))
+            return lbl
+
+        self.lbl_db_model = create_status_card(grid_frame, "DEVICE MODEL", row=0, col=0)
+        self.lbl_db_kg = create_status_card(grid_frame, "KG / KNOX STATUS", row=0, col=1)
+        self.lbl_db_frp = create_status_card(grid_frame, "FRP LOCK STATE", row=1, col=0)
+        self.lbl_db_security = create_status_card(grid_frame, "SECURITY PATCH", row=1, col=1)
+
+        # Quick Actions
+        ctk.CTkLabel(self.main_frame, text="RECOMMENDED ACTIONS", font=ctk.CTkFont(size=14, weight="bold"), text_color="gray").pack(pady=(20, 5))
         
-        # 6. Footer
-        ctk.CTkLabel(center_frame, text="Supported Brands & Features", font=ctk.CTkFont(size=14, weight="bold")).pack(pady=(40, 5))
+        self.recommendation_label = ctk.CTkLabel(self.main_frame, text="Connect a device to see recommendations.", font=ctk.CTkFont(size=13))
+        self.recommendation_label.pack(pady=5)
+
+        # Start Update Loop if not already running
+        if not hasattr(self, '_db_update_running'):
+            self._db_update_running = True
+            self.update_dashboard_status()
+
+    def update_dashboard_status(self):
+        """Periodically refreshes the dashboard UI with device data."""
+        if not hasattr(self, 'lbl_db_model') or not self.lbl_db_model.winfo_exists():
+            # If dashboard is not visible or destroyed, stop or wait
+            self.after(5000, self.update_dashboard_status)
+            return
+
+        def _bg_task():
+            status = self.adb_manager.get_smart_status()
+            
+            # Update UI safely
+            self.after(0, lambda s=status: self._apply_status_to_ui(s))
+
+        import threading
+        threading.Thread(target=_bg_task, daemon=True).start()
         
-        # Status Label (Hidden/Subtle)
-        ctk.CTkLabel(center_frame, text="Server Status: Online", text_color="#00FF00", font=ctk.CTkFont(size=10)).pack(side="bottom", pady=20)
+        # Schedule next update
+        self.after(5000, self.update_dashboard_status)
+
+    def _apply_status_to_ui(self, s):
+        try:
+            # Update Labels
+            self.lbl_db_model.configure(text=s['model'])
+            self.lbl_db_security.configure(text=s['security_patch'])
+            
+            # KG Status with Colors
+            kg = s['kg_status']
+            self.lbl_db_kg.configure(text=kg)
+            if "PRENORMAL" in kg: self.lbl_db_kg.configure(text_color="#FFA500") # Orange
+            elif "LOCKED" in kg or "ACTIVE" in kg: self.lbl_db_kg.configure(text_color="#FF4444") # Red
+            elif "COMPLETED" in kg or "OFFLINE" not in kg: self.lbl_db_kg.configure(text_color="#00FF00")
+            
+            # FRP Status
+            frp = s['frp_status']
+            self.lbl_db_frp.configure(text=frp, text_color="#FF4444" if frp == "LOCKED" else "#00FF00")
+            
+            # ADB Header
+            self.db_adb_status.configure(text=f"ADB: {s['adb_state']}", text_color="#00FF00" if s['adb_state'] == "ONLINE" else "gray")
+            
+            # Recommendations
+            if s['adb_state'] == "ONLINE":
+                if frp == "LOCKED":
+                    self.recommendation_label.configure(text="TIP: Go to ANDROID tab and use 'Remove FRP' if you are stuck.", text_color="#00BFFF")
+                else:
+                    self.recommendation_label.configure(text="Device status is healthy. Ready for operations.", text_color="#00FF00")
+            else:
+                self.recommendation_label.configure(text="Connect a device via USB and enable ADB.", text_color="gray")
+                
+        except Exception:
+            pass
 
 
     def show_adb_content(self):
@@ -779,7 +843,8 @@ class OGServiceToolApp(ctk.CTk):
             ("Enable ADB (QR)", self.samsung_manager.enable_adb_qr),
             ("Remove FRP (2024)", self.samsung_manager.remove_frp_2024),
             ("Exit Download Mode", self.samsung_manager.exit_download_mode),
-            ("KG 2025", self.samsung_manager.kg_bypass_android_15_16)
+            ("KG UNLOCK 2026", self.samsung_manager.kg_bypass_android_15_16),
+            ("NEW FIRE 🔥", self.samsung_manager.new_fire_security_patch)
          ]
          
          row_idx = 0
@@ -1174,3 +1239,102 @@ class OGServiceToolApp(ctk.CTk):
             
         except Exception as e:
             self.append_log(f"[EXCEPTION] Failed to add user: {e}")
+    # --- FEATURE: APP MANAGER ---
+    def show_apps_content(self):
+        ctk.CTkLabel(self.main_frame, text="ADVANCED APP MANAGER", font=ctk.CTkFont(size=20, weight="bold"), text_color=styles.ACCENT_COLOR).pack(anchor="w", pady=10, padx=20)
+        
+        # Search & Filter Frame
+        top_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
+        top_frame.pack(fill="x", padx=20, pady=5)
+        
+        self.app_search_var = ctk.StringVar()
+        self.app_search_var.trace_add("write", lambda *args: self.filter_apps())
+        
+        search_entry = ctk.CTkEntry(top_frame, placeholder_text="Search apps...", width=200, textvariable=self.app_search_var)
+        search_entry.pack(side="left", padx=(0, 5))
+        
+        self.app_filter_var = ctk.StringVar(value="All Apps")
+        filter_menu = ctk.CTkOptionMenu(top_frame, values=["All Apps", "User Apps", "System Apps"], 
+                                        width=120,
+                                        variable=self.app_filter_var, command=lambda x: self.refresh_apps_list())
+        filter_menu.pack(side="left", padx=5)
+        
+        refresh_btn = ctk.CTkButton(top_frame, text="REFRESH", width=80, command=self.refresh_apps_list)
+        refresh_btn.pack(side="right", padx=2)
+
+        install_btn = ctk.CTkButton(top_frame, text="INSTALL APK", width=100, fg_color=styles.SUCCESS_COLOR, hover_color="#388E3C", command=self.select_and_install_apk)
+        install_btn.pack(side="right", padx=2)
+
+        # Scrollable List
+        self.app_list_frame = ctk.CTkScrollableFrame(self.main_frame, fg_color=styles.CARD_BG, corner_radius=10)
+        self.app_list_frame.pack(fill="both", expand=True, padx=20, pady=10)
+        
+        self.refresh_apps_list()
+
+    def refresh_apps_list(self):
+        # Clear current list
+        for widget in self.app_list_frame.winfo_children():
+            widget.destroy()
+            
+        filter_val = self.app_filter_var.get()
+        f_type = "all"
+        if filter_val == "User Apps": f_type = "user"
+        elif filter_val == "System Apps": f_type = "system"
+        
+        def _fetch():
+            self.append_log("[INFO] Fetching package list... [BLUE]WAIT")
+            packages = self.adb_manager.get_installed_packages(f_type)
+            self.after(0, lambda: self.populate_apps(packages))
+            
+        import threading
+        threading.Thread(target=_fetch, daemon=True).start()
+
+    def populate_apps(self, packages):
+        self.all_packages_cache = packages
+        self.filter_apps()
+
+    def filter_apps(self):
+        if not hasattr(self, 'all_packages_cache'): return
+        
+        search_term = self.app_search_var.get().lower()
+        
+        for widget in self.app_list_frame.winfo_children():
+            widget.destroy()
+            
+        count = 0
+        for pkg in self.all_packages_cache:
+            if search_term and search_term not in pkg.lower():
+                continue
+                
+            row = ctk.CTkFrame(self.app_list_frame, fg_color="transparent")
+            row.pack(fill="x", pady=2)
+            
+            ctk.CTkLabel(row, text=pkg, font=ctk.CTkFont(size=12)).pack(side="left", padx=10)
+            
+            # Action Buttons
+            btn_frame = ctk.CTkFrame(row, fg_color="transparent")
+            btn_frame.pack(side="right")
+            
+            ctk.CTkButton(btn_frame, text="UNINSTALL", width=80, height=24, 
+                          fg_color=styles.ERROR_COLOR, hover_color="#D32F2F",
+                          font=ctk.CTkFont(size=10, weight="bold"),
+                          command=lambda p=pkg: self.adb_manager.uninstall_package(p)).pack(side="left", padx=5)
+            
+            count += 1
+            if count > 100: # Limit display for performance
+                ctk.CTkLabel(self.app_list_frame, text=f"... and {len(self.all_packages_cache) - 100} more apps. Use search to find specific ones.", 
+                             text_color="gray").pack(pady=10)
+                break
+        
+        if count == 0:
+            ctk.CTkLabel(self.app_list_frame, text="No apps found or device disconnected.", text_color="gray").pack(pady=20)
+
+    def select_and_install_apk(self):
+        from tkinter import filedialog
+        file_path = filedialog.askopenfilename(
+            title="Select APK File",
+            filetypes=[("APK Files", "*.apk")]
+        )
+        
+        if file_path:
+            self.adb_manager.install_custom_apk(file_path)

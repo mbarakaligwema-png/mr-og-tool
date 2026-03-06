@@ -202,7 +202,7 @@ class LoginWindow(ctk.CTk):
 
         forgot_btn = ctk.CTkButton(self.social_frame, text="Forgot Password?", 
                                 font=ctk.CTkFont(size=10, underline=True), text_color="gray", fg_color="transparent", hover=False,
-                                command=lambda: webbrowser.open("https://wa.me/255683397833?text=Hello+Admin+I+forgot+my+password")) 
+                                command=lambda: webbrowser.open(self.config_data.get("server_url", "https://mrogtool.com") + "/forgot-password")) 
         forgot_btn.pack(side="top", pady=0)
         
         row_frame = ctk.CTkFrame(self.social_frame, fg_color="transparent")

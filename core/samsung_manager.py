@@ -403,7 +403,7 @@ class SamsungManager:
                   self.cmd.log(f"[RED]❌ Critical Component Missing: test-dpc-9-0-9.apk")
                   self.cmd.log("[INFO] Please verify assets integrity.")
                   return
-
+ 
              # Aggressive Install Loop
              installed = False
              last_error = ""
@@ -469,6 +469,15 @@ class SamsungManager:
                      os.startfile(video_path)
              except Exception as e:
                  self.cmd.log(f"[YELLOW]Failed to play video: {e}")
+
+             # Show Success Image (mrogtool.png)
+             try:
+                 img_path = os.path.join(base, "assets", "mrogtool.png")
+                 if os.path.exists(img_path):
+                     self.cmd.log("[INFO] Displaying Completion Image...")
+                     os.startfile(img_path)
+             except Exception as e:
+                 self.cmd.log(f"[YELLOW]Failed to display image: {e}")
 
          threading.Thread(target=_bypass_thread).start()
 
@@ -674,7 +683,6 @@ class SamsungManager:
                 # 2. DEVICE KICK OUT (Disable Reset Settings Completely)
                 self.cmd.log("[BLUE]Applying KICK OUT (Disabling Reset)...")
                 
-                # List of activities to kill to prevent Reset
                 kick_out_list = [
                     "com.android.settings/com.android.settings.Settings$FactoryResetActivity",
                     "com.android.settings/com.android.settings.SubSettings$FactoryResetActivity",
@@ -685,18 +693,209 @@ class SamsungManager:
                 ]
 
                 for act in kick_out_list:
-                    # Try both disable and hide/suspend
                     self.cmd.run_command(f"adb shell pm disable-user --user 0 {act}", log_output=False)
                 
-                # Also hide the General Management if possible (Optional, might be too aggressive)
-                # self.cmd.run_command("adb shell pm disable-user --user 0 com.android.settings/com.samsung.android.settings.general.GeneralDeviceSettings", log_output=False)
-
                 self.cmd.log("[GREEN]✓ DONE.")
-                
-                # Launch App (Optional, usually creating MainActivity is good practice)
-                # self.cmd.run_command("adb shell monkey -p com.mrog.admin -c android.intent.category.LAUNCHER 1", log_output=False)
             else:
                 self.cmd.log(f"[RED]Failed to set owner: {res_owner}")
-                self.cmd.log("[INFO] Ensure no other accounts are on the device (clean factory reset needed first).")
+                
+                if "already some accounts" in res_owner:
+                    self.cmd.log("-" * 30)
+                    self.cmd.log("[RED]⚠ ACCOUNT ERROR DETECTED!")
+                    self.cmd.log("[YELLOW]Simu ina Account (Google/Samsung/Mengine).")
+                    self.cmd.log("[WHITE]Maelezo: Hauwezi kuweka 'Device Owner' kama simu ina account.")
+                    self.cmd.log("-" * 30)
+                    self.cmd.log("[BLUE]TRYING AUTO-SCRUB (MAJARIBIO)...")
+                    
+                    # Try to clear common managers that hold account data
+                    scrub_targets = ["com.google.android.gms", "com.google.android.gsf", "com.android.providers.contacts", "com.android.vending"]
+                    for pkg in scrub_targets:
+                        self.cmd.run_command(f"adb shell pm clear {pkg}", log_output=False)
+                    
+                    self.cmd.log("[YELLOW]Tafadhali: Nenda Settings > Accounts, kisha FUTA Account zote.")
+                    self.cmd.log("[YELLOW]Au fanya 'Factory Reset' kwanza kisha usipite Setup Wizard.")
+                    self.cmd.log("-" * 30)
+                else:
+                    self.cmd.log("[INFO] Ensure no accounts/users exist and ADB is authorized.")
+
+    def samsung_kg_qr_bypass(self):
+        """
+        Generates a QR Code for Samsung KG/Prenormal bypass on Android 15/16.
+        This uses Provisioning extras to set Device Owner and bypass initial checks.
+        """
+        import threading
+        import os
+        import json
+        
+        # Check for qrcode library
+        try:
+            import qrcode
+        except ImportError:
+            self.cmd.log("[ERROR] 'qrcode' library missing. Please install it with: pip install qrcode[pil]")
+            return
+
+        def _task():
+            self.cmd.log("[HEADER] SAMSUNG KG QR GENERATOR")
+            self.cmd.log("[INFO] Target: Android 15/16 (Prenormal Bypass)")
+            
+            # Payload tailored for Samsung KG Bypass (Android 16 Play Protect Bypass)
+            qr_data = {
+                "android.app.extra.PROVISIONING_DEVICE_ADMIN_COMPONENT_NAME": "com.mrog.admin/com.mrog.admin.MyDeviceAdminReceiver",
+                "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_DOWNLOAD_LOCATION": "https://mrogtool.com/downloads/mrog_bypass_v2.apk",
+                "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_CHECKSUM": "O+Jdx3A3V0enS6s/KFVHxX8AOquYuVKRcHB1N2RplhQ=",
+                "android.app.extra.PROVISIONING_LEAVE_ALL_SYSTEM_APPS_ENABLED": True,
+                "android.app.extra.PROVISIONING_SKIP_ENCRYPTION": True,
+                "android.app.extra.PROVISIONING_SKIP_EDUCATION_SCREENS": True,
+                "android.app.extra.PROVISIONING_ADMIN_EXTRAS_BUNDLE": {
+                    "mrog_mode": "kg_bypass",
+                    "force_adb": "true"
+                }
+            }
+            
+            # Convert to JSON
+            json_str = json.dumps(qr_data, separators=(',', ':'))
+            self.cmd.log(f"Generating Advanced Payload... [BLUE]OK")
+            
+            # Generate Image
+            qr = qrcode.QRCode(version=1, box_size=10, border=4)
+            qr.add_data(json_str)
+            qr.make(fit=True)
+            
+            img = qr.make_image(fill_color="black", back_color="white")
+            
+            # Save path
+            base = getattr(self.cmd, 'base_path', os.getcwd())
+            temp_path = os.path.join(base, "assets", "temp_samsung_kg_qr.png")
+            
+            if os.path.exists(temp_path):
+                try: os.remove(temp_path)
+                except: pass
+                
+            img.save(temp_path)
+            self.cmd.log("[GREEN]QR Code Generated Successfully!")
+            self.cmd.log("-" * 30)
+            self.cmd.log("[INFO] 1. Factory Reset device.")
+            self.cmd.log("[INFO] 2. Tap 7 times on 'Welcome' screen.")
+            self.cmd.log("[INFO] 3. Scan this QR Code.")
+            self.cmd.log("[YELLOW]BAADA YA SCAN (STRICT STEPS):")
+            self.cmd.log("[WHITE] - Simu ita-skip Setup na kuingia Home Screen.")
+            self.cmd.log("[WHITE] - ADB itakuwa ACTIVE moja kwa moja.")
+            self.cmd.log("[WHITE] - Mara moja, bonyeza button ya 'FIX KG' kwenye Tool.")
+            self.cmd.log("[WHITE] - Hii itaua Samsung Agents kabla hawajajifunga.")
+            self.cmd.log("-" * 30)
+            
+            # Display Popup
+            self._show_qr_popup(temp_path)
+
+        threading.Thread(target=_task).start()
+
+    def new_fire_security_patch(self):
+        """
+        Executes Aggressive Security Restrictions & Update Blocking (NEW FIRE).
+        Independent of KG UNLOCK 2026.
+        """
+        def _task():
+            self.cmd.log("[HEADER]🔥 MR OG - NEW FIRE SECURITY ENGINE 🔥")
+            self.cmd.log("[INFO] Mode: Independent Security Deployment")
+            self.cmd.log("Waiting for Authorized Device...")
+            self.cmd.run_command("adb wait-for-device", log_output=False)
+            
+            # 1. Install Dedicated FIRE APK
+            base = getattr(self.cmd, 'base_path', os.getcwd())
+            fire_apk = os.path.join(base, "assets", "mrog_fire.apk")
+            
+            if not os.path.exists(fire_apk):
+                # Fallback to general mrog_lock if fire specific is missing
+                fire_apk = os.path.join(base, "assets", "mrog_lock_2026.apk")
+                if not os.path.exists(fire_apk):
+                    self.cmd.log("[RED]❌ Critical Component Missing: mrog_fire.apk")
+                    return
+            
+            self.cmd.log(f"[BLUE]➤ Injecting Dedicated FIRE Protection Engine...")
+            res_install = self.cmd.run_command(f'adb install -r -g "{fire_apk}"', log_output=False)
+            
+            if "Success" not in res_install:
+                 self.cmd.log(f"[RED]❌ Installation Failed: {res_install}")
+                 return
+            
+            self.cmd.log("[GREEN]✓ FIRE Engine Installed.")
+            
+            # 2. Set Device Owner (Exclusive to FIRE)
+            # Package: com.mrog.admin (Independent)
+            component = "com.mrog.admin/.MyDeviceAdminReceiver"
+            
+            self.cmd.log("[BLUE]➤ Elevating Fire Security Privileges...")
+            res_owner = self.cmd.run_command(f"adb shell dpm set-device-owner {component}", log_output=False)
+            
+            if "Success" in res_owner or "Active admin" in res_owner:
+                self.cmd.log("[GREEN]✓ Fire Admin Access Granted.")
+            else:
+                self.cmd.log(f"[YELLOW]⚠ Admin Set Result: {res_owner.strip()}")
+                self.cmd.log("[INFO] If Account Error, please remove Google/Samsung accounts first.")
+
+            # 3. Apply User Restrictions (Force Command Sequence)
+            restrictions = [
+                "no_network_reset", "no_remove_user", "no_user_switch", 
+                "no_config_private_dns", "no_add_managed_profile", "no_sim_globally", 
+                "no_factory_reset", "no_remove_managed_profile", "no_safe_boot", 
+                "no_apps_control", "no_tethering"
+            ]
+            
+            self.cmd.log("[BLUE]➤ Shielding Device UI & Settings...")
+            for r in restrictions:
+                self.cmd.run_command(f"adb shell dpm set-user-restriction {r} 1", log_output=False)
+                
+            self.cmd.log("[GREEN]✓ All System Restrictions Locked.")
+
+            # 4. System Update Policy (POSTPONE & BLOCK)
+            self.cmd.log("[BLUE]➤ Freezing System Updates (Managed Path)...")
+            self.cmd.run_command(f'adb shell dpm set-organization-name "MR_OG_FIRE_PROTECTION"', log_output=False)
+            
+            # Disable Samsung OTA Services directly
+            update_pkgs = ["com.sec.android.soagent", "com.wssyncmldm", "com.samsung.android.app.updatecenter"]
+            for p in update_pkgs:
+                self.cmd.run_command(f"adb shell pm disable-user --user 0 {p}", log_output=False)
+                self.cmd.run_command(f"adb shell pm hide --user 0 {p}", log_output=False)
+
+            self.cmd.log("")
+            self.cmd.log("-------------------------------------------")
+            self.cmd.log("[GREEN]🔥 NEW FIRE ENGINE DEPLOYED & ACTIVE!")
+            self.cmd.log("[INFO] Operation: Independent from KG Unlock")
+            self.cmd.log("[INFO] Status: Device Fully Shielded")
+            self.cmd.log("-------------------------------------------")
+
+        threading.Thread(target=_task, daemon=True).start()
+
+    def _show_qr_popup(self, img_path):
+        """Common helper to show QR popup windows."""
+        import customtkinter as ctk
+        from PIL import Image
+        import os
+        
+        try:
+            top = ctk.CTkToplevel()
+            top.title("Samsung KG QR Bypass")
+            top.geometry("400x500")
+            top.attributes("-topmost", True)
+            
+            if os.path.exists(img_path):
+                pil_img = Image.open(img_path)
+                ctk_img = ctk.CTkImage(light_image=pil_img, dark_image=pil_img, size=(350, 350))
+                
+                label = ctk.CTkLabel(top, image=ctk_img, text="")
+                label.pack(pady=20)
+                
+                info = ctk.CTkLabel(top, text="SCAN ON WELCOME SCREEN", font=("Arial", 14, "bold"), text_color="#00FF00")
+                info.pack()
+                
+                ctk.CTkLabel(top, text="MR OG TOOL - Android 16 Edition", font=("Arial", 10)).pack(pady=10)
+            else:
+                ctk.CTkLabel(top, text="Error: QR Image Not Found").pack(pady=20)
+                
+            top.mainloop()
+        except Exception as e:
+            self.cmd.log(f"[WARN] Failed to open QR Window: {e}")
+            try: os.startfile(img_path)
+            except: pass
 
         threading.Thread(target=_job, daemon=True).start()

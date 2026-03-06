@@ -28,3 +28,10 @@ class Notification(Base):
     message = Column(String)
     is_read = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+class PasswordReset(Base):
+    __tablename__ = "password_resets"
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String, index=True)
+    otp = Column(String)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)

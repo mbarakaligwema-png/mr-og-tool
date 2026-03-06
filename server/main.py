@@ -10,6 +10,11 @@ import models, database, crud, auth
 
 import models, database, crud, auth
 import os
+import smtplib
+import random
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from datetime import datetime
 
 # Init DB
 models.Base.metadata.create_all(bind=database.engine)
@@ -142,6 +147,86 @@ async def logout():
     response = RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
     response.delete_cookie("access_token")
     return response
+
+@app.get("/forgot-password", response_class=HTMLResponse)
+async def forgot_password_page(request: Request):
+    return templates.TemplateResponse("forgot_password.html", {"request": request})
+
+@app.post("/api/send-otp")
+async def send_otp(request: Request, db: Session = Depends(get_db)):
+    data = await request.json()
+    email = data.get("email")
+    
+    # Check if user exists with this email
+    user = db.query(models.User).filter(models.User.email == email).first()
+    if not user:
+        return JSONResponse({"status": "error", "message": "No account found with this email."}, status_code=404)
+    
+    # Generate OTP
+    otp = str(random.randint(100000, 999999))
+    
+    # Clear old resets for this email and save new one
+    db.query(models.PasswordReset).filter(models.PasswordReset.email == email).delete()
+    new_reset = models.PasswordReset(email=email, otp=otp)
+    db.add(new_reset)
+    db.commit()
+    
+    # Send Email
+    sender_email = "mbarakaligwema@gmail.com"
+    app_password = "coff qchr kcrk nkwo"
+    
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = "🔐 MR OG TOOL - Reset Code"
+    msg["From"] = f"MR OG TOOL ADMIN <{sender_email}>"
+    msg["To"] = email
+    
+    html = f"""
+    <div style="font-family: Arial; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+        <h2 style="color: #2196F3;">MR OG TOOL</h2>
+        <p>Hello <b>{user.username}</b>,</p>
+        <p>Your verification code to reset your password is:</p>
+        <h1 style="background: #f4f4f4; padding: 10px; text-align: center; letter-spacing: 5px;">{otp}</h1>
+        <p>This code will expire in 10 minutes. If you did not request this, please ignore this email.</p>
+    </div>
+    """
+    msg.attach(MIMEText(html, "html"))
+    
+    try:
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+            server.login(sender_email, app_password)
+            server.sendmail(sender_email, email, msg.as_string())
+        return {"status": "success", "message": "OTP Sent!"}
+    except Exception as e:
+        return JSONResponse({"status": "error", "message": f"Failed to send email: {str(e)}"}, status_code=500)
+
+@app.post("/api/reset-password")
+async def reset_password_api(request: Request, db: Session = Depends(get_db)):
+    data = await request.json()
+    email = data.get("email")
+    otp = data.get("otp")
+    new_pass = data.get("new_password")
+    
+    # Verify OTP
+    reset_entry = db.query(models.PasswordReset).filter(models.PasswordReset.email == email, models.PasswordReset.otp == otp).first()
+    if not reset_entry:
+        return JSONResponse({"status": "error", "message": "Invalid or expired OTP code."}, status_code=400)
+    
+    # Check if expired (10 mins)
+    time_diff = datetime.utcnow() - reset_entry.created_at
+    if time_diff.total_seconds() > 600:
+        db.delete(reset_entry)
+        db.commit()
+        return JSONResponse({"status": "error", "message": "OTP has expired. Please request a new one."}, status_code=400)
+    
+    # Perform Reset
+    user = db.query(models.User).filter(models.User.email == email).first()
+    if user:
+        user.hashed_password = auth.get_password_hash(new_pass)
+        db.delete(reset_entry) # Delete OTP after use
+        db.commit()
+        return {"status": "success", "message": "Password updated successfully!"}
+    
+    return JSONResponse({"status": "error", "message": "User not found."}, status_code=404)
 
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard(request: Request, db: Session = Depends(get_db)):

