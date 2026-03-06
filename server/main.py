@@ -13,6 +13,7 @@ from datetime import timedelta, datetime
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
+import httpx
 import models, database, crud, auth
 
 app = FastAPI()
@@ -141,21 +142,42 @@ async def send_otp(request: Request, db: Session = Depends(get_db)):
         db.add(models.PasswordReset(email=email, otp=otp))
         db.commit()
         
-        # SMTP Send with Timeout
-        msg = MIMEMultipart("alternative")
-        msg["Subject"] = "🔐 MR OG TOOL - Reset Code"
-        msg["From"] = f"MR OG TOOL ADMIN <mbarakaligwema@gmail.com>"
-        msg["To"] = email
-        html = f"<h2>Code: {otp}</h2>" # Simplified for safety
-        msg.attach(MIMEText(html, "html"))
-        # SMTP Send with STARTTLS (Port 587 is more compatible with Railway/Cloud)
-        with smtplib.SMTP("smtp.gmail.com", 587, timeout=10) as server:
-            server.starttls() # Secure the connection
-            server.login("mbarakaligwema@gmail.com", "coff qchr kcrk nkwo")
-            server.sendmail("mbarakaligwema@gmail.com", email, msg.as_string())
-        return {"status": "success", "message": "OTP Sent!"}
+        # BREVO API SETTINGS
+        BREVO_API_KEY = "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"
+        
+        payload = {
+            "sender": {"name": "MR OG TOOL", "email": "mbarakaligwema@gmail.com"},
+            "to": [{"email": email}],
+            "subject": "🔐 MR OG TOOL - Reset Code",
+            "htmlContent": f"""
+            <div style="font-family: Arial; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+                <h2 style="color: #2196F3;">MR OG TOOL</h2>
+                <p>Hello <b>{user.username}</b>,</p>
+                <p>Your verification code to reset your password is:</p>
+                <h1 style="background: #f4f4f4; padding: 10px; text-align: center; letter-spacing: 5px;">{otp}</h1>
+                <p>This code will expire in 10 minutes. If you did not request this, please ignore this email.</p>
+            </div>
+            """
+        }
+        
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                "https://api.brevo.com/v3/smtp/email",
+                headers={
+                    "api-key": BREVO_API_KEY,
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                },
+                json=payload,
+                timeout=15.0
+            )
+            
+        if response.status_code in [200, 201]:
+            return {"status": "success", "message": "OTP Sent!"}
+        else:
+            return JSONResponse({"status": "error", "message": f"Brevo API Error: {response.text}"}, status_code=500)
     except Exception as e:
-        return JSONResponse({"status": "error", "message": f"SMTP Error: {str(e)}"}, status_code=500)
+        return JSONResponse({"status": "error", "message": f"Server Error: {str(e)}"}, status_code=500)
 
 @app.post("/api/reset-password")
 async def reset_password_api(request: Request, db: Session = Depends(get_db)):
