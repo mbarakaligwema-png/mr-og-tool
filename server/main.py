@@ -1,8 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException, status, Request, Form
-from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
-from fastapi.templating import Jinja2Templates
-from fastapi.staticfiles import StaticFiles
-from sqlalchemy.orm import Session
+from fastapi.middleware.cors import CORSMiddleware
 from datetime import timedelta
 
 import models, database, crud, auth
@@ -20,6 +16,15 @@ from datetime import datetime
 models.Base.metadata.create_all(bind=database.engine)
 
 app = FastAPI()
+
+# --- ENABLE CORS (Allow everything to prevent freezing) ---
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/health")
 def health_check():
@@ -89,10 +94,15 @@ def startup_event():
                  db.commit()
              except: pass
         
-        # --- Create Default Admin ---
-        if not crud.get_user(db, "mrogtool"):
-            crud.create_user(db, "mrogtool", "dell", is_admin=True)
-            print("--- DEFAULT ADMIN CREATED: mrogtool / dell ---")
+        # --- Create Default Admin & Assign Email ---
+        admin_user = crud.get_user(db, "mrogtool")
+        if admin_user:
+            admin_user.email = "mbarakaligwema@gmail.com"  # Set for testing
+            db.commit()
+            print("--- ADMIN EMAIL UPDATED: mbarakaligwema@gmail.com ---")
+        else:
+            crud.create_user(db, "mrogtool", "dell", email="mbarakaligwema@gmail.com", is_admin=True)
+            print("--- DEFAULT ADMIN CREATED WITH EMAIL ---")
     finally:
         db.close()
 
