@@ -27,14 +27,19 @@ class LoginWindow(ctk.CTk):
         # Load saved credentials (last used)
         self.load_config()
         
+        # Center the window on screen
+        width = 400
+        height = 620
+        screen_width = self.winfo_screenwidth()
+        screen_height = self.winfo_screenheight()
+        x = (screen_width // 2) - (width // 2)
+        y = (screen_height // 2) - (height // 2)
+        self.geometry(f"{width}x{height}+{x}+{y}")
+
         self.title("Login - MR OG TOOL")
-        self.geometry("400x620") # Increased height slightly for new bar
         self.resizable(False, False)
         self.configure(fg_color=styles.BACKGROUND)
         
-        # Center the window on screen
-        self.eval('tk::PlaceWindow . center')
-
         # --- Set Icon (Robust) ---
         import sys
         if getattr(sys, 'frozen', False):

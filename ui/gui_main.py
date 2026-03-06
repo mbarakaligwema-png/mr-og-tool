@@ -25,7 +25,16 @@ class OGServiceToolApp(ctk.CTk):
 
         # Window Setup
         self.title("MR OG TOOL - Ultimate Phone Repair")
-        self.geometry(f"{styles.WINDOW_WIDTH}x{styles.WINDOW_HEIGHT}")
+        
+        # Center Window logic
+        width = styles.WINDOW_WIDTH
+        height = styles.WINDOW_HEIGHT
+        screen_width = self.winfo_screenwidth()
+        screen_height = self.winfo_screenheight()
+        x = (screen_width // 2) - (width // 2)
+        y = (screen_height // 2) - (height // 2)
+        self.geometry(f"{width}x{height}+{x}+{y}")
+        
         self.configure(fg_color=styles.BACKGROUND)
 
         # --- Set Icon (Robust Method) ---
