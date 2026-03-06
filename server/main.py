@@ -4,6 +4,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 import os
 import smtplib
 import random
@@ -13,9 +14,6 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 import models, database, crud, auth
-
-# Init DB
-models.Base.metadata.create_all(bind=database.engine)
 
 app = FastAPI()
 
@@ -64,10 +62,16 @@ def get_db():
 
 @app.on_event("startup")
 def startup_event():
+    # --- AUTO CREATE TABLES ---
+    try:
+        models.Base.metadata.create_all(bind=database.engine)
+        print("--- DATABASE TABLES CREATED/VERIFIED ---")
+    except Exception as e:
+        print(f"--- DATABASE INITIALIZATION FAILED: {e} ---")
+
     db = database.SessionLocal()
     try:
         # --- AUTO MIGRATION CHECK ---
-        from sqlalchemy import text
         try:
             # Try to select the new column. If it fails, we need to add it.
             db.execute(text("SELECT last_hwid_reset FROM users LIMIT 1"))
