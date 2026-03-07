@@ -32,6 +32,9 @@ echo [*] Building Executable...
     --add-data "core;core" ^
     --add-data "assets;assets" ^
     --add-data "config.json;." ^
+    --add-data "adb.exe;." ^
+    --add-data "AdbWinApi.dll;." ^
+    --add-data "AdbWinUsbApi.dll;." ^
     --hidden-import="PIL" ^
     --hidden-import="PIL._tkinter_finder" ^
     --hidden-import="customtkinter" ^

@@ -250,8 +250,20 @@ class OGServiceToolApp(ctk.CTk):
         # Initialize Managers
         self.adb_manager = ADBManager(self.append_log)
         
-        # Start Auto-Detect Thread
+        # Monitoring Control
+        self.monitoring_suspended = False
+        self.btn_bypass_2026 = None 
         self.start_device_monitor()
+
+    def suspend_monitoring(self):
+        """Pauses background ADB/Fastboot detection."""
+        self.monitoring_suspended = True
+        import time
+        time.sleep(1) # Wait for active scanners to finish their loop
+        
+    def resume_monitoring(self):
+        """Resumes background ADB/Fastboot detection."""
+        self.monitoring_suspended = False
 
     def start_device_monitor(self):
         import threading
@@ -262,16 +274,15 @@ class OGServiceToolApp(ctk.CTk):
             # Give UI time to render first
             time.sleep(3)
             
-            # ADB Server Reset (Fix for connection issues)
-            try:
-                startupinfo = subprocess.STARTUPINFO()
-                startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-                subprocess.run(["adb", "kill-server"], startupinfo=startupinfo, creationflags=subprocess.CREATE_NO_WINDOW)
-                subprocess.run(["adb", "start-server"], startupinfo=startupinfo, creationflags=subprocess.CREATE_NO_WINDOW)
-            except: pass
+            # Background monitoring started
+            last_model = ""
 
             last_model = ""
             while True:
+                if self.monitoring_suspended:
+                    time.sleep(1)
+                    continue
+                    
                 try:
                     # Use Smart Status from ADB Manager
                     status = self.adb_manager.get_smart_status()
@@ -281,10 +292,15 @@ class OGServiceToolApp(ctk.CTk):
                         self.port_label.configure(text=f"Port: ADB ({model})", text_color="#00FF00")
                         self.model_label.configure(text=f"Model: {model}")
                         last_model = model
+                    elif status['adb_state'] == "UNAUTHORIZED":
+                        self.port_label.configure(text="Port: ADB (Unauthorized)", text_color="#FFD700")
+                        self.model_label.configure(text="Model: AUTHORIZE DEVICE")
+                        last_model = ""
                     else:
-                        # Check Fastboot
+                        # Check Fastboot (Static path usually ok, but handled safely)
                         startupinfo = subprocess.STARTUPINFO()
                         startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                        # Fix: Use bundled fastboot if possible, or system
                         proc = subprocess.Popen(["fastboot", "devices"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=startupinfo, text=True)
                         fb_out, _ = proc.communicate()
                         
@@ -454,6 +470,9 @@ class OGServiceToolApp(ctk.CTk):
         
         def scan():
             while True:
+                if self.monitoring_suspended:
+                    time.sleep(1)
+                    continue
                 status_text = "Port: No Device"
                 color = "gray"
                 found = False
@@ -464,7 +483,9 @@ class OGServiceToolApp(ctk.CTk):
                     startupinfo = subprocess.STARTUPINFO()
                     startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
                     
-                    adb_res = subprocess.check_output("adb devices", startupinfo=startupinfo).decode()
+                    # Fix: Use Bundled ADB Path to prevent version mismatch authorized resets
+                    adb_path = self.adb_manager.cmd.adb_path
+                    adb_res = subprocess.check_output(f"{adb_path} devices", startupinfo=startupinfo, shell=True).decode()
                     lines = adb_res.strip().split('\n')
                     for line in lines:
                         if "\tdevice" in line or "\trecovery" in line:
@@ -740,19 +761,29 @@ class OGServiceToolApp(ctk.CTk):
             # KG Status with Colors
             kg = s['kg_status']
             self.lbl_db_kg.configure(text=kg)
-            if "PRENORMAL" in kg: self.lbl_db_kg.configure(text_color="#FFA500") # Orange
+            if "NEED PERMISSION" in kg: self.lbl_db_kg.configure(text_color="#FFD700") # Yellow
+            elif "PRENORMAL" in kg: self.lbl_db_kg.configure(text_color="#FFA500") # Orange
             elif "LOCKED" in kg or "ACTIVE" in kg: self.lbl_db_kg.configure(text_color="#FF4444") # Red
-            elif "COMPLETED" in kg or "OFFLINE" not in kg: self.lbl_db_kg.configure(text_color="#00FF00")
+            elif "COMPLETED" in kg: self.lbl_db_kg.configure(text_color="#00FF00") # Green
             
             # FRP Status
             frp = s['frp_status']
             self.lbl_db_frp.configure(text=frp, text_color="#FF4444" if frp == "LOCKED" else "#00FF00")
             
             # ADB Header
-            self.db_adb_status.configure(text=f"ADB: {s['adb_state']}", text_color="#00FF00" if s['adb_state'] == "ONLINE" else "gray")
+            adb_st = s['adb_state']
+            self.db_adb_status.configure(text=f"ADB: {adb_st}")
+            if adb_st == "ONLINE": 
+                 self.db_adb_status.configure(text_color="#00FF00")
+            elif adb_st == "UNAUTHORIZED":
+                 self.db_adb_status.configure(text_color="#FFD700")
+            else:
+                 self.db_adb_status.configure(text_color="gray")
             
             # Recommendations
-            if s['adb_state'] == "ONLINE":
+            if adb_st == "UNAUTHORIZED":
+                self.recommendation_label.configure(text="ACTION: PLEASE AUTHORIZE PC ON YOUR DEVICE SCREEN!", text_color="#FFD700")
+            elif adb_st == "ONLINE":
                 if frp == "LOCKED":
                     self.recommendation_label.configure(text="TIP: Go to ANDROID tab and use 'Remove FRP' if you are stuck.", text_color="#00BFFF")
                 else:
@@ -844,42 +875,14 @@ class OGServiceToolApp(ctk.CTk):
          grid_frame = ctk.CTkFrame(tab_main, fg_color="transparent")
          grid_frame.pack(fill="both", expand=True)
          
-         # Remove FIX LOG from general grid and add special row for it
-         buttons_data = [
-            ("Read Info (MTP)", self.samsung_manager.read_info_mtp),
-            ("Reboot Download", self.samsung_manager.reboot_download),
-            ("Factory Reset", self.samsung_manager.factory_reset),
-            ("Enable ADB (QR)", self.samsung_manager.enable_adb_qr),
-            ("Remove FRP (2024)", self.samsung_manager.remove_frp_2024),
-            ("Exit Download Mode", self.samsung_manager.exit_download_mode),
-            ("KG UNLOCK 2026", self.samsung_manager.kg_bypass_android_15_16),
-            ("NEW FIRE 🔥", self.samsung_manager.new_fire_security_patch)
-         ]
-         
-         row_idx = 0
-         for i, (text, cmd) in enumerate(buttons_data):
-             btn = ctk.CTkButton(grid_frame, text=text, height=50, fg_color=styles.CARD_BG, hover_color=styles.ACCENT_COLOR, command=cmd)
-             btn.grid(row=i//3, column=i%3, padx=10, pady=10, sticky="ew")
-             row_idx = i//3
+         # Return to small grid button as requested
+         self.btn_bypass_2026 = ctk.CTkButton(grid_frame, text="BYPASS 2026", height=50, 
+                            font=ctk.CTkFont(size=14, weight="bold"),
+                            fg_color=styles.CARD_BG, hover_color=styles.ACCENT_COLOR, 
+                            command=self.run_samsung_bypass)
+         # Use grid with small padding
+         self.btn_bypass_2026.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
 
-         # --- SPECIAL FIX LOG SECTION (Kishimo) ---
-         fix_frame = ctk.CTkFrame(grid_frame, fg_color="transparent")
-         fix_frame.grid(row=row_idx+1, column=0, columnspan=3, sticky="ew", padx=10, pady=10)
-         
-         ctk.CTkLabel(fix_frame, text="FIX LOG:", font=ctk.CTkFont(weight="bold")).pack(side="left", padx=(0, 10))
-         
-         self.fix_log_model_var = ctk.StringVar(value="A05")
-         model_menu = ctk.CTkOptionMenu(fix_frame, variable=self.fix_log_model_var, 
-                                        values=["A05", "A06"],
-                                        fg_color=styles.CARD_BG, button_color=styles.ACCENT_COLOR, width=200)
-         model_menu.pack(side="left", padx=10)
-         
-         def run_fix_log():
-             model = self.fix_log_model_var.get()
-             self.samsung_manager.fix_stuck_logo(model)
-             
-         ctk.CTkButton(fix_frame, text="RUN FIX", width=100, fg_color=styles.ACCENT_COLOR, command=run_fix_log).pack(side="left")
-        
          grid_frame.grid_columnconfigure(0, weight=1)
          grid_frame.grid_columnconfigure(1, weight=1)
          grid_frame.grid_columnconfigure(2, weight=1)
@@ -897,6 +900,29 @@ class OGServiceToolApp(ctk.CTk):
                                    font=ctk.CTkFont(size=16, weight="bold"),
                                    command=self.perform_odin_flash)
          flash_btn.pack(fill="x", padx=50)
+
+    def run_samsung_bypass(self):
+        """Wrapper to run bypass in a separate thread with monitoring suspended."""
+        if self.monitoring_suspended:
+            self.append_log("[YELLOW]A task is already in progress. Please wait.")
+            return
+
+        import threading
+        def _task():
+            if self.btn_bypass_2026:
+                self.btn_bypass_2026.configure(state="disabled", text="PROCESING...")
+            
+            self.append_log("[HEADER] [PREMIUM] INITIATING SECURE BYPASS SEQUENCE")
+            self.suspend_monitoring()
+            try:
+                self.samsung_manager.bypass_2026_logic()
+            finally:
+                self.resume_monitoring()
+                if self.btn_bypass_2026:
+                    self.btn_bypass_2026.configure(state="normal", text="BYPASS 2026")
+                self.after(2000, lambda: self.append_log("[GREEN]Background monitoring resumed."))
+
+        threading.Thread(target=_task, daemon=True).start()
 
     def show_fix_logo_dialog(self):
         dialog = ctk.CTkToplevel(self)
@@ -1014,7 +1040,7 @@ class OGServiceToolApp(ctk.CTk):
         btn = ctk.CTkButton(grid_frame, text="ZTE A35 DOWNGRADE FILE", height=50, 
                             fg_color=styles.CARD_BG, hover_color=styles.ACCENT_COLOR, 
                             command=lambda: webbrowser.open(url))
-        btn.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
+        self.btn_bypass_2026.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
 
         grid_frame.grid_columnconfigure(0, weight=1)
         grid_frame.grid_columnconfigure(1, weight=1)

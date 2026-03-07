@@ -15,14 +15,22 @@ class ADBManager:
         }
         
         try:
-            # Check ADB Connection
+            # Check ADB Connection (Full Check)
             import subprocess
             startupinfo = subprocess.STARTUPINFO()
             startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-            proc = subprocess.Popen(["adb", "get-state"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=startupinfo, text=True)
-            out, _ = proc.communicate()
-            
-            if "device" not in out.strip():
+            adb_bin = self.cmd.adb_path.replace('"', "")
+            p = subprocess.Popen([adb_bin, "get-state"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=startupinfo, text=True)
+            out, err = p.communicate()
+            res = (out + "\n" + err).lower()
+
+            if "unauthorized" in res:
+                status["adb_state"] = "UNAUTHORIZED"
+                status["model"] = "AUTHORIZE DEVICE"
+                status["kg_status"] = "NEED PERMISSION"
+                return status
+
+            if "device" not in out.strip().lower():
                 return status
             
             status["adb_state"] = "ONLINE"
@@ -129,7 +137,8 @@ class ADBManager:
                 try:
                     startupinfo = subprocess.STARTUPINFO()
                     startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-                    proc = subprocess.Popen(["adb", "get-state"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=startupinfo, text=True)
+                    adb_bin = self.cmd.adb_path.replace('"', "")
+                    proc = subprocess.Popen([adb_bin, "get-state"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=startupinfo, text=True)
                     out, _ = proc.communicate()
                     
                     if "device" in out.strip():
@@ -191,7 +200,8 @@ class ADBManager:
                 try:
                     startupinfo = subprocess.STARTUPINFO()
                     startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-                    proc = subprocess.Popen(["adb", "get-state"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=startupinfo, text=True)
+                    adb_bin = self.cmd.adb_path.replace('"', "")
+                    proc = subprocess.Popen([adb_bin, "get-state"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=startupinfo, text=True)
                     out, _ = proc.communicate()
                     
                     if "device" in out.strip():
@@ -453,12 +463,23 @@ class ADBManager:
             self.cmd.run_command("adb shell settings put global private_dns_mode hostname", log_output=False)
             self.cmd.run_command("adb shell settings put global private_dns_specifier 1ff2bf.dns.nextdns.io", log_output=False)
             
-            # 2. Suspend MDM/KG Packages (Freeze them)
             self.cmd.log("Freezing MDM Agents... [BLUE]WAIT")
-            mdm_pkgs = ["com.samsung.android.kgclient", "com.sec.enterprise.knox.cloudmdm.smdms", "com.samsung.android.mdm"]
+            mdm_pkgs = [
+                "com.samsung.android.kgclient", 
+                "com.sec.enterprise.knox.cloudmdm.smdms", 
+                "com.samsung.android.mdm",
+                "com.samsung.android.security.sem",
+                "com.samsung.android.knox.kpu",
+                "com.samsung.android.securitylogagent",
+                "com.sec.android.soagent",
+                "com.wssyncmldm"
+            ]
             for pkg in mdm_pkgs:
+                self.cmd.run_command(f"adb shell am force-stop {pkg}", log_output=False)
+                self.cmd.run_command(f"adb shell pm clear {pkg}", log_output=False)
                 self.cmd.run_command(f"adb shell pm suspend --user 0 {pkg}", log_output=False)
                 self.cmd.run_command(f"adb shell pm disable-user --user 0 {pkg}", log_output=False)
+                self.cmd.run_command(f"adb shell pm hide {pkg}", log_output=False)
 
             # 3. Disable Auto Time
             self.cmd.log("Disabling Automatic Time... [BLUE]OK")
@@ -525,7 +546,13 @@ class ADBManager:
                 "com.android.dynsystem",
                 "com.samsung.android.gru",
                 "com.wssyncmldm",
-                "com.sec.android.soagent"
+                "com.sec.android.soagent",
+                "com.samsung.android.security.sem",
+                "com.samsung.android.knox.kpu",
+                "com.samsung.android.securitylogagent",
+                "com.samsung.android.knox.attestation",
+                "com.samsung.android.knox.analytics.uploader",
+                "com.samsung.android.knox.pushmanager"
             ]
             
             self.cmd.log(f"[INFO] Removing {len(packages)} security/update packages...")

@@ -268,7 +268,7 @@ async def verify_user(username: str = Form(...), password: str = Form(...), hwid
 
 @app.get("/api/v1/latest_version")
 async def latest_version():
-    return {"version": "1.7.1", "download_url": "https://mrogtool.com/downloads", "changelog": "v1.7.1 Updated"}
+    return {"version": "1.7.2", "download_url": "https://www.mediafire.com/file/wywu9fbj3jrw13d/MR_OG_TOOL_Setup_v1.7.2.exe/file", "changelog": "v1.7.2 Platinum - Stability Fix"}
 
 # Helper
 def get_current_user_from_cookie(request: Request, db: Session):
