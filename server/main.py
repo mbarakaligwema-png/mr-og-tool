@@ -113,7 +113,7 @@ async def register(request: Request, username: str = Form(...), email: str = For
     if crud.get_user(db, username):
         return templates.TemplateResponse("register.html", {"request": request, "error": "Username taken"})
     try:
-        crud.create_user(db, username, password, email=email)
+        crud.create_user(db, username, password, email=email, is_active=False)
         crud.create_notification(db, f"New user: {username}")
         return RedirectResponse(url="/login?msg=registered", status_code=status.HTTP_303_SEE_OTHER)
     except Exception as e:
@@ -284,6 +284,7 @@ async def verify_user(username: str = Form(...), password: str = Form(...), hwid
     user = crud.get_user(db, username)
     if not user: return JSONResponse({"status": "BLOCK", "message": "No User"}, status_code=404)
     if not auth.verify_password(password, user.hashed_password): return JSONResponse({"status": "BLOCK", "message": "Wrong Pass"}, status_code=403)
+    if not user.is_active: return JSONResponse({"status": "BLOCK", "message": "Account Blocked"}, status_code=403)
     if user.is_expired(): return JSONResponse({"status": "BLOCK", "message": "Expired"}, status_code=403)
     
     now = datetime.utcnow()

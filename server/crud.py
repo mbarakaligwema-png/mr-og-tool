@@ -8,12 +8,12 @@ def get_user(db: Session, username: str):
 def get_users(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.User).order_by(models.User.id.desc()).offset(skip).limit(limit).all()
 
-def create_user(db: Session, username: str, password: str, email: str = None, is_admin: bool = False):
+def create_user(db: Session, username: str, password: str, email: str = None, is_admin: bool = False, is_active: bool = True):
     hashed_password = auth.get_password_hash(password)
-    # Default to 1 hour from now so they can at least login and check the tool.
-    default_expiry = None if is_admin else datetime.datetime.utcnow() + datetime.timedelta(hours=1)
+    # Default to 1 hour AGO so they are expired by default.
+    default_expiry = None if is_admin else datetime.datetime.utcnow() - datetime.timedelta(hours=1)
     
-    db_user = models.User(username=username, email=email, hashed_password=hashed_password, is_admin=is_admin, expiry_date=default_expiry)
+    db_user = models.User(username=username, email=email, hashed_password=hashed_password, is_admin=is_admin, is_active=is_active, expiry_date=default_expiry)
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
