@@ -89,16 +89,16 @@ async def login_page(request: Request, msg: str = None):
     message = None
     if msg == "registered":
         message = "Account Pending Admission. Lifetime License Ready."
-    return templates.TemplateResponse("login.html", {"request": request, "msg": message})
+    return templates.TemplateResponse("login.html", {"request": request, "msg": message, "error": None})
 
 @app.post("/login", response_class=HTMLResponse)
 async def login(request: Request, username: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
     user = crud.get_user(db, username)
     if not user or not auth.verify_password(password, user.hashed_password):
-        return templates.TemplateResponse("login.html", {"request": request, "error": "Invalid credentials"})
+        return templates.TemplateResponse("login.html", {"request": request, "error": "Invalid credentials", "msg": None})
     
     if not user.is_active:
-        return templates.TemplateResponse("login.html", {"request": request, "error": "Account Pending Activation. Please contact Admin."})
+        return templates.TemplateResponse("login.html", {"request": request, "error": "Account Pending Activation. Please contact Admin.", "msg": None})
 
     access_token = auth.create_access_token(data={"sub": user.username})
     response = RedirectResponse(url="/dashboard", status_code=status.HTTP_303_SEE_OTHER)
@@ -107,7 +107,7 @@ async def login(request: Request, username: str = Form(...), password: str = For
 
 @app.get("/register", response_class=HTMLResponse)
 async def register_page(request: Request):
-    return templates.TemplateResponse("register.html", {"request": request})
+    return templates.TemplateResponse("register.html", {"request": request, "error": None})
 
 @app.post("/register", response_class=HTMLResponse)
 async def register(request: Request, username: str = Form(...), email: str = Form(...), password: str = Form(...), confirm_password: str = Form(...), db: Session = Depends(get_db)):
@@ -212,7 +212,7 @@ async def admin_panel(request: Request, db: Session = Depends(get_db)):
     user = get_current_user_from_cookie(request, db)
     if not user or not user.is_admin: return RedirectResponse(url="/dashboard")
     users = crud.get_users(db)
-    return templates.TemplateResponse("admin.html", {"request": request, "user": user, "users": users})
+    return templates.TemplateResponse("admin.html", {"request": request, "user": user, "users": users, "error": None})
 
 # --- ADMIN ACTIONS ---
 @app.post("/admin/users/{user_id}/toggle")
