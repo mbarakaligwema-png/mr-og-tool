@@ -230,7 +230,38 @@ async def delete_user(user_id: int, request: Request, db: Session = Depends(get_
 async def extend_user(user_id: int, request: Request, duration: str = Form(...), db: Session = Depends(get_db)):
     user = get_current_user_from_cookie(request, db)
     if not user or not user.is_admin: raise HTTPException(status_code=403)
-    crud.extend_user_expiry(db, user_id, duration)
+    
+    if duration == "make_admin":
+        crud.set_user_admin_status(db, user_id, True)
+    elif duration == "revoke_admin":
+        crud.set_user_admin_status(db, user_id, False)
+    else:
+        crud.extend_user_expiry(db, user_id, duration)
+        
+    return RedirectResponse(url="/admin", status_code=303)
+
+@app.post("/admin/users/add")
+async def add_user_admin(request: Request, 
+                         username: str = Form(...), 
+                         password: str = Form(...), 
+                         is_admin: bool = Form(False), 
+                         db: Session = Depends(get_db)):
+    user = get_current_user_from_cookie(request, db)
+    if not user or not user.is_admin: raise HTTPException(status_code=403)
+    
+    if crud.get_user(db, username):
+        users = crud.get_users(db)
+        return templates.TemplateResponse("admin.html", {"request": request, "user": user, "users": users, "error": "Username already exists"})
+    
+    crud.create_user(db, username, password, is_admin=is_admin)
+    return RedirectResponse(url="/admin", status_code=303)
+
+@app.post("/admin/users/{user_id}/reset_password")
+async def admin_reset_password(user_id: int, request: Request, new_password: str = Form(...), db: Session = Depends(get_db)):
+    user = get_current_user_from_cookie(request, db)
+    if not user or not user.is_admin: raise HTTPException(status_code=403)
+    
+    crud.reset_user_password(db, user_id, new_password)
     return RedirectResponse(url="/admin", status_code=303)
 
 @app.post("/admin/users/{user_id}/reset_hwid")
