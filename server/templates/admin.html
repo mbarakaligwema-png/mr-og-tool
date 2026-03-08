@@ -85,13 +85,21 @@
                                     <button type="submit" class="btn"
                                         style="background-color: #2196F3; padding: 5px 10px; font-size: 0.85em;">Reset
                                         HWID</button>
-                                </form>
-                                <!-- Extend -->
+                                 </form>
+                                 <!-- Reset Expiry (Cancel) -->
+                                 <form method="post" action="/admin/users/{{ u.id }}/reset_expiry"
+                                     style="display: inline;">
+                                     <button type="submit" class="btn"
+                                         style="background-color: #f44336; padding: 5px 10px; font-size: 0.85em;"
+                                         onclick="return confirm('Cancel/Reset license for {{ u.username }}?')">Reset Expiry</button>
+                                 </form>
+                                 <!-- Extend -->
                                 <form method="post" action="/admin/users/{{ u.id }}/extend" style="display: inline;">
                                     <select name="duration" onchange="this.form.submit()"
                                         style="padding: 5px; border-radius: 4px; border: 1px solid #555; background: #222; color: white; cursor: pointer;">
                                         <option value="" disabled selected>+ Extend / Role</option>
                                         <option value="6_hours">6 Hours</option>
+                                        <option value="2_months">2 Months</option>
                                         <option value="3_months">3 Months</option>
                                         <option value="6_months">6 Months</option>
                                         <option value="1_year">1 Year</option>

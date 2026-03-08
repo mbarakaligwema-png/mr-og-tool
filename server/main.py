@@ -305,6 +305,13 @@ async def verify_user(username: str = Form(...), password: str = Form(...), hwid
 async def latest_version():
     return {"version": "1.7.2", "download_url": "https://www.mediafire.com/file/wywu9fbj3jrw13d/MR_OG_TOOL_Setup_v1.7.2.exe/file", "changelog": "v1.7.2 Platinum - Stability Fix"}
 
+@app.post("/admin/users/{user_id}/reset_expiry")
+async def admin_reset_expiry(user_id: int, request: Request, db: Session = Depends(get_db)):
+    user = get_current_user_from_cookie(request, db)
+    if not user or not user.is_admin: raise HTTPException(status_code=403)
+    crud.reset_user_expiry(db, user_id)
+    return RedirectResponse(url="/admin", status_code=303)
+
 # Helper
 def get_current_user_from_cookie(request: Request, db: Session):
     token = request.cookies.get("access_token")

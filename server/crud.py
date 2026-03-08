@@ -47,6 +47,8 @@ def extend_user_expiry(db: Session, user_id: int, duration_type: str):
     
     if duration_type == "6_hours":
         user.expiry_date = base_date + datetime.timedelta(hours=6)
+    elif duration_type == "2_months":
+        user.expiry_date = base_date + datetime.timedelta(days=60)
     elif duration_type == "3_months":
         user.expiry_date = base_date + datetime.timedelta(days=90)
     elif duration_type == "6_months":
@@ -97,6 +99,15 @@ def create_notification(db: Session, message: str):
 
 def get_latest_notifications(db: Session, limit: int = 20):
     return db.query(models.Notification).order_by(models.Notification.created_at.desc()).limit(limit).all()
+
+def reset_user_expiry(db: Session, user_id: int):
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if user:
+        # Set to 1 hour ago to expire it
+        user.expiry_date = datetime.datetime.utcnow() - datetime.timedelta(hours=1)
+        db.commit()
+        return user
+    return None
 
 def mark_notifications_read(db: Session):
     db.query(models.Notification).update({models.Notification.is_read: True})
