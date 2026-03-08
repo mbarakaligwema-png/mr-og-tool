@@ -10,8 +10,8 @@ def get_users(db: Session, skip: int = 0, limit: int = 100):
 
 def create_user(db: Session, username: str, password: str, email: str = None, is_admin: bool = False, is_active: bool = True):
     hashed_password = auth.get_password_hash(password)
-    # Default to 1 hour AGO so they are expired by default.
-    default_expiry = None if is_admin else datetime.datetime.utcnow() - datetime.timedelta(hours=1)
+    # Default to Lifetime (None) so they technically have a license, but will be blocked by is_active=False.
+    default_expiry = None
     
     db_user = models.User(username=username, email=email, hashed_password=hashed_password, is_admin=is_admin, is_active=is_active, expiry_date=default_expiry)
     db.add(db_user)

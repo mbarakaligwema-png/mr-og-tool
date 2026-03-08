@@ -85,8 +85,11 @@ async def home(request: Request, db: Session = Depends(get_db)):
     return templates.TemplateResponse("home.html", {"request": request, "user": user})
 
 @app.get("/login", response_class=HTMLResponse)
-async def login_page(request: Request):
-    return templates.TemplateResponse("login.html", {"request": request})
+async def login_page(request: Request, msg: str = None):
+    message = None
+    if msg == "registered":
+        message = "Account Pending Admission. Lifetime License Ready."
+    return templates.TemplateResponse("login.html", {"request": request, "msg": message})
 
 @app.post("/login", response_class=HTMLResponse)
 async def login(request: Request, username: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
@@ -95,7 +98,7 @@ async def login(request: Request, username: str = Form(...), password: str = For
         return templates.TemplateResponse("login.html", {"request": request, "error": "Invalid credentials"})
     
     if not user.is_active:
-        return templates.TemplateResponse("login.html", {"request": request, "error": "Account blocked."})
+        return templates.TemplateResponse("login.html", {"request": request, "error": "Account Pending Activation. Please contact Admin."})
 
     access_token = auth.create_access_token(data={"sub": user.username})
     response = RedirectResponse(url="/dashboard", status_code=status.HTTP_303_SEE_OTHER)
@@ -284,7 +287,7 @@ async def verify_user(username: str = Form(...), password: str = Form(...), hwid
     user = crud.get_user(db, username)
     if not user: return JSONResponse({"status": "BLOCK", "message": "No User"}, status_code=404)
     if not auth.verify_password(password, user.hashed_password): return JSONResponse({"status": "BLOCK", "message": "Wrong Pass"}, status_code=403)
-    if not user.is_active: return JSONResponse({"status": "BLOCK", "message": "Account Blocked"}, status_code=403)
+    if not user.is_active: return JSONResponse({"status": "BLOCK", "message": "Account Pending Activation"}, status_code=403)
     if user.is_expired(): return JSONResponse({"status": "BLOCK", "message": "Expired"}, status_code=403)
     
     now = datetime.utcnow()
