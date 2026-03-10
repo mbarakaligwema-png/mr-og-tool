@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "MR OG TOOL"
-#define MyAppVersion "1.7.1"
+#define MyAppVersion "1.7.3"
 #define MyAppPublisher "MR OG"
 #define MyAppURL "https://mrogtool.com"
 #define MyAppExeName "MR_OG_TOOL.exe"
@@ -23,7 +23,7 @@ DisableProgramGroupPage=yes
 ; Remove the following line to run in administrative install mode (install for all users.)
 PrivilegesRequired=admin
 OutputDir=output
-OutputBaseFilename=MR_OG_TOOL_Setup_v1.7.1
+OutputBaseFilename=MR_OG_TOOL_Setup_v1.7.3
 SetupIconFile=c:\Users\mbara\Documents\MR_OG_TOOL\assets\logo.ico
 Compression=lzma
 SolidCompression=yes

@@ -115,6 +115,8 @@ async def register(request: Request, username: str = Form(...), email: str = For
         return templates.TemplateResponse("register.html", {"request": request, "error": "Passwords mismatch"})
     if crud.get_user(db, username):
         return templates.TemplateResponse("register.html", {"request": request, "error": "Username taken"})
+    if crud.get_user_by_email(db, email):
+        return templates.TemplateResponse("register.html", {"request": request, "error": "Email already in use"})
     try:
         crud.create_user(db, username, password, email=email, is_active=False)
         crud.create_notification(db, f"New user: {username}")

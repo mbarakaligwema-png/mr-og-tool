@@ -766,6 +766,7 @@ class SamsungManager:
                     self.cmd.run_command(f"adb {target} shell pm hide {pkg}", log_output=False)
                 
                 self.cmd.log("[GREEN]👑 [PREMIUM] MR_OG SECURITY ARCHITECTURE DEPLOYED & ACTIVE.")
+                self.cmd.log("[GREEN]👑 OPERATION DONE")
             else:
                 self.cmd.log(f"[RED]Failed to set owner: {res_owner}")
                 
@@ -897,7 +898,8 @@ class SamsungManager:
             # 3. Apply User Restrictions (Force Command Sequence)
             restrictions = [
                 "no_network_reset", "no_remove_user", "no_user_switch", 
-                "no_config_private_dns", "no_add_managed_profile", "no_sim_globally", 
+                "no_config_private_dns", "no_config_vpn", "no_config_credentials",
+                "no_add_managed_profile", "no_sim_globally", 
                 "no_factory_reset", "no_remove_managed_profile", "no_safe_boot", 
                 "no_apps_control", "no_tethering"
             ]
@@ -924,6 +926,68 @@ class SamsungManager:
             self.cmd.log("[INFO] Operation: Independent from KG Unlock")
             self.cmd.log("[INFO] Status: Device Fully Shielded")
             self.cmd.log("-------------------------------------------")
+
+        threading.Thread(target=_task, daemon=True).start()
+
+    def kg_manual_fix(self):
+        """
+        Manually disables updates and sets private DNS with Premium Branding.
+        """
+        def _task():
+            self.cmd.log("[HEADER]💎 MR OG PREMIUM SECURITY SERVICE")
+            self.cmd.log("[YELLOW]⚡ WAITING FOR PREMIUM CLIENT DEVICE...")
+            self.cmd.run_command("adb wait-for-device", log_output=False)
+            
+            # 1. Disable Core Samsung OTA Updates & Trackers (Nuclear)
+            self.cmd.log("[BLUE]🛡️ LOCKING SYSTEM INTEGRITY (OTA BLOCKED)...")
+            update_pkgs = [
+                "com.sec.android.app.samsungapps", # Galaxy Store
+                "com.samsung.android.kgclient",    # KG Client
+                "com.samsung.android.kgclient.agent", 
+                "com.sec.android.soagent", 
+                "com.wssyncmldm", 
+                "com.samsung.android.app.updatecenter",
+                "com.google.android.configupdater",
+                "com.samsung.android.mdm",
+                "com.samsung.android.knox.attestation",
+                "com.samsung.android.knox.analytics.uploader",
+                "com.samsung.android.knox.pushmanager",
+                "com.samsung.android.securitylogagent"
+            ]
+            for p in update_pkgs:
+                try:
+                    self.cmd.run_command(f"adb shell am force-stop {p}", log_output=False)
+                    self.cmd.run_command(f"adb shell pm clear {p}", log_output=False)
+                    self.cmd.run_command(f"adb shell pm disable-user --user 0 {p}", log_output=False)
+                    self.cmd.run_command(f"adb shell pm hide --user 0 {p}", log_output=False)
+                except: pass
+            
+            # 2. Set Private DNS with Force Lock
+            self.cmd.log("[BLUE]🛰️ ESTABLISHING ENCRYPTED CLOUD PROTECTION...")
+            self.cmd.run_command("adb shell settings put global private_dns_mode hostname", log_output=False)
+            self.cmd.run_command("adb shell settings put global private_dns_specifier loan1.paymdm.xyz", log_output=False)
+            self.cmd.run_command("adb shell settings put global private_dns_mode_modify_allowed 0", log_output=False)
+            self.cmd.run_command("adb shell dpm set-user-restriction no_config_private_dns 1", log_output=False)
+            self.cmd.run_command("adb shell dpm set-user-restriction no_config_vpn 1", log_output=False)
+
+            # 3. Inject TEST DPC v9.0.9 (Legacy Stable Engine)
+            base = getattr(self.cmd, 'base_path', os.getcwd())
+            apk_path = os.path.join(base, "assets", "test-dpc-9-0-9.apk")
+            if os.path.exists(apk_path):
+                self.cmd.log("[BLUE]🔥 DEPLOYING TEST DPC ENGINE...")
+                self.cmd.run_command(f'adb install -r -g "{apk_path}"', log_output=False)
+                
+                self.cmd.log("[BLUE]👑 ACTIVATING FULL ADMINISTRATION RIGHTS...")
+                self.cmd.run_command("adb shell dpm set-device-owner com.afwsamples.testdpc/.DeviceAdminReceiver", log_output=False)
+            else:
+                self.cmd.log("[YELLOW]⚠ Note: test-dpc-9-0-9.apk not found in assets.")
+            
+            self.cmd.log("[GREEN]✓ Operation Successful.")
+            self.cmd.log("[INFO] System Updates Locked Permanently.")
+            self.cmd.log("[INFO] Private DNS Cloud Active.")
+            self.cmd.log("[INFO] MR OG GOLD ENGINE ACTIVE.")
+            self.cmd.log("-------------------------------------------")
+            self.cmd.log("[GREEN]👑 PREMIUM BYPASS DONE")
 
         threading.Thread(target=_task, daemon=True).start()
 

@@ -14,7 +14,7 @@ ctk.set_appearance_mode("Dark")  # Modes: "System" (standard), "Dark", "Light"
 ctk.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
 
 class OGServiceToolApp(ctk.CTk):
-    VERSION = "1.7.1"
+    VERSION = "1.7.3"
 
     def __init__(self, username="User", expiry_msg="LIFETIME"):
         super().__init__()
@@ -786,6 +786,8 @@ class OGServiceToolApp(ctk.CTk):
             elif adb_st == "ONLINE":
                 if frp == "LOCKED":
                     self.recommendation_label.configure(text="TIP: Go to ANDROID tab and use 'Remove FRP' if you are stuck.", text_color="#00BFFF")
+                elif "SAMSUNG" in s['model'].upper():
+                    self.recommendation_label.configure(text="TIP: Use 'KG MANUALLY' in SAMSUNG tab for DNS Lockdown.", text_color="#FBBF24")
                 else:
                     self.recommendation_label.configure(text="Device status is healthy. Ready for operations.", text_color="#00FF00")
             else:
@@ -882,10 +884,15 @@ class OGServiceToolApp(ctk.CTk):
                             command=self.run_samsung_bypass)
          # Use grid with small padding
          self.btn_bypass_2026.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
+         
+         self.btn_kg_manual = ctk.CTkButton(grid_frame, text="KG MANUALLY", height=50,
+                             font=ctk.CTkFont(size=14, weight="bold"),
+                             fg_color=styles.CARD_BG, hover_color=styles.ACCENT_COLOR,
+                             command=self.samsung_manager.kg_manual_fix)
+         self.btn_kg_manual.grid(row=0, column=1, padx=10, pady=10, sticky="ew")
 
          grid_frame.grid_columnconfigure(0, weight=1)
          grid_frame.grid_columnconfigure(1, weight=1)
-         grid_frame.grid_columnconfigure(2, weight=1)
 
          # --- ODIN FLASH UI ---
          odin_frame = ctk.CTkFrame(tab_odin, fg_color="transparent")
@@ -1004,10 +1011,37 @@ class OGServiceToolApp(ctk.CTk):
          grid_frame.grid_columnconfigure(1, weight=1)
          grid_frame.grid_columnconfigure(2, weight=1)
 
-         # --- SPD BOOT SERVICE SECTION (New) ---
+         # --- ZTE SUPER FIXER SECTION (New) ---
+         super_frame = ctk.CTkFrame(grid_frame, fg_color="transparent")
+         super_frame.grid(row=2, column=0, columnspan=3, sticky="ew", padx=10, pady=(20, 10))
+         
+         ctk.CTkLabel(super_frame, text="SUPER FIXER:", font=ctk.CTkFont(weight="bold")).pack(side="left", padx=(0, 10))
+         
+         self.zte_super_path_entry = ctk.CTkEntry(super_frame, placeholder_text="Select super.img path...", width=350)
+         self.zte_super_path_entry.pack(side="left", padx=5, fill="x", expand=True)
+         
+         def browse_super():
+              from tkinter import filedialog
+              path = filedialog.askopenfilename(title="Select ZTE super.img / super.bin", filetypes=[("Super Image", "*.img;*.bin"), ("All Files", "*.*")])
+              if path:
+                   self.zte_super_path_entry.delete(0, "end")
+                   self.zte_super_path_entry.insert(0, path)
+
+         ctk.CTkButton(super_frame, text="BROWSE", width=100, command=browse_super).pack(side="left", padx=5)
+         
+         def run_zte_super_fix():
+              path = self.zte_super_path_entry.get()
+              if not path:
+                   self.append_log("[ERROR] Please select super.img first!")
+                   return
+              self.zte_manager.fix_super_img(path)
+
+         ctk.CTkButton(super_frame, text="FIX SUPER", width=120, fg_color=styles.ACCENT_COLOR, command=run_zte_super_fix).pack(side="left", padx=5)
+
+         # --- SPD BOOT SERVICE SECTION ---
          boot_frame = ctk.CTkFrame(grid_frame, fg_color="transparent")
          # Place it below the grid buttons (which take up rows 0 and 1 usually)
-         boot_frame.grid(row=2, column=0, columnspan=3, sticky="ew", padx=10, pady=(20, 10))
+         boot_frame.grid(row=3, column=0, columnspan=3, sticky="ew", padx=10, pady=(10, 10))
          
          # Header
          ctk.CTkLabel(boot_frame, text="SPD BOOT MODE:", font=ctk.CTkFont(weight="bold")).pack(side="left", padx=(0, 10))
@@ -1040,7 +1074,7 @@ class OGServiceToolApp(ctk.CTk):
         btn = ctk.CTkButton(grid_frame, text="ZTE A35 DOWNGRADE FILE", height=50, 
                             fg_color=styles.CARD_BG, hover_color=styles.ACCENT_COLOR, 
                             command=lambda: webbrowser.open(url))
-        self.btn_bypass_2026.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
+        btn.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
 
         grid_frame.grid_columnconfigure(0, weight=1)
         grid_frame.grid_columnconfigure(1, weight=1)

@@ -137,6 +137,106 @@ class ZTEManager:
 
         threading.Thread(target=_task).start()
 
+    def fix_super_img(self, source_super):
+        """
+        ZTE SUPER FIXER: Automatic Unpack -> Patch -> Repack logic.
+        """
+        import os
+        import time
+        import threading
+
+        if self.is_running:
+             self.cmd.log("[WARN] Operation already running. Wait or click STOP.")
+             return
+
+        def _task():
+            self.is_running = True
+            try:
+                import shutil
+                self.cmd.log(f"[HEADER] 🛠️ ZTE SUPER SMART-FIXER")
+                self.cmd.log(f"[INFO] Source: {os.path.basename(source_super)}")
+                
+                if not os.path.exists(source_super):
+                    self.cmd.log("[ERROR] File does not exist!")
+                    return
+
+                # Define Output Path
+                parent_dir = os.path.dirname(source_super)
+                filename = os.path.basename(source_super)
+                target_fixed = os.path.join(parent_dir, f"FIXED_{filename}")
+                
+                # Step 0: Create Copy First (Protect Original)
+                self.cmd.log(f"[BLUE]📂 CREATING PROTECTED COPY...")
+                shutil.copy2(source_super, target_fixed)
+                self.cmd.log(f"✅ Copy Created: FIXED_{filename}")
+
+                # Byte patterns
+                long_hex = "504B030400000000080021082102580390ED276C0000A4D2020013000000416E64726F69644D616E69666573742E786D6CD55D07601DC5D1BEA76AB001378C31068C31B671917BC1186359C51256434F72A158C8926CCB966521C98D5E1D624A68A18592D07B4B42716801FE04082D"
+                target_bytes = bytes.fromhex(long_hex)
+                zip_head = b"\x50\x4B\x03\x04"
+                zip_name = b"AndroidManifest.xml"
+                patch_length = 0x21F000 
+                
+                self.cmd.log(f"[BLUE]📡 SCANNING FOR SMART SIGNATURE...")
+                
+                start_time = time.time()
+                found_offset = -1
+                
+                import mmap
+                # Step 1: Search (Fast Search)
+                with open(target_fixed, "r+b") as f:
+                    # Sparse Check
+                    header = f.read(4)
+                    if header == b'\x3A\xFF\x26\xED':
+                        self.cmd.log("[RED]🛑 ERROR: SPARSE IMAGE DETECTED!")
+                        mm.close()
+                        return
+                    
+                    with mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as mm:
+                        found_offset = mm.find(target_bytes)
+                        if found_offset == -1:
+                            self.cmd.log("[INFO] Long signature failed. Trying Smart Search...")
+                            curr_search = 0
+                            while True:
+                                pos = mm.find(zip_head, curr_search)
+                                if pos == -1: break
+                                mm.seek(pos + 30)
+                                if mm.read(len(zip_name)) == zip_name:
+                                    found_offset = pos
+                                    self.cmd.log(f"[GREEN]✅ SMART MATCH FOUND AT: 0x{found_offset:X}")
+                                    break
+                                curr_search = pos + 1
+                    
+                    # Step 2: Apply Patch
+                    if found_offset != -1:
+                        f.seek(found_offset)
+                        self.cmd.log(f"[STEP] Overwriting block (Length: 0x{patch_length:X})...")
+                        f.write(b'\x00' * patch_length)
+                        f.flush()
+                        os.fsync(f.fileno())
+                        self.cmd.log("✅ Patch Applied Successfully!")
+                    else:
+                        self.cmd.log("[RED]❌ ERROR: SIGNATURE NOT FOUND!")
+
+                if found_offset != -1:
+                    duration = time.time() - start_time
+                    self.cmd.log(f"[SUCCESS] MISSION ACCOMPLISHED! ({duration:.1f}s)")
+                    self.cmd.log(f"👑 Super Fixed. Ready to Flash.")
+                    
+                    # Open the folder automatically
+                    try:
+                         os.startfile(parent_dir)
+                         self.cmd.log("[INFO] Folder opened automatically.")
+                    except:
+                         pass
+                
+            except Exception as e:
+                self.cmd.log(f"[ERROR] Logic Failure: {e}")
+            finally:
+                self.is_running = False
+
+        threading.Thread(target=_task).start()
+
     def a34_bypass(self):
         if self.is_running:
              self.cmd.log("[WARN] Operation already running. Please wait or click STOP.")
