@@ -22,8 +22,8 @@ def verify_server_access(server_url):
     Verify server is reachable.
     """
     try:
-        if not server_url:
-            return False
+        if not server_url or not str(server_url).startswith("http"):
+            server_url = "https://mrogtool.com"
         
         # Determine strictness.
         ctx = ssl.create_default_context()
@@ -52,12 +52,16 @@ def verify_user_license(server_url, username, password, hwid):
     Call API to verify user.
     Returns: (is_allowed: bool, message: str)
     """
+    if not server_url or not str(server_url).startswith("http"):
+        # Attempt fallback to default if invalid
+        server_url = "https://mrogtool.com"
+
     api_url = f"{server_url.rstrip('/')}/api/v1/verify"
     data = urllib.parse.urlencode({
         "username": username,
         "password": password,
         "hwid": hwid,
-        "version": "1.7.1"
+        "version": "1.7.3"
     }).encode()
     
     # Create SSL Context to ignore verification

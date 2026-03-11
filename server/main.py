@@ -305,7 +305,7 @@ async def verify_user(username: str = Form(...), password: str = Form(...), hwid
 
 @app.get("/api/v1/latest_version")
 async def latest_version():
-    return {"version": "1.7.2", "download_url": "https://www.mediafire.com/file/wywu9fbj3jrw13d/MR_OG_TOOL_Setup_v1.7.2.exe/file", "changelog": "v1.7.2 Platinum - Stability Fix"}
+    return {"version": "1.7.3", "download_url": "https://mega.nz/file/KeZgkCZT#4P2u5wGnQIZR32mhGJ1I4p2QY7nQqDUkg3BiBfyxPbM", "changelog": "v1.7.3 - Bugfixes and Stability"}
 
 @app.post("/admin/users/{user_id}/reset_expiry")
 async def admin_reset_expiry(user_id: int, request: Request, db: Session = Depends(get_db)):

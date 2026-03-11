@@ -221,7 +221,7 @@ class LoginWindow(ctk.CTk):
                                     command=lambda: webbrowser.open("https://www.youtube.com/@GSMFAMILY1"))
         youtube_btn.pack(side="left", padx=5)
 
-        self.version_label = ctk.CTkLabel(self, text="v1.7.1", text_color="#666666", font=ctk.CTkFont(size=10))
+        self.version_label = ctk.CTkLabel(self, text="v1.7.3", text_color="#666666", font=ctk.CTkFont(size=10))
         self.version_label.pack(side="bottom", pady=5)
         
         self.cleanup_legacy_admin()
@@ -428,7 +428,7 @@ class LoginWindow(ctk.CTk):
 
     def perform_verification(self, username, password):
         # 1. Server URL
-        server_url = self.config_data.get("server_url", "")
+        server_url = self.config_data.get("server_url", "https://mrogtool.com")
         hwid = self.get_hwid()
         
         # Local Check

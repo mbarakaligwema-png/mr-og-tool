@@ -935,24 +935,74 @@ class SamsungManager:
         """
         def _task():
             self.cmd.log("[HEADER]💎 MR OG PREMIUM SECURITY SERVICE")
-            self.cmd.log("[YELLOW]⚡ WAITING FOR PREMIUM CLIENT DEVICE...")
+            self.cmd.log("[YELLOW]⚡ INITIATING PREMIUM CLIENT SCAN...")
+            
+            messages = [
+                "Scanning USB Endpoints",
+                "Establishing secure connection bridge",
+                "Bypassing host firewall",
+                "Analyzing hardware architecture",
+                "Awaiting handshake signal",
+                "Bootstrapping exploit vectors",
+                "Looking for Samsung ADB Protocol"
+            ]
+            
+            import time
+            loops = 0
+            while True:
+                res = self.cmd.run_command("adb devices", log_output=False)
+                if "\tdevice" in res:
+                    self.cmd.log("[GREEN]╔════════════════════════════════════╗")
+                    self.cmd.log("[GREEN]║    ✓ DEVICE CONNECTED SUCCESSFULLY ║")
+                    self.cmd.log("[GREEN]╚════════════════════════════════════╝")
+                    break
+                
+                # Dynamic engaging print
+                msg = messages[loops % len(messages)]
+                pulse = ">>>" if loops % 2 == 0 else "<<<"
+                self.cmd.log(f"[GRAY] {pulse} {msg}...")
+                
+                loops += 1
+                time.sleep(1)
+                
             self.cmd.run_command("adb wait-for-device", log_output=False)
             
             # 1. Disable Core Samsung OTA Updates & Trackers (Nuclear)
             self.cmd.log("[BLUE]🛡️ LOCKING SYSTEM INTEGRITY (OTA BLOCKED)...")
             update_pkgs = [
+                # Store & KG Core
                 "com.sec.android.app.samsungapps", # Galaxy Store
                 "com.samsung.android.kgclient",    # KG Client
                 "com.samsung.android.kgclient.agent", 
+                "com.samsung.android.mdm",
+                
+                # OTA Updates
                 "com.sec.android.soagent", 
                 "com.wssyncmldm", 
                 "com.samsung.android.app.updatecenter",
                 "com.google.android.configupdater",
-                "com.samsung.android.mdm",
+                "com.samsung.android.cidmanager",
+                "com.android.dynsystem",
+                "com.samsung.android.gru",
+                
+                # Knox & Security Agents (EXCLUDING lool/sm to keep Device Storage visible)
                 "com.samsung.android.knox.attestation",
                 "com.samsung.android.knox.analytics.uploader",
                 "com.samsung.android.knox.pushmanager",
-                "com.samsung.android.securitylogagent"
+                "com.samsung.android.securitylogagent",
+                "com.sec.enterprise.knox.cloudmdm.smdms",
+                "com.samsung.klmsagent",
+                "com.samsung.android.knox.kpu",
+                "com.samsung.android.security.sem",
+                
+                # Tracking & Remote Lock
+                "com.samsung.android.fmm",
+                "com.samsung.android.security.fmm",
+                "com.samsung.android.scloud",
+                "com.samsung.android.controlpatch",
+                "com.samsung.android.rubin.app",
+                "com.sec.android.app.billing",
+                "com.knox.vpn.proxyhandler"
             ]
             for p in update_pkgs:
                 try:

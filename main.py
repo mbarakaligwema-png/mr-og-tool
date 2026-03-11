@@ -58,18 +58,23 @@ def main():
             except: pass
             
     # Load from AppData
+    default_url = "https://mrogtool.com"
     try:
         with open(config_path, "r") as f:
             config = json.load(f)
-            server_url = config.get("server_url", "")
+            server_url = config.get("server_url", default_url)
     except (FileNotFoundError, json.JSONDecodeError):
         # Fallback to local if AppData fails
         try:
             with open(local_config, "r") as f:
                 config = json.load(f)
-                server_url = config.get("server_url", "")
+                server_url = config.get("server_url", default_url)
         except:
-            server_url = ""
+            server_url = default_url
+            
+    # Final safety check
+    if not server_url or not str(server_url).startswith("http"):
+        server_url = default_url
     
     # STRICT ENFORCEMENT: Verify server access with Retry mechanism
     max_retries = 2
