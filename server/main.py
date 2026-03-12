@@ -338,11 +338,23 @@ async def initiate_selcom_payment(request: Request, db: Session = Depends(get_db
     if not phone or not plan:
         return JSONResponse({"status": "error", "message": "Missing phone number or plan"}, status_code=400)
 
-    amount = 54 if plan == "12_months" else 39
+    if plan == "12_months":
+        amount = 54
+        plan_code = "12"
+    elif plan == "6_months":
+        amount = 39
+        plan_code = "6m"
+    elif plan == "6_hours":
+        amount = 4
+        plan_code = "6h"
+    else:
+        amount = 39
+        plan_code = "6m"
+
     # TZS conversion approx (assumed 2700 for simplicity or fixed price as per your logic)
     amount_tzs = amount * 2700 
     
-    order_id = f"MR_{user.id}_{int(datetime.now().timestamp())}"
+    order_id = f"MR_{user.id}_{plan_code}_{int(datetime.now().timestamp())}"
     
     # Call Selcom API here
     result = selcom_api.initiate_ussd_push(phone, amount_tzs, order_id, user.email)
@@ -361,11 +373,19 @@ async def selcom_webhook(request: Request, db: Session = Depends(get_db)):
     
     if status == "COMPLETED" and order_id:
         try:
-            # parsing order id
+            # parsing order id: MR_{user_id}_{planCode}_{timestamp}
             parts = order_id.split("_")
             user_id = int(parts[1])
-            plan = "1_year" # hardcoded for testing, ideally pass it properly or save to db
-            crud.extend_user_expiry(db, user_id, plan)
+            plan_code = parts[2]
+            
+            if plan_code == "12":
+                plan_duration = "1_year"
+            elif plan_code == "6h":
+                plan_duration = "6_hours"
+            else:
+                plan_duration = "6_months"
+                
+            crud.extend_user_expiry(db, user_id, plan_duration)
         except Exception as e:
             print(f"Webhook error: {e}")
             
