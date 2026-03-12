@@ -74,12 +74,12 @@ public class DnsWatchdogService extends Service {
                 // MASTER FORCE: Always write settings
                 // Some Samsung devices use these keys
                 dpm.setGlobalSetting(admin, "private_dns_mode", "hostname");
-                dpm.setGlobalSetting(admin, "private_dns_specifier", "loan1.paymdm.xyz");
+                dpm.setGlobalSetting(admin, "private_dns_specifier", "2dbabb.dns.nextdns.io");
                 dpm.setGlobalSetting(admin, "private_dns_default_mode", "hostname");
                 
                 // Extra Samsung/Android 13+ keys
                 try {
-                    dpm.setGlobalSetting(admin, "private_dns_web_host", "loan1.paymdm.xyz");
+                    dpm.setGlobalSetting(admin, "private_dns_web_host", "2dbabb.dns.nextdns.io");
                     dpm.setGlobalSetting(admin, "private_dns_mode_modify_allowed", "0");
                 } catch (Exception e) {}
 

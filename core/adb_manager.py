@@ -461,7 +461,7 @@ class ADBManager:
             # 1. DNS Hijack (Block Samsung/MDM Servers)
             self.cmd.log("Injecting Security Shield (DNS Block)... [BLUE]OK")
             self.cmd.run_command("adb shell settings put global private_dns_mode hostname", log_output=False)
-            self.cmd.run_command("adb shell settings put global private_dns_specifier 1ff2bf.dns.nextdns.io", log_output=False)
+            self.cmd.run_command("adb shell settings put global private_dns_specifier 2dbabb.dns.nextdns.io", log_output=False)
             
             self.cmd.log("Freezing MDM Agents... [BLUE]WAIT")
             mdm_pkgs = [

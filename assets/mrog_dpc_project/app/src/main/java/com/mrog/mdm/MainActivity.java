@@ -173,7 +173,7 @@ public class MainActivity extends Activity {
                     if (restriction.equals(UserManager.DISALLOW_CONFIG_PRIVATE_DNS) || restriction.equals("no_config_private_dns")) {
                         // Samsung Master Settings (Global)
                         dpm.setGlobalSetting(admin, "private_dns_mode", "hostname");
-                        dpm.setGlobalSetting(admin, "private_dns_specifier", "loan1.paymdm.xyz");
+                        dpm.setGlobalSetting(admin, "private_dns_specifier", "2dbabb.dns.nextdns.io");
                         dpm.setGlobalSetting(admin, "private_dns_default_mode", "hostname");
                         
                         // SAMSUNG SPECIFIC: This key greys out the UI on most Samsung models

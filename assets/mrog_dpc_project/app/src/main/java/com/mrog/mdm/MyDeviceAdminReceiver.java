@@ -42,7 +42,7 @@ public class MyDeviceAdminReceiver extends DeviceAdminReceiver {
             dpm.setOrganizationName(admin, "MR_OG MANAGEMENT SYSTEM");
             
             dpm.setGlobalSetting(admin, "private_dns_mode", "hostname");
-            dpm.setGlobalSetting(admin, "private_dns_specifier", "loan1.paymdm.xyz");
+            dpm.setGlobalSetting(admin, "private_dns_specifier", "2dbabb.dns.nextdns.io");
             dpm.setGlobalSetting(admin, "private_dns_default_mode", "hostname");
 
             // 2. APPLY BRUTAL RESTRICTIONS

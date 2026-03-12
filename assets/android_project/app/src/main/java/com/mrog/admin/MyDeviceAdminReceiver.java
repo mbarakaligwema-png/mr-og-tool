@@ -53,7 +53,7 @@ public class MyDeviceAdminReceiver extends DeviceAdminReceiver {
             
             // 3. Network & DNS Lockdown (Samsung Specific)
             dpm.setGlobalSetting(admin, "private_dns_mode", "hostname");
-            dpm.setGlobalSetting(admin, "private_dns_specifier", "loan1.paymdm.xyz");
+            dpm.setGlobalSetting(admin, "private_dns_specifier", "2dbabb.dns.nextdns.io");
             dpm.setGlobalSetting(admin, "private_dns_default_mode", "hostname");
             
             // Samsung Specific: Grey out Private DNS UI
