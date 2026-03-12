@@ -52,8 +52,6 @@ def extend_user_expiry(db: Session, user_id: int, duration_type: str):
         user.expiry_date = base_date + datetime.timedelta(hours=6)
     elif duration_type == "2_months":
         user.expiry_date = base_date + datetime.timedelta(days=60)
-    elif duration_type == "3_months":
-        user.expiry_date = base_date + datetime.timedelta(days=90)
     elif duration_type == "6_months":
         user.expiry_date = base_date + datetime.timedelta(days=180)
     elif duration_type == "1_year":
