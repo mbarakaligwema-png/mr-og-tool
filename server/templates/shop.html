@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Shop - MR OG TOOL{% endblock %}
+
+{% block content %}
+<section style="padding: 100px 20px; text-align: center; overflow: hidden;">
+    <div class="container" style="max-width: 1000px; margin: 0 auto;">
+        
+        <h1 style="font-size: 3rem; margin-bottom: 20px; color: var(--text-primary);">Choose Your Actvation Plan</h1>
+        <p style="font-size: 1.2rem; color: var(--text-secondary); margin-bottom: 50px;">
+            Get instant access to MR OG TOOL premium features. Select the package that fits your needs.
+        </p>
+
+        <div style="display: flex; gap: 30px; justify-content: center; flex-wrap: wrap;">
+            
+            <!-- 12 Months Plan -->
+            <div class="pricing-card" style="background: var(--card-bg); border-radius: 15px; padding: 40px 30px; flex: 1; min-width: 280px; position: relative; border: 1px solid rgba(255, 215, 0, 0.3); box-shadow: 0px 10px 30px rgba(255, 215, 0, 0.05); transition: transform 0.3s ease;">
+                <!-- Best Value Badge -->
+                <div style="position: absolute; top: 0; left: 50%; transform: translate(-50%, -50%); background: linear-gradient(135deg, #FFD700, #FDB931); color: #000; padding: 8px 15px; border-radius: 20px; font-weight: bold; font-size: 0.8rem; letter-spacing: 1px;">
+                    BEST VALUE
+                </div>
+
+                <i class='bx bxs-crown' style="font-size: 4rem; color: gold; margin-bottom: 20px;"></i>
+                <h2 style="font-size: 2rem; margin: 0; color: var(--text-primary);">12 Months</h2>
+                <div style="font-size: 3rem; font-weight: 800; color: var(--text-primary); margin: 20px 0;">
+                    <span style="font-size: 1.5rem; vertical-align: top;">USD</span> 54
+                </div>
+                
+                <ul style="list-style: none; padding: 0; margin: 30px 0; text-align: left; color: var(--text-secondary); line-height: 2.2;">
+                    <li><i class='bx bx-check' style="color: var(--success-color); margin-right: 10px; font-size: 1.2rem;"></i> Full KG Manual Anti-Relock</li>
+                    <li><i class='bx bx-check' style="color: var(--success-color); margin-right: 10px; font-size: 1.2rem;"></i> Samsung FRP (All Models)</li>
+                    <li><i class='bx bx-check' style="color: var(--success-color); margin-right: 10px; font-size: 1.2rem;"></i> MDM / IT Admin Removal</li>
+                    <li><i class='bx bx-check' style="color: var(--success-color); margin-right: 10px; font-size: 1.2rem;"></i> Private Custom DNS Support</li>
+                    <li><i class='bx bx-check' style="color: var(--success-color); margin-right: 10px; font-size: 1.2rem;"></i> VIP Group Support</li>
+                </ul>
+
+                <a href="https://chat.whatsapp.com/LXHVYoAOlTc2HfBrd2VeOa" target="_blank" class="btn-purchase" style="display: block; background: linear-gradient(135deg, #FFD700, #FDB931); color: #000 !important; padding: 15px; font-size: 1.1rem; font-weight: bold; border-radius: 8px; text-decoration: none;">
+                    BUY NOW VIA WHATSAPP
+                </a>
+            </div>
+
+            <!-- 6 Months Plan -->
+            <div class="pricing-card" style="background: var(--card-bg); border-radius: 15px; padding: 40px 30px; flex: 1; min-width: 280px; border: 1px solid rgba(255,255,255,0.05); transition: transform 0.3s ease;">
+                <i class='bx bxs-shield' style="font-size: 4rem; color: silver; margin-bottom: 20px;"></i>
+                <h2 style="font-size: 2rem; margin: 0; color: var(--text-primary);">6 Months</h2>
+                <div style="font-size: 3rem; font-weight: 800; color: var(--text-primary); margin: 20px 0;">
+                    <span style="font-size: 1.5rem; vertical-align: top;">USD</span> 39
+                </div>
+                
+                <ul style="list-style: none; padding: 0; margin: 30px 0; text-align: left; color: var(--text-secondary); line-height: 2.2;">
+                    <li><i class='bx bx-check' style="color: var(--success-color); margin-right: 10px; font-size: 1.2rem;"></i> KG Manual Anti-Relock</li>
+                    <li><i class='bx bx-check' style="color: var(--success-color); margin-right: 10px; font-size: 1.2rem;"></i> Samsung FRP</li>
+                    <li><i class='bx bx-check' style="color: var(--success-color); margin-right: 10px; font-size: 1.2rem;"></i> MDM / IT Admin Removal</li>
+                    <li><i class='bx bx-check' style="color: var(--success-color); margin-right: 10px; font-size: 1.2rem;"></i> Basic DNS Support</li>
+                    <li><i class='bx bx-check' style="color: var(--success-color); margin-right: 10px; font-size: 1.2rem;"></i> Standard Support</li>
+                </ul>
+
+                <a href="https://chat.whatsapp.com/LXHVYoAOlTc2HfBrd2VeOa" target="_blank" class="btn-purchase" style="display: block; background: linear-gradient(135deg, #C0C0C0, #E5E4E2); color: #000 !important; padding: 15px; font-size: 1.1rem; font-weight: bold; border-radius: 8px; text-decoration: none;">
+                    BUY NOW VIA WHATSAPP
+                </a>
+            </div>
+
+        </div>
+        
+        <div style="margin-top: 50px; color: var(--text-secondary); font-size: 0.9rem;">
+            * All payments are processed securely via WhatsApp administrators.<br>
+            * Accounts are activated instantly upon payment confirmation.
+        </div>
+    </div>
+</section>
+
+<style>
+    .pricing-card:hover {
+        transform: translateY(-10px);
+    }
+</style>
+{% endblock %}

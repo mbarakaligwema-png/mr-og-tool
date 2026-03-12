@@ -89,6 +89,11 @@ async def resellers_page(request: Request, db: Session = Depends(get_db)):
     user = get_current_user_from_cookie(request, db)
     return templates.TemplateResponse("resellers.html", {"request": request, "user": user})
 
+@app.get("/shop", response_class=HTMLResponse)
+async def shop_page(request: Request, db: Session = Depends(get_db)):
+    user = get_current_user_from_cookie(request, db)
+    return templates.TemplateResponse("shop.html", {"request": request, "user": user})
+
 @app.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request, msg: str = None):
     message = None
