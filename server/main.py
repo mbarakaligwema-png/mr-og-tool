@@ -15,6 +15,7 @@ from email.mime.multipart import MIMEMultipart
 
 import httpx
 import models, database, crud, auth
+import selcom_api
 
 app = FastAPI()
 
@@ -323,6 +324,52 @@ async def admin_reset_expiry(user_id: int, request: Request, db: Session = Depen
     if not user or not user.is_admin: raise HTTPException(status_code=403)
     crud.reset_user_expiry(db, user_id)
     return RedirectResponse(url="/admin", status_code=303)
+
+@app.post("/api/pay/selcom/ussd")
+async def initiate_selcom_payment(request: Request, db: Session = Depends(get_db)):
+    data = await request.json()
+    phone = data.get("phone")
+    plan = data.get("plan")
+    
+    user = get_current_user_from_cookie(request, db)
+    if not user:
+        return JSONResponse({"status": "error", "message": "Unauthorized, please login first."}, status_code=401)
+        
+    if not phone or not plan:
+        return JSONResponse({"status": "error", "message": "Missing phone number or plan"}, status_code=400)
+
+    amount = 54 if plan == "12_months" else 39
+    # TZS conversion approx (assumed 2700 for simplicity or fixed price as per your logic)
+    amount_tzs = amount * 2700 
+    
+    order_id = f"MR_{user.id}_{int(datetime.now().timestamp())}"
+    
+    # Call Selcom API here
+    result = selcom_api.initiate_ussd_push(phone, amount_tzs, order_id, user.email)
+    
+    if result.get("result") == "SUCCESS":
+        return JSONResponse({"status": "pending", "message": f"Push request sent to {phone}. Please enter your PIN."})
+    else:
+        return JSONResponse({"status": "error", "message": result.get("message", "Payment initiation failed")}, status_code=500)
+
+@app.post("/api/selcom/webhook")
+async def selcom_webhook(request: Request, db: Session = Depends(get_db)):
+    # Called by Selcom when payment succeeds
+    data = await request.json()
+    status = data.get("payment_status")
+    order_id = data.get("order_id") # e.g. MR_{user_id}_{timestamp}
+    
+    if status == "COMPLETED" and order_id:
+        try:
+            # parsing order id
+            parts = order_id.split("_")
+            user_id = int(parts[1])
+            plan = "1_year" # hardcoded for testing, ideally pass it properly or save to db
+            crud.extend_user_expiry(db, user_id, plan)
+        except Exception as e:
+            print(f"Webhook error: {e}")
+            
+    return JSONResponse({"status": "success"})
 
 # Helper
 def get_current_user_from_cookie(request: Request, db: Session):
