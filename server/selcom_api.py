@@ -1,7 +1,7 @@
 import os
 import json
 import base64
-import requests
+import httpx
 import datetime
 import uuid
 
