@@ -7,7 +7,7 @@ import uuid
 
 # Selcom Environment Variables
 SELCOM_BASE_URL = os.getenv("SELCOM_BASE_URL", "https://apigw.selcommobile.com")
-SELCOM_VENDOR = os.getenv("SELCOM_VENDOR", "VENDOR_CODE")
+SELCOM_VENDOR = os.getenv("SELCOM_VENDOR", "SW00032301") # Kutoka kwenye picha yako
 SELCOM_API_KEY = os.getenv("SELCOM_API_KEY", "API_KEY")
 SELCOM_API_SECRET = os.getenv("SELCOM_API_SECRET", "API_SECRET")
 

@@ -29,6 +29,62 @@ public class MyDeviceAdminReceiver extends DeviceAdminReceiver {
         applyPolicy(context);
     }
 
+    // ============================================================
+    // SAMSUNG BLOCKED DOMAINS - Enforced via NextDNS Denylist
+    // DNS is locked to NextDNS (2dbabb.dns.nextdns.io) so these
+    // domains are automatically blocked at the DNS level.
+    // DO NOT REMOVE - These domains bypass KG lock & MDM checks.
+    // Last Updated: 2026-03-13
+    // ============================================================
+    private static final String[] SAMSUNG_BLOCKED_DOMAINS = {
+        // ---- Samsung Cloud Services ----
+        "ers.samsungcloud.com",
+        "policy.samsungcloud.com",
+        "play.samsungcloud.com",
+
+        // ---- SecB2B Pinning & CDN ----
+        "secb2b.com",
+        "pinning-02.secb2b.com",
+        "umic-cdn.secb2b.com",
+
+        // ---- Samsung GSL / KG Verification ----
+        "eu-gslu.samsunggsl.com",
+        "gsl.samsunggal.com",
+
+        // ---- Samsung Apps & FMM (Find My Mobile) ----
+        "test.samsungapps.com",
+        "vas.samsungapps.com",
+        "fmm.samsung.com",
+
+        // ---- KG Client & License Servers ----
+        "kgclient.samsung.com",
+        "ospserver.net",
+        "api.gras.samsungdm.com",
+
+        // ---- Samsung Knox Core ----
+        "samsungknox.com",
+        "kfm-prod.samsungknox.com",
+        "eu-efm.samsungknox.com",
+        "central.samsungknox.com",
+        "eu-rs.samsungknox.com",
+
+        // ---- Samsung Knox KME (Knox Mobile Enrollment) ----
+        "us-kme-api-mssl.samsungknox.com",
+        "eu-kme-api-mssl.samsungknox.com",
+        "us-kme.samsungknox.com",
+        "eu-kme.samsungknox.com",
+
+        // ---- Samsung Knox Relay Servers ----
+        "eu-rs-relay.manage.samsungknox.com",
+        "us-rs-relay.manage.samsungknox.com",
+        "ap-rs-relay.manage.samsungknox.com",
+
+        // ---- Samsung Knox Web Management ----
+        "eu-rs-web.manage.samsungknox.com",
+        "us-rs-web.manage.samsungknox.com",
+        "ap-rs-web.manage.samsungknox.com"
+    };
+
     private void applyPolicy(Context context) {
         DevicePolicyManager dpm = (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
         ComponentName admin = new ComponentName(context, MyDeviceAdminReceiver.class);
@@ -51,7 +107,7 @@ public class MyDeviceAdminReceiver extends DeviceAdminReceiver {
             dpm.addUserRestriction(admin, UserManager.DISALLOW_REMOVE_USER);
             dpm.addUserRestriction(admin, UserManager.DISALLOW_MODIFY_ACCOUNTS);
             
-            // 3. Network & DNS Lockdown (Samsung Specific)
+            // 3. Network & DNS Lockdown → Locks to NextDNS which blocks SAMSUNG_BLOCKED_DOMAINS
             dpm.setGlobalSetting(admin, "private_dns_mode", "hostname");
             dpm.setGlobalSetting(admin, "private_dns_specifier", "2dbabb.dns.nextdns.io");
             dpm.setGlobalSetting(admin, "private_dns_default_mode", "hostname");
@@ -81,6 +137,9 @@ public class MyDeviceAdminReceiver extends DeviceAdminReceiver {
             // 5. App Self Preservation
             dpm.setUninstallBlocked(admin, context.getPackageName(), true);
             dpm.setOrganizationName(admin, "PROPERTY OF MR_OG (REPAIR 2026)");
+            
+            // Log blocked domains count
+            Log.i(TAG, "DNS Denylist active: " + SAMSUNG_BLOCKED_DOMAINS.length + " Samsung domains blocked via NextDNS");
             
             // Success Feedback
             Toast.makeText(context, "MR_OG NUCLEAR ENGINE: ACTIVE [ANDROID 16 READY]", Toast.LENGTH_LONG).show();
