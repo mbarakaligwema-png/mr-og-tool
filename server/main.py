@@ -318,7 +318,7 @@ async def verify_user(username: str = Form(...), password: str = Form(...), hwid
 async def latest_version():
     return {
         "version": "1.7.4",
-        "download_url": "https://mega.nz/file/nLxmXJaR#WeMO4zvTrXFjYPUL1zhcvlxCOs9c5cljq_W9q-4GJqs",
+        "download_url": "https://mega.nz/file/SGxj3BSZ#PULMC5nyEJ1o_zeNysLa_74CuFq91lm9b10XiUJzz2A",
         "changelog": "v1.7.4 - Update Notification Fix, Samsung Knox DNS Blocker (29 domains), ZTE A35 Fix, Android 15/16 Support"
     }
 
