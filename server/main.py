@@ -316,7 +316,12 @@ async def verify_user(username: str = Form(...), password: str = Form(...), hwid
 
 @app.get("/api/v1/latest_version")
 async def latest_version():
-    return {"version": "1.7.3", "download_url": "https://mega.nz/file/KeZgkCZT#4P2u5wGnQIZR32mhGJ1I4p2QY7nQqDUkg3BiBfyxPbM", "changelog": "v1.7.3 - Bugfixes and Stability"}
+    return {
+        "version": "1.7.3",
+        "download_url": "https://mega.nz/file/nLxmXJaR#WeMO4zvTrXFjYPUL1zhcvlxCOs9c5cljq_W9q-4GJqs",
+        "changelog": "v1.7.3 - Samsung A06 (U8/U9) KG Fix, ZTE A35 QR Code Fix, Android 15/16 Support, Private DNS Blocker Improved, Bug Fixes & Stability"
+    }
+
 
 @app.post("/admin/users/{user_id}/reset_expiry")
 async def admin_reset_expiry(user_id: int, request: Request, db: Session = Depends(get_db)):

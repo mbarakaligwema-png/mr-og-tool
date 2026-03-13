@@ -398,14 +398,14 @@ class OGServiceToolApp(ctk.CTk):
     def check_for_updates(self):
         import threading
         import requests
-        import webbrowser
+        
+        # Guard: Only show once per session
+        if getattr(self, '_update_dialog_shown', False):
+            return
         
         def check():
             try:
-                # Assuming config.json has server_url, we need to load it again or pass it
-                # For now, let's try to get it from self.username if we stored it? No.
-                # Let's read config safely
-                server_url = "https://mrogtool.com" # Default
+                server_url = "https://mrogtool.com"  # Default
                 try:
                     app_data = os.getenv('APPDATA')
                     config_path = os.path.join(app_data, "MR_OG_TOOL", "config.json")
@@ -420,48 +420,77 @@ class OGServiceToolApp(ctk.CTk):
                 
                 if response.status_code == 200:
                     data = response.json()
-                    server_ver = data.get("version", "1.0.0")
+                    # Sanitize: strip spaces, newlines, 'v' prefix
+                    server_ver = str(data.get("version", "1.0.0")).strip().replace("v", "").replace("V", "")
                     download_url = data.get("download_url", "")
                     changelog = data.get("changelog", "")
                     
-                    # Simple Version Compare (String compare is risky for 1.10 vs 1.2, but ok for now)
-                    # Better: split by dot
                     def parse_version(v):
-                        return tuple(map(int, (v.split("."))))
-                        
-                    local_v = parse_version(self.VERSION.replace("v",""))
-                    server_v = parse_version(server_ver.replace("v",""))
+                        try:
+                            return tuple(map(int, v.strip().split(".")))
+                        except:
+                            return (0, 0, 0)
                     
+                    local_v  = parse_version(self.VERSION)
+                    server_v = parse_version(server_ver)
+                    
+                    # Only show if server version is STRICTLY greater
                     if server_v > local_v:
-                        # Update Available!
-                        self.after(2000, lambda: self.show_update_dialog(server_ver, download_url, changelog))
+                        if not getattr(self, '_update_dialog_shown', False):
+                            self._update_dialog_shown = True
+                            self.after(2000, lambda: self.show_update_dialog(server_ver, download_url, changelog))
+                    else:
+                        # Already up to date — log silently
+                        print(f"[UPDATE] Up to date. Local: {self.VERSION} | Server: {server_ver}")
+                        
             except Exception as e:
-                print(f"Update Check User Error: {e}")
+                print(f"Update Check Error: {e}")
 
         t = threading.Thread(target=check, daemon=True)
         t.start()
 
     def show_update_dialog(self, version, url, changelog):
+        # Extra guard — prevent double popup
+        if getattr(self, '_update_dialog_open', False):
+            return
+        self._update_dialog_open = True
+        
         dialog = ctk.CTkToplevel(self)
         dialog.title("Update Available 🚀")
-        dialog.geometry("400x350")
+        dialog.geometry("420x380")
         dialog.attributes("-topmost", True)
         dialog.configure(fg_color=styles.BACKGROUND)
         
-        ctk.CTkLabel(dialog, text="NEW UPDATE AVAILABLE!", font=ctk.CTkFont(size=18, weight="bold"), text_color="#00FF00").pack(pady=(20, 10))
-        ctk.CTkLabel(dialog, text=f"Version: v{version}", font=ctk.CTkFont(size=14)).pack(pady=5)
+        # Handle close button (X)
+        def on_close():
+            self._update_dialog_open = False
+            dialog.destroy()
+        dialog.protocol("WM_DELETE_WINDOW", on_close)
         
-        log_box = ctk.CTkTextbox(dialog, height=100)
+        ctk.CTkLabel(dialog, text="🚀 NEW UPDATE AVAILABLE!", font=ctk.CTkFont(size=18, weight="bold"), text_color="#00FF00").pack(pady=(20, 5))
+        ctk.CTkLabel(dialog, text=f"Version: v{version}  (You have: v{self.VERSION})", font=ctk.CTkFont(size=12), text_color="#AAAAAA").pack(pady=2)
+        
+        log_box = ctk.CTkTextbox(dialog, height=110)
         log_box.pack(padx=20, pady=10, fill="x")
-        log_box.insert("1.0", f"Changelog:\n{changelog}")
+        log_box.insert("1.0", f"What's New:\n{changelog}")
         log_box.configure(state="disabled")
         
         import webbrowser
         def open_url():
             webbrowser.open(url)
-            dialog.destroy()
-            
-        ctk.CTkButton(dialog, text="DOWNLOAD NOW", command=open_url, fg_color=styles.ACCENT_COLOR, height=40).pack(pady=20)
+            on_close()
+        
+        btn_frame = ctk.CTkFrame(dialog, fg_color="transparent")
+        btn_frame.pack(pady=15, fill="x", padx=20)
+        
+        ctk.CTkButton(btn_frame, text="⬇️ DOWNLOAD NOW", command=open_url,
+                      fg_color=styles.ACCENT_COLOR, height=42,
+                      font=ctk.CTkFont(size=13, weight="bold")).pack(side="left", expand=True, padx=(0, 8))
+        
+        ctk.CTkButton(btn_frame, text="Later", command=on_close,
+                      fg_color="#333333", hover_color="#444444", height=42,
+                      font=ctk.CTkFont(size=12)).pack(side="left", expand=True)
+
 
     def start_port_scanner(self):
         import threading
