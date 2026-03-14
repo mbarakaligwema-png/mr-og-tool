@@ -74,7 +74,7 @@ def initiate_ussd_push(phone_number: str, amount_tzs: int, order_id: str, buyer_
             # PalmPesa returns: {"message": "Payment request sent to user's phone"}
             msg = data.get("message", "")
             if "sent" in msg.lower() or "success" in msg.lower() or "payment" in msg.lower():
-                return {"result": "SUCCESS", "message": "Push imetumwa kwenye simu yako. Weka PIN!", "order_id": order_id}
+                return {"result": "SUCCESS", "message": "Push sent to your phone. Please enter your PIN to confirm payment!", "order_id": order_id}
             else:
                 return {"result": "FAIL", "message": data.get("message") or str(data)}
         else:
