@@ -129,7 +129,31 @@
             
             if (res.ok) {
                 statusDiv.style.color = '#51cf66';
-                statusDiv.innerText = data.message;
+                statusDiv.innerText = data.message + " Waiting for payment confirmation...";
+                btn.innerText = "Confirming Payment...";
+                btn.style.background = "#3498db"; // Blue for waiting
+                
+                // Start polling for activation
+                let pollCount = 0;
+                const pollInterval = setInterval(async () => {
+                    pollCount++;
+                    try {
+                        const checkRes = await fetch('/api/check-status');
+                        const checkData = await checkRes.json();
+                        if (checkData.active) {
+                            clearInterval(pollInterval);
+                            statusDiv.innerText = "Payment Verified! Activating... 🚀";
+                            setTimeout(() => window.location.reload(), 2000);
+                        }
+                    } catch(e) {}
+                    
+                    if (pollCount > 100) { // Stop after ~5 mins
+                        clearInterval(pollInterval);
+                        btn.disabled = false;
+                        btn.innerText = "Click if paid";
+                    }
+                }, 3000);
+
             } else {
                 statusDiv.style.color = '#ff6b6b';
                 statusDiv.innerText = data.message || "Something went wrong.";

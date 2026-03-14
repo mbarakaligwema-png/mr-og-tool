@@ -149,6 +149,13 @@ async def logout():
     response.delete_cookie("access_token")
     return response
 
+@app.get("/api/check-status")
+async def check_user_status(request: Request, db: Session = Depends(get_db)):
+    user = get_current_user_from_cookie(request, db)
+    if not user:
+        return JSONResponse({"active": False, "error": "unauthorized"}, status_code=401)
+    return {"active": user.is_active}
+
 @app.get("/forgot-password", response_class=HTMLResponse)
 async def forgot_password_page(request: Request):
     return templates.TemplateResponse("forgot_password.html", {"request": request})
@@ -416,26 +423,28 @@ async def palmpesa_webhook(request: Request, db: Session = Depends(get_db)):
     # PalmPay/PalmPesa Webhook
     try:
         data = await request.json()
+        print(f"[PalmPesa Webhook] Received Data: {data}")
+        
         # PalmPesa status fields
         status = data.get("status") or data.get("trade_status") or data.get("resultcode") or data.get("transaction_status")
         # PalmPesa order ID fields
         order_id = data.get("orderId") or data.get("merchant_order_id") or data.get("transaction_id") or data.get("reference")
         
-        # Check for success indicators
-        is_success = False
-        if status in ["SUCCESS", "COMPLETED", "TRADE_SUCCESS", "000", "0", 0, "success", "1", 1, "approved"]:
-            is_success = True
+        # Check for success indicators (000, 0, SUCCESS, success, approved, etc.)
+        status_str = str(status).strip().upper() if status is not None else ""
+        is_success = status_str in ["SUCCESS", "COMPLETED", "TRADE_SUCCESS", "000", "0", "APPROVED", "OK"]
             
         if is_success and order_id:
             # parsing order id: MR_PP_{user_id}_{planCode}_{timestamp}
-            parts = order_id.split("_")
+            parts = str(order_id).split("_")
             if len(parts) >= 4 and parts[0] == "MR" and parts[1] == "PP":
                 user_id = int(parts[2])
                 plan_code = parts[3]
                 
                 plan_duration = {"12": "1_year", "6h": "6_hours"}.get(plan_code, "6_months")
                 crud.extend_user_expiry(db, user_id, plan_duration)
-                crud.create_notification(db, f"PalmPesa Payment Success: User {user_id} plan {plan_duration}")
+                crud.create_notification(db, f"PalmPesa Payment Verified: User {user_id} plan {plan_duration}")
+                print(f"[PalmPesa Webhook] Success processed for user {user_id}")
     except Exception as e:
         print(f"PalmPesa Webhook error: {e}")
             
