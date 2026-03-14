@@ -109,8 +109,15 @@ async def login(request: Request, username: str = Form(...), password: str = For
     if not user or not auth.verify_password(password, user.hashed_password):
         return templates.TemplateResponse("login.html", {"request": request, "error": "Invalid credentials", "msg": None})
     
+    # Allow inactive users to login to website (for payment only)
+    # They will be redirected to shop to pay and activate account
+    access_token = auth.create_access_token(data={"sub": user.username})
+    
     if not user.is_active:
-        return templates.TemplateResponse("login.html", {"request": request, "error": "Account Pending Activation. Please contact Admin.", "msg": None})
+        # Inactive: login but redirect to shop to pay
+        response = RedirectResponse(url="/shop?msg=pay_to_activate", status_code=status.HTTP_303_SEE_OTHER)
+        response.set_cookie(key="access_token", value=f"Bearer {access_token}", httponly=True)
+        return response
 
     access_token = auth.create_access_token(data={"sub": user.username})
     response = RedirectResponse(url="/dashboard", status_code=status.HTTP_303_SEE_OTHER)

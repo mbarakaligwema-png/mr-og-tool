@@ -7,9 +7,16 @@
     <div class="container" style="max-width: 1000px; margin: 0 auto;">
         
         <h1 style="font-size: 3rem; margin-bottom: 20px; color: var(--text-primary);">Choose Your Actvation Plan</h1>
-        <p style="font-size: 1.2rem; color: var(--text-secondary); margin-bottom: 50px;">
+        <p style="font-size: 1.2rem; color: var(--text-secondary); margin-bottom: 30px;">
             Get instant access to MR OG TOOL premium features. Select the package that fits your needs.
         </p>
+
+        {% if user and not user.is_active %}
+        <div style="background: linear-gradient(135deg, #ff6b35, #f7c59f); border-radius: 12px; padding: 15px 25px; margin-bottom: 30px; color: #000; font-weight: 600; font-size: 1rem;">
+            ⚠️ Account yako bado haijawaka. Lipa hapa chini ili kuanza kutumia MR OG TOOL mara moja!
+        </div>
+        {% endif %}
+
 
         <div style="display: flex; gap: 30px; justify-content: center; flex-wrap: wrap;">
             
