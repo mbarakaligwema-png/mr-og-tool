@@ -398,10 +398,16 @@ async def initiate_palmpesa_payment(request: Request, db: Session = Depends(get_
     plan_code = {"12_months": "12", "6_hours": "6h"}.get(plan, "6m")
     order_id = f"MR_PP_{user.id}_{plan_code}_{int(datetime.now().timestamp())}"
     
-    result = palmpesa_api.initiate_ussd_push(phone, amount_tzs, order_id)
+    result = palmpesa_api.initiate_ussd_push(
+        phone_number=phone,
+        amount_tzs=amount_tzs,
+        order_id=order_id,
+        buyer_name=user.username,
+        buyer_email=user.email or "user@mrogtool.com"
+    )
     
     if result.get("result") == "SUCCESS":
-        return JSONResponse({"status": "pending", "message": f"PalmPesa: Push sent to {phone}. Confirm with your PIN."})
+        return JSONResponse({"status": "pending", "message": result.get("message", f"PalmPesa: Push sent to {phone}. Confirm with your PIN.")})
     else:
         return JSONResponse({"status": "error", "message": result.get("message", "PalmPesa failed")}, status_code=500)
 
