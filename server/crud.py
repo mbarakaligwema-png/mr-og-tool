@@ -57,6 +57,7 @@ def extend_user_expiry(db: Session, user_id: int, duration_type: str):
     elif duration_type == "lifetime":
         user.expiry_date = None # None means lifetime
         
+    user.is_active = True # Activate account upon successful payment
     db.commit()
     return user
 
