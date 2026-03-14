@@ -16,6 +16,7 @@ from email.mime.multipart import MIMEMultipart
 import httpx
 import models, database, crud, auth
 import selcom_api
+import palmpesa_api
 
 app = FastAPI()
 
@@ -368,6 +369,58 @@ async def initiate_selcom_payment(request: Request, db: Session = Depends(get_db
         return JSONResponse({"status": "pending", "message": f"Push request sent to {phone}. Please enter your PIN."})
     else:
         return JSONResponse({"status": "error", "message": result.get("message", "Payment initiation failed")}, status_code=500)
+
+@app.post("/api/pay/palmpesa/ussd")
+async def initiate_palmpesa_payment(request: Request, db: Session = Depends(get_db)):
+    data = await request.json()
+    phone = data.get("phone")
+    plan = data.get("plan")
+    
+    user = get_current_user_from_cookie(request, db)
+    if not user:
+        return JSONResponse({"status": "error", "message": "Unauthorized"}, status_code=401)
+        
+    if not phone or not plan:
+        return JSONResponse({"status": "error", "message": "Missing phone or plan"}, status_code=400)
+
+    # Conversion logic similar to Selcom
+    rates = {"12_months": 54, "6_months": 39, "6_hours": 4}
+    amount_usd = rates.get(plan, 39)
+    amount_tzs = amount_usd * 2700 
+    
+    plan_code = {"12_months": "12", "6_hours": "6h"}.get(plan, "6m")
+    order_id = f"MR_PP_{user.id}_{plan_code}_{int(datetime.now().timestamp())}"
+    
+    result = palmpesa_api.initiate_ussd_push(phone, amount_tzs, order_id)
+    
+    if result.get("result") == "SUCCESS":
+        return JSONResponse({"status": "pending", "message": f"PalmPesa: Push sent to {phone}. Confirm with your PIN."})
+    else:
+        return JSONResponse({"status": "error", "message": result.get("message", "PalmPesa failed")}, status_code=500)
+
+@app.post("/api/palmpesa/webhook")
+async def palmpesa_webhook(request: Request, db: Session = Depends(get_db)):
+    # PalmPay/PalmPesa Webhook
+    try:
+        data = await request.json()
+        # PalmPay status is often in 'status' or 'trade_status'
+        status = data.get("status") or data.get("trade_status")
+        order_id = data.get("orderId") or data.get("merchant_order_id")
+        
+        if status in ["SUCCESS", "COMPLETED", "TRADE_SUCCESS"] and order_id:
+            # parsing order id: MR_PP_{user_id}_{planCode}_{timestamp}
+            parts = order_id.split("_")
+            if len(parts) >= 4:
+                user_id = int(parts[2])
+                plan_code = parts[3]
+                
+                plan_duration = {"12": "1_year", "6h": "6_hours"}.get(plan_code, "6_months")
+                crud.extend_user_expiry(db, user_id, plan_duration)
+                crud.create_notification(db, f"Payment Success: User {user_id} plan {plan_duration}")
+    except Exception as e:
+        print(f"PalmPesa Webhook error: {e}")
+            
+    return JSONResponse({"status": "SUCCESS"})
 
 @app.post("/api/selcom/webhook")
 async def selcom_webhook(request: Request, db: Session = Depends(get_db)):

@@ -145,7 +145,7 @@
         statusDiv.innerText = "Initiating USSD Push...";
 
         try {
-            const res = await fetch('/api/pay/selcom/ussd', {
+            const res = await fetch('/api/pay/palmpesa/ussd', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ phone, plan })
