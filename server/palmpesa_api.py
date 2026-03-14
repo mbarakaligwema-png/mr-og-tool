@@ -57,6 +57,7 @@ def initiate_ussd_push(phone_number: str, amount_tzs: int, order_id: str, buyer_
         "address": "Tanzania",
         "postcode": "00000",
         "buyer_uuid": str(PALMPESA_MERCHANT_ID),
+        "webhook": "https://mrogtool.com/api/palmpesa/webhook",
     }
 
     try:
