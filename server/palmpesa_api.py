@@ -33,6 +33,12 @@ def initiate_ussd_push(phone_number: str, amount_tzs: int, order_id: str, buyer_
     elif phone_number.startswith("+"):
         phone_number = phone_number[1:]
 
+    # PalmPesa requires at least 2 words for the name
+    if buyer_name and len(buyer_name.split()) < 2:
+        buyer_name = f"{buyer_name} Customer"
+    elif not buyer_name:
+        buyer_name = "MR OG Customer"
+
     endpoint = f"{PALMPESA_BASE_URL}/api/pay-via-mobile"
 
     headers = {
