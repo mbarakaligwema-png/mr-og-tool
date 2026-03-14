@@ -416,20 +416,26 @@ async def palmpesa_webhook(request: Request, db: Session = Depends(get_db)):
     # PalmPay/PalmPesa Webhook
     try:
         data = await request.json()
-        # PalmPay status is often in 'status' or 'trade_status'
-        status = data.get("status") or data.get("trade_status")
-        order_id = data.get("orderId") or data.get("merchant_order_id")
+        # PalmPesa status fields
+        status = data.get("status") or data.get("trade_status") or data.get("resultcode") or data.get("transaction_status")
+        # PalmPesa order ID fields
+        order_id = data.get("orderId") or data.get("merchant_order_id") or data.get("transaction_id") or data.get("reference")
         
-        if status in ["SUCCESS", "COMPLETED", "TRADE_SUCCESS"] and order_id:
+        # Check for success indicators
+        is_success = False
+        if status in ["SUCCESS", "COMPLETED", "TRADE_SUCCESS", "000", "0", 0, "success", "1", 1, "approved"]:
+            is_success = True
+            
+        if is_success and order_id:
             # parsing order id: MR_PP_{user_id}_{planCode}_{timestamp}
             parts = order_id.split("_")
-            if len(parts) >= 4:
+            if len(parts) >= 4 and parts[0] == "MR" and parts[1] == "PP":
                 user_id = int(parts[2])
                 plan_code = parts[3]
                 
                 plan_duration = {"12": "1_year", "6h": "6_hours"}.get(plan_code, "6_months")
                 crud.extend_user_expiry(db, user_id, plan_duration)
-                crud.create_notification(db, f"Payment Success: User {user_id} plan {plan_duration}")
+                crud.create_notification(db, f"PalmPesa Payment Success: User {user_id} plan {plan_duration}")
     except Exception as e:
         print(f"PalmPesa Webhook error: {e}")
             
