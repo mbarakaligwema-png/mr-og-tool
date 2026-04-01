@@ -83,35 +83,31 @@ def get_db():
 
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request, db: Session = Depends(get_db)):
-    try:
-        user = get_current_user_from_cookie(request, db)
-        return templates.TemplateResponse("home.html", {"request": request, "user": user})
-    except Exception as e:
-        import traceback
-        return HTMLResponse(f"<pre>{traceback.format_exc()}</pre>", status_code=500)
+    user = get_current_user_from_cookie(request, db)
+    return templates.TemplateResponse(request, "home.html", {"user": user})
 
 @app.get("/resellers", response_class=HTMLResponse)
 async def resellers_page(request: Request, db: Session = Depends(get_db)):
     user = get_current_user_from_cookie(request, db)
-    return templates.TemplateResponse("resellers.html", {"request": request, "user": user})
+    return templates.TemplateResponse(request, "resellers.html", {"user": user})
 
 @app.get("/shop", response_class=HTMLResponse)
 async def shop_page(request: Request, db: Session = Depends(get_db)):
     user = get_current_user_from_cookie(request, db)
-    return templates.TemplateResponse("shop.html", {"request": request, "user": user})
+    return templates.TemplateResponse(request, "shop.html", {"user": user})
 
 @app.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request, msg: str = None):
     message = None
     if msg == "registered":
         message = "Account Pending Admission. Lifetime License Ready."
-    return templates.TemplateResponse("login.html", {"request": request, "msg": message, "error": None})
+    return templates.TemplateResponse(request, "login.html", {"msg": message, "error": None})
 
 @app.post("/login", response_class=HTMLResponse)
 async def login(request: Request, username: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
     user = crud.get_user(db, username)
     if not user or not auth.verify_password(password, user.hashed_password):
-        return templates.TemplateResponse("login.html", {"request": request, "error": "Invalid credentials", "msg": None})
+        return templates.TemplateResponse(request, "login.html", {"error": "Invalid credentials", "msg": None})
     
     # Allow inactive users to login to website (for payment only)
     # They will be redirected to shop to pay and activate account
@@ -130,22 +126,22 @@ async def login(request: Request, username: str = Form(...), password: str = For
 
 @app.get("/register", response_class=HTMLResponse)
 async def register_page(request: Request):
-    return templates.TemplateResponse("register.html", {"request": request, "error": None})
+    return templates.TemplateResponse(request, "register.html", {"error": None})
 
 @app.post("/register", response_class=HTMLResponse)
 async def register(request: Request, username: str = Form(...), email: str = Form(...), password: str = Form(...), confirm_password: str = Form(...), db: Session = Depends(get_db)):
     if password != confirm_password:
-        return templates.TemplateResponse("register.html", {"request": request, "error": "Passwords mismatch"})
+        return templates.TemplateResponse(request, "register.html", {"error": "Passwords mismatch"})
     if crud.get_user(db, username):
-        return templates.TemplateResponse("register.html", {"request": request, "error": "Username taken"})
+        return templates.TemplateResponse(request, "register.html", {"error": "Username taken"})
     if crud.get_user_by_email(db, email):
-        return templates.TemplateResponse("register.html", {"request": request, "error": "Email already in use"})
+        return templates.TemplateResponse(request, "register.html", {"error": "Email already in use"})
     try:
         crud.create_user(db, username, password, email=email, is_active=False)
         crud.create_notification(db, f"New user: {username}")
         return RedirectResponse(url="/login?msg=registered", status_code=status.HTTP_303_SEE_OTHER)
     except Exception as e:
-        return templates.TemplateResponse("register.html", {"request": request, "error": str(e)})
+        return templates.TemplateResponse(request, "register.html", {"error": str(e)})
 
 @app.get("/logout")
 async def logout():
@@ -162,7 +158,7 @@ async def check_user_status(request: Request, db: Session = Depends(get_db)):
 
 @app.get("/forgot-password", response_class=HTMLResponse)
 async def forgot_password_page(request: Request):
-    return templates.TemplateResponse("forgot_password.html", {"request": request})
+    return templates.TemplateResponse(request, "forgot_password.html", {})
 
 @app.post("/api/send-otp")
 async def send_otp(request: Request, db: Session = Depends(get_db)):
@@ -237,14 +233,14 @@ async def reset_password_api(request: Request, db: Session = Depends(get_db)):
 async def dashboard(request: Request, db: Session = Depends(get_db)):
     user = get_current_user_from_cookie(request, db)
     if not user: return RedirectResponse(url="/login")
-    return templates.TemplateResponse("dashboard.html", {"request": request, "user": user})
+    return templates.TemplateResponse(request, "dashboard.html", {"user": user})
 
 @app.get("/admin", response_class=HTMLResponse)
 async def admin_panel(request: Request, db: Session = Depends(get_db)):
     user = get_current_user_from_cookie(request, db)
     if not user or not user.is_admin: return RedirectResponse(url="/dashboard")
     users = crud.get_users(db)
-    return templates.TemplateResponse("admin.html", {"request": request, "user": user, "users": users, "error": None})
+    return templates.TemplateResponse(request, "admin.html", {"user": user, "users": users, "error": None})
 
 # --- ADMIN ACTIONS ---
 @app.post("/admin/users/{user_id}/toggle")
@@ -286,7 +282,7 @@ async def add_user_admin(request: Request,
     
     if crud.get_user(db, username):
         users = crud.get_users(db)
-        return templates.TemplateResponse("admin.html", {"request": request, "user": user, "users": users, "error": "Username already exists"})
+        return templates.TemplateResponse(request, "admin.html", {"user": user, "users": users, "error": "Username already exists"})
     
     crud.create_user(db, username, password, is_admin=is_admin)
     return RedirectResponse(url="/admin", status_code=303)
