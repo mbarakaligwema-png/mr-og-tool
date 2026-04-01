@@ -4,17 +4,20 @@
 
 {% block content %}
 <!-- Hero Section -->
-<section class="hero-gradient" style="padding: 100px 20px; overflow: hidden;">
+<section class="hero-gradient" style="padding: 100px 20px; overflow: hidden; position: relative;">
+
+    <!-- Animated star particles background -->
+    <div id="stars-container" style="position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0;"></div>
+
     <div class="container"
-        style="max-width: 1200px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 40px;">
+        style="max-width: 1200px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 40px; position: relative; z-index: 1;">
 
         <!-- Left Side: Core Message -->
         <div style="flex: 1; min-width: 300px; text-align: left;">
             <div class="feature-badge" style="animation: pulse 2s infinite;">UPDATED v1.7.5 AVAILABLE</div>
             <h1 style="font-size: 4rem; margin: 10px 0; letter-spacing: -2px;">MR OG TOOL <i class='bx bxs-check-shield'
                     style="color: var(--accent-color); font-size: 2.5rem;"></i></h1>
-            <p
-                style="font-size: 1.3rem; color: var(--text-secondary); max-width: 550px; margin: 20px 0 40px; line-height: 1.6;">
+            <p style="font-size: 1.3rem; color: var(--text-secondary); max-width: 550px; margin: 20px 0 40px; line-height: 1.6;">
                 The ultimate all-in-one solution for <b>FRP Bypass</b>, <b>KG Unlock</b>, and <b>MDM Repair</b>.
                 Fast, secure, and reliable.
             </p>
@@ -39,105 +42,403 @@
             </div>
         </div>
 
-        <!-- Right Side: Ramadan Decoration (As requested by USER) -->
-        <div class="ramadan-decor"
-            style="flex: 1; min-width: 300px; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; background: rgba(255, 215, 0, 0.03); border-radius: 40px; border: 1px solid rgba(255, 215, 0, 0.1); backdrop-filter: blur(5px);">
-            <!-- Golden Crescent -->
-            <div style="position: relative; animation: float 4s ease-in-out infinite;">
-                <i class='bx bxs-moon'
-                    style="font-size: 120px; color: gold; filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.5));"></i>
-                <i class='bx bxs-star'
-                    style="position: absolute; top: 20px; right: -10px; font-size: 30px; color: gold; animation: blink 1.5s infinite;"></i>
+        <!-- Right Side: Premium Ramadan Card -->
+        <div class="ramadan-card-wrap" style="flex: 1; min-width: 300px; display: flex; justify-content: center;">
+            <div class="ramadan-premium-card">
+
+                <!-- Glowing orbs -->
+                <div class="rmd-orb rmd-orb-1"></div>
+                <div class="rmd-orb rmd-orb-2"></div>
+
+                <!-- Top arch decoration -->
+                <div class="rmd-arch">
+                    <div class="rmd-arch-inner">
+                        <span class="rmd-arch-dot"></span>
+                        <span class="rmd-arch-dot"></span>
+                        <span class="rmd-arch-dot rmd-arch-dot-center"></span>
+                        <span class="rmd-arch-dot"></span>
+                        <span class="rmd-arch-dot"></span>
+                    </div>
+                </div>
+
+                <!-- Night sky scene -->
+                <div class="rmd-sky">
+                    <div class="rmd-star rmd-star-1">&#10022;</div>
+                    <div class="rmd-star rmd-star-2">&#10022;</div>
+                    <div class="rmd-star rmd-star-3">&#9733;</div>
+                    <div class="rmd-star rmd-star-4">&#10022;</div>
+                    <div class="rmd-star rmd-star-5">&#10022;</div>
+
+                    <!-- Crescent Moon -->
+                    <div class="rmd-moon-wrap">
+                        <div class="rmd-moon">
+                            <div class="rmd-moon-inner"></div>
+                        </div>
+                        <div class="rmd-moon-star">&#10022;</div>
+                    </div>
+                </div>
+
+                <!-- Arabic calligraphy -->
+                <div class="rmd-arabic">رَمَضَانُ كَرِيم</div>
+
+                <!-- Main title -->
+                <div class="rmd-title">RAMADAN KAREEM</div>
+                <div class="rmd-subtitle">✦ &nbsp; Kheri Ya Mwezi Mtukufu &nbsp; ✦</div>
+
+                <!-- Ornamental divider -->
+                <div class="rmd-divider">
+                    <span class="rmd-divider-line"></span>
+                    <span class="rmd-divider-gem">◆</span>
+                    <span class="rmd-divider-line"></span>
+                </div>
+
+                <!-- Animated lanterns -->
+                <div class="rmd-lanterns">
+                    <div class="rmd-lantern rmd-lantern-left">
+                        <div class="rmd-lantern-string"></div>
+                        <div class="rmd-lantern-top"></div>
+                        <div class="rmd-lantern-body">
+                            <div class="rmd-lantern-glow"></div>
+                            <div class="rmd-lantern-pattern"></div>
+                        </div>
+                        <div class="rmd-lantern-tail"></div>
+                    </div>
+
+                    <div class="rmd-center-icon">
+                        <i class='bx bxs-moon' style="font-size: 24px; color: #d4af37;"></i>
+                    </div>
+
+                    <div class="rmd-lantern rmd-lantern-right">
+                        <div class="rmd-lantern-string"></div>
+                        <div class="rmd-lantern-top"></div>
+                        <div class="rmd-lantern-body">
+                            <div class="rmd-lantern-glow"></div>
+                            <div class="rmd-lantern-pattern"></div>
+                        </div>
+                        <div class="rmd-lantern-tail"></div>
+                    </div>
+                </div>
+
+                <!-- Bottom blessing text -->
+                <div class="rmd-blessing">🌙 MR OG TOOL — Tukumbuke dua katika mwezi huu 🌙</div>
             </div>
-
-            <h2
-                style="color: gold; margin: 25px 0 10px; font-size: 2.2rem; font-weight: 800; letter-spacing: 1px; text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);">
-                RAMADAN KAREEM</h2>
-            <p
-                style="color: rgba(255, 215, 0, 0.7); font-size: 1rem; text-align: center; font-weight: 600; text-transform: uppercase; letter-spacing: 2px;">
-                Kheri ya mwezi mtukufu</p>
-
-            <!-- Hanging Lanterns -->
-            <div style="display: flex; gap: 40px; margin-top: 20px;">
-                <i class='bx bxs-objects-vertical-bottom'
-                    style="font-size: 40px; color: gold; animation: swing 3s ease-in-out infinite;"></i>
-                <i class='bx bxs-objects-vertical-bottom'
-                    style="font-size: 40px; color: gold; animation: swing 4s ease-in-out infinite; animation-delay: 0.5s;"></i>
-            </div>
-
-            <style>
-                @keyframes float {
-
-                    0%,
-                    100% {
-                        transform: translateY(0);
-                    }
-
-                    50% {
-                        transform: translateY(-20px);
-                    }
-                }
-
-                @keyframes blink {
-
-                    0%,
-                    100% {
-                        opacity: 1;
-                        transform: scale(1);
-                    }
-
-                    50% {
-                        opacity: 0.5;
-                        transform: scale(0.8);
-                    }
-                }
-
-                @keyframes swing {
-
-                    0%,
-                    100% {
-                        transform: rotate(-10deg);
-                        transform-origin: top;
-                    }
-
-                    50% {
-                        transform: rotate(10deg);
-                        transform-origin: top;
-                    }
-                }
-
-                @keyframes pulse {
-                    0% {
-                        transform: scale(1);
-                        opacity: 1;
-                    }
-
-                    50% {
-                        transform: scale(1.05);
-                        opacity: 0.8;
-                    }
-
-                    100% {
-                        transform: scale(1);
-                        opacity: 1;
-                    }
-                }
-
-                @media (max-width: 768px) {
-                    .container {
-                        text-align: center !important;
-                    }
-
-                    .ramadan-decor {
-                        margin-top: 40px;
-                        width: 100%;
-                    }
-                }
-            </style>
         </div>
 
     </div>
 </section>
+
+<style>
+    /* ============================
+       PREMIUM RAMADAN CARD STYLES
+       ============================ */
+
+    .ramadan-premium-card {
+        position: relative;
+        width: 380px;
+        background: linear-gradient(160deg, #0d1b2e 0%, #0a1525 45%, #0c1e18 100%);
+        border: 1px solid rgba(212, 175, 55, 0.35);
+        border-radius: 28px;
+        padding: 0 0 22px 0;
+        overflow: hidden;
+        box-shadow:
+            0 0 0 1px rgba(212, 175, 55, 0.08),
+            0 25px 70px rgba(0, 0, 0, 0.7),
+            0 0 100px rgba(212, 175, 55, 0.06) inset;
+        animation: cardFloat 6s ease-in-out infinite;
+    }
+
+    /* --- Glowing background orbs --- */
+    .rmd-orb {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(70px);
+        pointer-events: none;
+        z-index: 0;
+    }
+    .rmd-orb-1 {
+        width: 220px; height: 220px;
+        background: radial-gradient(circle, rgba(212,175,55,0.12), transparent 70%);
+        top: -80px; left: -80px;
+    }
+    .rmd-orb-2 {
+        width: 160px; height: 160px;
+        background: radial-gradient(circle, rgba(0, 180, 100, 0.07), transparent 70%);
+        bottom: 0; right: -40px;
+    }
+
+    /* --- Top arch ornament --- */
+    .rmd-arch {
+        width: 100%;
+        background: linear-gradient(180deg, rgba(212,175,55,0.1) 0%, transparent 100%);
+        border-bottom: 1px solid rgba(212,175,55,0.18);
+        padding: 14px 0 11px;
+        display: flex;
+        justify-content: center;
+        position: relative;
+        z-index: 1;
+    }
+    .rmd-arch-inner { display: flex; align-items: center; gap: 10px; }
+    .rmd-arch-dot {
+        width: 7px; height: 7px;
+        border-radius: 50%;
+        background: rgba(212, 175, 55, 0.45);
+        display: inline-block;
+    }
+    .rmd-arch-dot-center {
+        width: 13px; height: 13px;
+        background: #d4af37;
+        box-shadow: 0 0 10px rgba(212, 175, 55, 0.6);
+    }
+
+    /* --- Night Sky --- */
+    .rmd-sky {
+        position: relative;
+        width: 100%;
+        height: 158px;
+        background: linear-gradient(180deg, #030d1a 0%, #07162a 55%, #0d1b2e 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        z-index: 1;
+    }
+
+    /* Twinkling mini stars */
+    .rmd-star {
+        position: absolute;
+        color: #d4af37;
+        animation: starBlink 2.5s ease-in-out infinite;
+    }
+    .rmd-star-1 { top: 16px; left: 22px; font-size: 11px; animation-delay: 0s; }
+    .rmd-star-2 { top: 38px; left: 68px; font-size: 7px; animation-delay: 0.4s; }
+    .rmd-star-3 { top: 10px; right: 28px; font-size: 17px; color: #ffe77a; animation-delay: 0.9s; }
+    .rmd-star-4 { bottom: 20px; left: 36px; font-size: 8px; animation-delay: 1.3s; }
+    .rmd-star-5 { top: 44px; right: 62px; font-size: 9px; animation-delay: 0.6s; }
+
+    /* --- Crescent Moon --- */
+    .rmd-moon-wrap {
+        position: relative;
+        animation: moonFloat 5s ease-in-out infinite;
+    }
+    .rmd-moon {
+        width: 86px; height: 86px;
+        background: radial-gradient(circle at 33% 38%, #ffe566, #f0c500 42%, #c49600 80%);
+        border-radius: 50%;
+        box-shadow:
+            0 0 30px rgba(240, 197, 0, 0.55),
+            0 0 70px rgba(240, 197, 0, 0.2),
+            0 0 110px rgba(240, 197, 0, 0.1);
+    }
+    .rmd-moon-inner {
+        position: absolute;
+        width: 70px; height: 70px;
+        background: radial-gradient(circle at 40% 35%, #07162a, #040e1e);
+        border-radius: 50%;
+        top: 9px; left: 19px;
+    }
+    .rmd-moon-star {
+        position: absolute;
+        top: -10px; right: -22px;
+        font-size: 24px;
+        color: #ffe566;
+        text-shadow: 0 0 14px rgba(255, 229, 102, 0.9);
+        animation: starBlink 1.8s ease-in-out infinite;
+    }
+
+    /* --- Arabic calligraphy text --- */
+    .rmd-arabic {
+        text-align: center;
+        font-size: 1.85rem;
+        color: #d4af37;
+        padding: 18px 20px 4px;
+        letter-spacing: 5px;
+        text-shadow: 0 0 24px rgba(212, 175, 55, 0.45);
+        font-style: italic;
+        position: relative;
+        z-index: 1;
+        direction: rtl;
+        font-family: 'Georgia', serif;
+    }
+
+    /* --- Main Title --- */
+    .rmd-title {
+        text-align: center;
+        font-size: 1.65rem;
+        font-weight: 900;
+        letter-spacing: 3px;
+        background: linear-gradient(135deg, #ffe57a 0%, #d4af37 40%, #f5d65c 70%, #b8941f 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        padding: 5px 20px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .rmd-subtitle {
+        text-align: center;
+        font-size: 0.75rem;
+        letter-spacing: 3px;
+        color: rgba(212, 175, 55, 0.55);
+        text-transform: uppercase;
+        padding: 3px 20px 10px;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* --- Ornamental Divider --- */
+    .rmd-divider {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 0 30px;
+        margin: 4px 0 14px;
+        position: relative;
+        z-index: 1;
+    }
+    .rmd-divider-line {
+        flex: 1; height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(212,175,55,0.4), transparent);
+    }
+    .rmd-divider-gem { color: #d4af37; font-size: 9px; opacity: 0.7; }
+
+    /* --- Lanterns --- */
+    .rmd-lanterns {
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        gap: 28px;
+        padding: 0 20px 10px;
+        position: relative;
+        z-index: 1;
+    }
+    .rmd-lantern {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        animation: lanternSwing 4.2s ease-in-out infinite;
+        transform-origin: top center;
+    }
+    .rmd-lantern-right { animation-delay: 0.9s; }
+    .rmd-lantern-string {
+        width: 1px; height: 14px;
+        background: linear-gradient(180deg, rgba(212,175,55,0.6), rgba(212,175,55,0.2));
+    }
+    .rmd-lantern-top {
+        width: 26px; height: 7px;
+        background: linear-gradient(90deg, #7a5a0a, #d4af37, #7a5a0a);
+        border-radius: 3px;
+    }
+    .rmd-lantern-body {
+        width: 32px; height: 46px;
+        background: linear-gradient(160deg, #1c0a00, #3e2000);
+        border: 1px solid rgba(212, 175, 55, 0.45);
+        border-radius: 5px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 0 16px rgba(255, 140, 0, 0.35), 0 0 5px rgba(255, 140, 0, 0.2) inset;
+    }
+    .rmd-lantern-glow {
+        position: absolute;
+        inset: 3px;
+        background: radial-gradient(circle, rgba(255,150,0,0.65), rgba(255,80,0,0.2));
+        border-radius: 4px;
+        animation: lanternGlow 2s ease-in-out infinite;
+    }
+    .rmd-lantern-pattern {
+        position: absolute;
+        inset: 0;
+        background:
+            linear-gradient(rgba(212,175,55,0.12) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(212,175,55,0.12) 1px, transparent 1px);
+        background-size: 8px 8px;
+    }
+    .rmd-lantern-tail {
+        width: 2px; height: 10px;
+        background: linear-gradient(180deg, #d4af37, transparent);
+    }
+    .rmd-center-icon {
+        padding-bottom: 12px;
+        animation: starBlink 3s ease-in-out infinite;
+    }
+
+    /* --- Bottom blessing --- */
+    .rmd-blessing {
+        text-align: center;
+        font-size: 0.68rem;
+        color: rgba(212, 175, 55, 0.38);
+        letter-spacing: 0.5px;
+        padding: 8px 20px 0;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* ============================
+       KEYFRAME ANIMATIONS
+       ============================ */
+    @keyframes cardFloat {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-12px); }
+    }
+    @keyframes moonFloat {
+        0%, 100% { transform: translateY(0) rotate(-4deg); }
+        50% { transform: translateY(-10px) rotate(4deg); }
+    }
+    @keyframes starBlink {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.25; transform: scale(0.65); }
+    }
+    @keyframes lanternSwing {
+        0%, 100% { transform: rotate(-9deg); }
+        50% { transform: rotate(9deg); }
+    }
+    @keyframes lanternGlow {
+        0%, 100% { opacity: 0.55; }
+        50% { opacity: 1; }
+    }
+    @keyframes pulse {
+        0% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.05); opacity: 0.8; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    /* Star particle field */
+    .star-particle {
+        position: absolute;
+        width: 2px; height: 2px;
+        background: white;
+        border-radius: 50%;
+        animation: particleBlink linear infinite;
+        opacity: 0;
+    }
+    @keyframes particleBlink {
+        0% { opacity: 0; }
+        50% { opacity: 0.55; }
+        100% { opacity: 0; }
+    }
+
+    @media (max-width: 768px) {
+        .container { text-align: center !important; }
+        .ramadan-card-wrap { width: 100%; }
+        .ramadan-premium-card { width: 100%; max-width: 380px; }
+    }
+</style>
+
+<script>
+    (function () {
+        const cont = document.getElementById('stars-container');
+        if (!cont) return;
+        for (let i = 0; i < 70; i++) {
+            const s = document.createElement('div');
+            s.className = 'star-particle';
+            s.style.left = Math.random() * 100 + '%';
+            s.style.top = Math.random() * 100 + '%';
+            s.style.animationDuration = (2 + Math.random() * 4) + 's';
+            s.style.animationDelay = (Math.random() * 6) + 's';
+            s.style.width = s.style.height = (1 + Math.random() * 2) + 'px';
+            cont.appendChild(s);
+        }
+    })();
+</script>
 
 <!-- Features Grid -->
 <section id="features" style="padding: 80px 20px; background: #0b0e11;">
@@ -156,11 +457,9 @@
                 </div>
                 <h3>NEW UPDATE</h3>
                 <ul style="list-style: none; padding: 0; margin: 20px 0; color: var(--text-secondary); line-height: 2;">
-                    <li><i class='bx bx-check-circle' style="color: var(--success-color);"></i> Samsung A06 (U8/U9) KG
-                    </li>
+                    <li><i class='bx bx-check-circle' style="color: var(--success-color);"></i> Samsung A06 (U8/U9) KG</li>
                     <li><i class='bx bx-check-circle' style="color: var(--success-color);"></i> ZTE A35 QR Code Fix</li>
-                    <li><i class='bx bx-check-circle' style="color: var(--success-color);"></i> Android 15/16 Support
-                    </li>
+                    <li><i class='bx bx-check-circle' style="color: var(--success-color);"></i> Android 15/16 Support</li>
                     <li><i class='bx bx-check-circle' style="color: var(--success-color);"></i> Private DNS Blocker</li>
                 </ul>
             </div>
@@ -172,10 +471,8 @@
                 </div>
                 <h3>SAMSUNG</h3>
                 <ul style="list-style: none; padding: 0; margin: 20px 0; color: var(--text-secondary); line-height: 2;">
-                    <li><i class='bx bx-check-circle' style="color: var(--accent-color);"></i> FRP Bypass (2024 Mode)
-                    </li>
-                    <li><i class='bx bx-check-circle' style="color: var(--accent-color);"></i> KG Unlock (Permanent)
-                    </li>
+                    <li><i class='bx bx-check-circle' style="color: var(--accent-color);"></i> FRP Bypass (2024 Mode)</li>
+                    <li><i class='bx bx-check-circle' style="color: var(--accent-color);"></i> KG Unlock (Permanent)</li>
                     <li><i class='bx bx-check-circle' style="color: var(--accent-color);"></i> IT Admin Removal</li>
                     <li><i class='bx bx-check-circle' style="color: var(--accent-color);"></i> MDM Unlock Solution</li>
                 </ul>
@@ -216,8 +513,7 @@
 <!-- Call to Action -->
 <section style="padding: 100px 20px; text-align: center; border-top: 1px solid rgba(255,255,255,0.05);">
     <h2 style="font-size: 2rem; margin-bottom: 20px;">Ready to grow your business?</h2>
-    <p style="color: var(--text-secondary); margin-bottom: 40px;">Join thousands of professional repair technicians
-        worldwide.</p>
+    <p style="color: var(--text-secondary); margin-bottom: 40px;">Join thousands of professional repair technicians worldwide.</p>
     <a href="/register" class="btn-purchase"
         style="background: white; color: black; padding: 15px 40px; font-weight: bold; box-shadow: 0px 8px 20px rgba(255,255,255,0.1);">
         Get Started Now
