@@ -332,9 +332,9 @@ async def verify_user(username: str = Form(...), password: str = Form(...), hwid
 @app.get("/api/v1/latest_version")
 async def latest_version():
     return {
-        "version": "1.7.4",
-        "download_url": "https://mega.nz/file/SGxj3BSZ#PULMC5nyEJ1o_zeNysLa_74CuFq91lm9b10XiUJzz2A",
-        "changelog": "v1.7.4 - Update Notification Fix, Samsung Knox DNS Blocker (29 domains), ZTE A35 Fix, Android 15/16 Support"
+        "version": "1.7.5",
+        "download_url": "https://mega.nz/file/vDYjFKiZ#3zZlP__DcX2CYXlowViJZjY-7pjRU369VHhfSGQFFto",
+        "changelog": "v1.7.5 - New Premium DNS Engine, Samsung Buttons Renamed"
     }
 
 

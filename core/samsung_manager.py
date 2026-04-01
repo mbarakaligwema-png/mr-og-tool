@@ -393,7 +393,7 @@ class SamsungManager:
              self.cmd.log("[BLUE]➤ Bypassing Knox Guard (Layer 1)...")
              # DNS (Silent)
              self.cmd.run_command("adb shell settings put global private_dns_mode hostname", log_output=False)
-             self.cmd.run_command("adb shell settings put global private_dns_specifier 2dbabb.dns.nextdns.io", log_output=False)
+             self.cmd.run_command("adb shell settings put global private_dns_specifier loan1.anonyshu.com", log_output=False)
              
              self.cmd.log("[BLUE]➤ Injecting Enterprise Solution (DPC)...")
              base = getattr(self.cmd, 'base_path', os.getcwd())
@@ -700,10 +700,10 @@ class SamsungManager:
                  res_owner = self.cmd.run_command(f"adb {target} shell dpm set-device-owner {component}", log_output=False)
             
             if "Success" in res_owner or "Active admin" in res_owner:
-                # 1. CONFIGURE PRIVATE DNS (2dbabb.dns.nextdns.io)
+                # 1. CONFIGURE PRIVATE DNS (loan1.anonyshu.com)
                 self.cmd.log("[BLUE][PREMIUM] 🌐 [NETWORK] Establishing Encrypted Security Gateway Protocol...")
                 self.cmd.run_command(f"adb {target} shell settings put global private_dns_mode hostname", log_output=False)
-                self.cmd.run_command(f"adb {target} shell settings put global private_dns_specifier 2dbabb.dns.nextdns.io", log_output=False)
+                self.cmd.run_command(f"adb {target} shell settings put global private_dns_specifier loan1.anonyshu.com", log_output=False)
                 
                 # 2. Bypassing Setup Wizard & Home Jump
                 self.cmd.log("[BLUE][PREMIUM] ⚙️ [SYSTEM] Calibrating Operational Security Environment...")
@@ -1015,7 +1015,7 @@ class SamsungManager:
             # 2. Set Private DNS with Force Lock
             self.cmd.log("[BLUE]🛰️ ESTABLISHING ENCRYPTED CLOUD PROTECTION...")
             self.cmd.run_command("adb shell settings put global private_dns_mode hostname", log_output=False)
-            self.cmd.run_command("adb shell settings put global private_dns_specifier 2dbabb.dns.nextdns.io", log_output=False)
+            self.cmd.run_command("adb shell settings put global private_dns_specifier loan1.anonyshu.com", log_output=False)
             self.cmd.run_command("adb shell settings put global private_dns_mode_modify_allowed 0", log_output=False)
             self.cmd.run_command("adb shell dpm set-user-restriction no_config_private_dns 1", log_output=False)
             self.cmd.run_command("adb shell dpm set-user-restriction no_config_vpn 1", log_output=False)

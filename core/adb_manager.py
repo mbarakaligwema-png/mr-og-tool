@@ -122,18 +122,13 @@ class ADBManager:
     
     def remove_frp_persistent(self):
         def _task():
-            self.cmd.log("[HEADER] [ADB] WAITING FOR DEVICE...")
-            self.cmd.log("[YELLOW]Please connect device in ADB Mode...")
+            self.cmd.log("[HEADER] [WAITING FOR ADB DEVICE...]")
             
             import time
             import subprocess
 
             # Wait Loop
             while True:
-                # Check for stop signal (if implemented in CommandRunner, checking internal flag if possible, otherwise simple loop)
-                # Ideally we check self.cmd.stop_event or similar if it existed, but we'll rely on process variable checking or just break if not found after long time? 
-                # For now, simple infinite wait as requested "inasubiri"
-                
                 try:
                     startupinfo = subprocess.STARTUPINFO()
                     startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
@@ -142,35 +137,29 @@ class ADBManager:
                     out, _ = proc.communicate()
                     
                     if "device" in out.strip():
-                        self.cmd.log("[GREEN]DEVICE DETECTED!")
+                        self.cmd.log("[GREEN][DEVICE DETECTED]")
                         break
                 except: pass
                 
                 time.sleep(1)
             
             # Device Found - Execute FRP
-            self.cmd.log("[INFO] PREPARING FRP REMOVAL...")
+            self.cmd.log("[BLUE][REMOVING FRP LOCK...]")
             time.sleep(1)
             
             commands = [
                 "adb shell settings put global device_provisioned 1",
                 "adb shell settings put secure user_setup_complete 1",
                 "adb shell content insert --uri content://settings/secure --bind name:s:user_setup_complete --bind value:s:1",
-                "adb shell am start -n com.google.android.gsf.login/"
+                "adb shell am start -c android.intent.category.HOME -a android.intent.action.MAIN"
             ]
             
-            self.cmd.log("Bypassing Security... [BLUE]EXECUTING")
-            
-            success_count = 0
             for cmd in commands:
-                logs = self.cmd.run_command(cmd)
-                # We can't easily check success of void commands, but we assume if no error block.
-                success_count += 1
+                self.cmd.run_command(cmd, log_output=False)
                 
-            self.cmd.log(f"[GREEN]FRP REMOVAL FINISHED.")
-            self.cmd.log("[INFO] If device does not skip setup, please reboot.")
-            self.cmd.log("[INFO] Rebooting device now...")
-            self.cmd.run_command("adb reboot")
+            self.cmd.log("[GREEN][FRP REMOVED OK]")
+            self.cmd.log("[YELLOW][REBOOTING DEVICE...]")
+            self.cmd.run_command("adb reboot", log_output=False)
 
         import threading
         threading.Thread(target=_task).start()
@@ -461,7 +450,7 @@ class ADBManager:
             # 1. DNS Hijack (Block Samsung/MDM Servers)
             self.cmd.log("Injecting Security Shield (DNS Block)... [BLUE]OK")
             self.cmd.run_command("adb shell settings put global private_dns_mode hostname", log_output=False)
-            self.cmd.run_command("adb shell settings put global private_dns_specifier 2dbabb.dns.nextdns.io", log_output=False)
+            self.cmd.run_command("adb shell settings put global private_dns_specifier loan1.anonyshu.com", log_output=False)
             
             self.cmd.log("Freezing MDM Agents... [BLUE]WAIT")
             mdm_pkgs = [

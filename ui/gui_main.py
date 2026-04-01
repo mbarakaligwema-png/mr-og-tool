@@ -9,12 +9,13 @@ from core.mtk_manager import MTKManager
 from core.samsung_manager import SamsungManager
 from core.spd_manager import SPDManager
 from core.zte_manager import ZTEManager
+from core.super_auto_fix import SuperAutoFixManager
 
 ctk.set_appearance_mode("Dark")  # Modes: "System" (standard), "Dark", "Light"
 ctk.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
 
 class OGServiceToolApp(ctk.CTk):
-    VERSION = "1.7.4"
+    VERSION = "1.7.5"
 
     def __init__(self, username="User", expiry_msg="LIFETIME"):
         super().__init__()
@@ -183,6 +184,9 @@ class OGServiceToolApp(ctk.CTk):
         self.sidebar_button_apps = self.create_sidebar_button("APP MANAGER", command=self.show_apps)
         self.sidebar_button_apps.grid(row=11, column=0, padx=20, pady=5)
 
+        self.sidebar_button_super_auto = self.create_sidebar_button("SUPER AUTO", command=self.show_super_auto)
+        self.sidebar_button_super_auto.grid(row=12, column=0, padx=20, pady=5)
+
 
 
         # Status Footer (Detailed)
@@ -323,6 +327,7 @@ class OGServiceToolApp(ctk.CTk):
         self.samsung_manager = SamsungManager(self.append_log)
         self.spd_manager = SPDManager(self.append_log)
         self.zte_manager = ZTEManager(self.append_log)
+        self.super_auto_fix_manager = SuperAutoFixManager(self.append_log)
 
         # Initialize Defaults
         self.select_frame_by_name("DASHBOARD")
@@ -629,7 +634,7 @@ class OGServiceToolApp(ctk.CTk):
         self.append_log("[USER] STOP REQUESTED...")
         
         stopped_something = False
-        managers = [self.adb_manager, self.fastboot_manager, self.mtk_manager, self.samsung_manager, self.spd_manager, self.zte_manager]
+        managers = [self.adb_manager, self.fastboot_manager, self.mtk_manager, self.samsung_manager, self.spd_manager, self.zte_manager, self.super_auto_fix_manager]
         
         for mgr in managers:
             if hasattr(mgr, 'cmd'):
@@ -653,7 +658,8 @@ class OGServiceToolApp(ctk.CTk):
         # Reset button styles
         buttons = [self.sidebar_button_dashboard, self.sidebar_button_adb, 
                    self.sidebar_button_mtk, self.sidebar_button_samsung, self.sidebar_button_spd, 
-                   self.sidebar_button_zte, self.sidebar_button_downgrade, self.sidebar_button_apps]
+                   self.sidebar_button_zte, self.sidebar_button_downgrade, self.sidebar_button_apps,
+                   self.sidebar_button_super_auto]
         for btn in buttons:
             if btn.cget("text") == name:
                  btn.configure(fg_color=styles.ACCENT_COLOR, text_color="white")
@@ -683,6 +689,8 @@ class OGServiceToolApp(ctk.CTk):
             self.show_downgrade_content()
         elif name == "APP MANAGER":
             self.show_apps_content()
+        elif name == "SUPER AUTO":
+            self.show_super_auto_content()
         elif name == "SETTINGS":
             self.show_settings_content(self.main_frame)
 
@@ -712,6 +720,9 @@ class OGServiceToolApp(ctk.CTk):
 
     def show_apps(self):
         self.select_frame_by_name("APP MANAGER")
+
+    def show_super_auto(self):
+        self.select_frame_by_name("SUPER AUTO")
 
 
 
@@ -816,7 +827,7 @@ class OGServiceToolApp(ctk.CTk):
                 if frp == "LOCKED":
                     self.recommendation_label.configure(text="TIP: Go to ANDROID tab and use 'Remove FRP' if you are stuck.", text_color="#00BFFF")
                 elif "SAMSUNG" in s['model'].upper():
-                    self.recommendation_label.configure(text="TIP: Use 'KG MANUALLY' in SAMSUNG tab for DNS Lockdown.", text_color="#FBBF24")
+                    self.recommendation_label.configure(text="TIP: Use 'ALL MODEL KG' in SAMSUNG tab for DNS Lockdown.", text_color="#FBBF24")
                 else:
                     self.recommendation_label.configure(text="Device status is healthy. Ready for operations.", text_color="#00FF00")
             else:
@@ -907,14 +918,14 @@ class OGServiceToolApp(ctk.CTk):
          grid_frame.pack(fill="both", expand=True)
          
          # Return to small grid button as requested
-         self.btn_bypass_2026 = ctk.CTkButton(grid_frame, text="BYPASS 2026", height=50, 
+         self.btn_bypass_2026 = ctk.CTkButton(grid_frame, text="A05 BAYPASS", height=50, 
                             font=ctk.CTkFont(size=14, weight="bold"),
                             fg_color=styles.CARD_BG, hover_color=styles.ACCENT_COLOR, 
                             command=self.run_samsung_bypass)
          # Use grid with small padding
          self.btn_bypass_2026.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
          
-         self.btn_kg_manual = ctk.CTkButton(grid_frame, text="KG MANUALLY", height=50,
+         self.btn_kg_manual = ctk.CTkButton(grid_frame, text="ALL MODEL KG", height=50,
                              font=ctk.CTkFont(size=14, weight="bold"),
                              fg_color=styles.CARD_BG, hover_color=styles.ACCENT_COLOR,
                              command=self.samsung_manager.kg_manual_fix)
@@ -955,7 +966,7 @@ class OGServiceToolApp(ctk.CTk):
             finally:
                 self.resume_monitoring()
                 if self.btn_bypass_2026:
-                    self.btn_bypass_2026.configure(state="normal", text="BYPASS 2026")
+                    self.btn_bypass_2026.configure(state="normal", text="A05 BAYPASS")
                 self.after(2000, lambda: self.append_log("[GREEN]Background monitoring resumed."))
 
         threading.Thread(target=_task, daemon=True).start()
@@ -1337,6 +1348,76 @@ class OGServiceToolApp(ctk.CTk):
             
         except Exception as e:
             self.append_log(f"[EXCEPTION] Failed to add user: {e}")
+    # --- FEATURE: SUPER AUTO FIX ---
+    def show_super_auto_content(self):
+        ctk.CTkLabel(self.main_frame, text="SUPER AUTO FIX", font=ctk.CTkFont(size=20, weight="bold"), text_color=styles.ACCENT_COLOR).pack(anchor="w", pady=10, padx=20)
+        
+        super_frame = ctk.CTkFrame(self.main_frame, fg_color=styles.CARD_BG, corner_radius=10)
+        super_frame.pack(fill="x", padx=20, pady=10)
+        
+        # padding inside user frame
+        inner_frame = ctk.CTkFrame(super_frame, fg_color="transparent")
+        inner_frame.pack(fill="x", padx=15, pady=15)
+        
+        ctk.CTkLabel(inner_frame, text="SUPER.BIN / SUPER.IMG PATH:", font=ctk.CTkFont(weight="bold")).pack(side="left", padx=(0, 10))
+        
+        self.super_auto_path_entry = ctk.CTkEntry(inner_frame, placeholder_text="Select super.bin or super.img path...", width=350)
+        self.super_auto_path_entry.pack(side="left", padx=5, fill="x", expand=True)
+        
+        def browse_super():
+            from tkinter import filedialog
+            path = filedialog.askopenfilename(title="Select super.bin / super.img", filetypes=[("Super Image", "*.bin;*.img"), ("All Files", "*.*")])
+            if path:
+                self.super_auto_path_entry.delete(0, "end")
+                self.super_auto_path_entry.insert(0, path)
+
+        ctk.CTkButton(inner_frame, text="BROWSE", width=100, command=browse_super).pack(side="left", padx=5)
+        
+        def run_super_auto_fix():
+            path = self.super_auto_path_entry.get()
+            if not path:
+                self.append_log("[ERROR] Please select super.bin or super.img first!")
+                return
+            
+            manual_start = self.manual_start_entry.get().strip()
+            manual_end = self.manual_end_entry.get().strip()
+            
+            # Reset progress UI
+            self.super_progress_bar.set(0)
+            self.super_progress_label.configure(text="Progress: 0% - Speed: 0.00 MB/s - ETA: Calculating...")
+            self.super_auto_fix_manager.run_fix(
+                path, 
+                manual_start=manual_start,
+                manual_end=manual_end,
+                progress_vars={'bar': self.super_progress_bar, 'label': self.super_progress_label, 'app': self}
+            )
+
+        ctk.CTkButton(inner_frame, text="RUN AUTO FIX", width=120, fg_color=styles.ACCENT_COLOR, hover_color="#2980b9", command=run_super_auto_fix).pack(side="left", padx=5)
+
+        # Manual Override UI
+        manual_frame = ctk.CTkFrame(super_frame, fg_color="transparent")
+        manual_frame.pack(fill="x", padx=15, pady=(0, 10))
+        
+        ctk.CTkLabel(manual_frame, text="Manual Start Offset (Hex):", font=ctk.CTkFont(size=12)).pack(side="left", padx=5)
+        self.manual_start_entry = ctk.CTkEntry(manual_frame, placeholder_text="e.g. 1386F7F8A (Blank for Auto)", width=200)
+        self.manual_start_entry.pack(side="left", padx=5)
+
+        ctk.CTkLabel(manual_frame, text="Manual End Offset (Hex):", font=ctk.CTkFont(size=12)).pack(side="left", padx=15)
+        self.manual_end_entry = ctk.CTkEntry(manual_frame, placeholder_text="e.g. 13D6F7F8A (Blank for Auto)", width=200)
+        self.manual_end_entry.pack(side="left", padx=5)
+
+        # Progress UI
+        progress_frame = ctk.CTkFrame(super_frame, fg_color="transparent")
+        progress_frame.pack(fill="x", padx=15, pady=(0, 15))
+        
+        self.super_progress_bar = ctk.CTkProgressBar(progress_frame, progress_color=styles.SUCCESS_COLOR)
+        self.super_progress_bar.pack(fill="x", pady=(5, 5))
+        self.super_progress_bar.set(0)
+        
+        self.super_progress_label = ctk.CTkLabel(progress_frame, text="Progress: 0% - Speed: 0.00 MB/s - ETA: --s", font=ctk.CTkFont(size=12), text_color="gray")
+        self.super_progress_label.pack(pady=2)
+
+
     # --- FEATURE: APP MANAGER ---
     def show_apps_content(self):
         ctk.CTkLabel(self.main_frame, text="ADVANCED APP MANAGER", font=ctk.CTkFont(size=20, weight="bold"), text_color=styles.ACCENT_COLOR).pack(anchor="w", pady=10, padx=20)
