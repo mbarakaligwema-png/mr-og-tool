@@ -83,8 +83,12 @@ def get_db():
 
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request, db: Session = Depends(get_db)):
-    user = get_current_user_from_cookie(request, db)
-    return templates.TemplateResponse("home.html", {"request": request, "user": user})
+    try:
+        user = get_current_user_from_cookie(request, db)
+        return templates.TemplateResponse("home.html", {"request": request, "user": user})
+    except Exception as e:
+        import traceback
+        return HTMLResponse(f"<pre>{traceback.format_exc()}</pre>", status_code=500)
 
 @app.get("/resellers", response_class=HTMLResponse)
 async def resellers_page(request: Request, db: Session = Depends(get_db)):
